@@ -1,0 +1,118 @@
+---
+title: Identify breakpoints in scaffolds
+author: Shaun Jackman
+output:
+  html_document:
+    keep_md: true
+params:
+  depth_tsv:
+    label: "Input TSV file of depth of coverage with columns Rname, Pos, Depth"
+    value: "depth.tsv"
+    input: text
+  starts_tsv:
+    label: "Input TSV file of molecule starts with columns Rname, Pos, Starts"
+    value: "starts.tsv"
+    input: text
+  depth_starts_tsv:
+    label: "Output TSV file of depth of coverage and molecule starts"
+    value: "depth_starts.tsv"
+    input: text
+  breakpoints_tsv:
+    label: "Output TSV file of breakpoints"
+    value: "breakpoints.tsv"
+    input: text
+---
+
+```{r setup, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(purrr)
+library(readr)
+library(tibble)
+
+knit_print.data.frame <- function(x, ...) kable(x) %>% paste(collapse = "\n") %>% asis_output
+depth_tsv <- params$depth_tsv
+starts_tsv <- params$starts_tsv
+depth_starts_tsv <- params$depth_starts_tsv
+breakpoints_tsv <- params$breakpoints_tsv
+```
+
+# Read data
+```{r read-data}
+depth_tsv
+depth <- read_tsv(depth_tsv, col_types = cols(Rname = col_character(), Pos = col_integer(), Depth = col_integer()))
+glimpse(depth)
+
+starts_tsv
+starts <- read_tsv(starts_tsv, col_types = cols(Rname = col_character(), Pos = col_integer(), Starts = col_integer()))
+glimpse(starts)
+```
+
+# Compute statistics of depth of coverage
+```{r depth-stats}
+depth_stats <- boxplot.stats(depth$Depth, do.out = FALSE)$stats
+depth_stats <- c(depth_stats, depth_stats[4] - depth_stats[2]) %>%
+	set_names(c("Min", "Q1", "Median", "Q3", "Max", "IQR")) %>%
+	t %>% as_tibble
+depth_stats
+```
+
+# Determine the depth of coverage threshold
+```{r determine-depth-threshold}
+depth_threshold <- depth_stats$Min
+cat(sep = "",
+	"Median - 2 * IQR = ", depth_stats$Median - 2 * depth_stats$IQR, "\n",
+	"Q1 - 1.5 * IQR = ", depth_threshold, "\n")
+```
+
+# Join depth and starts
+```{r join-depth-starts}
+depth_starts <- right_join(depth, starts, by = c("Rname", "Pos"))
+glimpse(depth_starts)
+```
+
+# Write depth and starts to a TSV file
+```{r write-tsv}
+depth_starts_tsv
+depth_starts %>% write_tsv(depth_starts_tsv)
+```
+
+# Identify breakpoints
+```{r identify-breakpoints}
+pos_threshold <- 1000
+starts_threshold <- 4
+
+breakpoints <- depth_starts %>%
+	filter(Pos >= pos_threshold, Starts >= starts_threshold, Depth < depth_threshold)
+
+glimpse(breakpoints)
+```
+
+# Write breakpoints to a TSV file
+```{r write-breakponts}
+breakpoints_tsv
+breakpoints %>% write_tsv(breakpoints_tsv)
+```
+
+# Boxplot of depth of coverage
+```{r depth-boxplot}
+ggplot(depth_stats) +
+	aes(x = NA, ymin = Min, lower = Q1, middle = Median, upper = Q3, ymax = Max) + 
+    geom_boxplot(stat = "identity") +
+	xlab("") +
+	ylab("Depth of coverage") +
+	scale_x_discrete(breaks = NULL) +
+	coord_flip()
+```
+
+# Histogram of depth of coverage
+```{r depth-histogram}
+ggplot(depth) +
+	aes(x = Depth) +
+	geom_histogram()
+
+depth %>% filter(depth_stats$Min <= Depth, Depth < depth_stats$Max) %>%
+ggplot() +
+	aes(x = Depth) +
+	geom_histogram()
+```
