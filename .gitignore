@@ -1,0 +1,28 @@
+*.agp
+*.bam
+*.bam.bai
+*.bed
+*.fa
+*.fa.fai
+*.fq.gz
+*.gff
+*.gv
+*.html
+*.log
+*.lrz
+*.md
+*.orig
+*.png
+*.sam
+*.tsv
+*.txt
+
+# BWA
+*.fa.amb
+*.fa.ann
+*.fa.bwt
+*.fa.pac
+*.fa.sa
+
+# ARCS
+*.scaffolds
