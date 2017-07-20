@@ -1,0 +1,9 @@
+#!/bin/sh
+# Convert abyss-samtobreak output to TSV
+set -eu -o pipefail
+(
+	printf "File\tContig_NGA50\tContig_breakpoints\tScaffold_NGA50\tScaffold_breakpoints\n"
+	egrep '==>|Mapped NG50|Number of Q10 break points longer than 500 bp|Aligned scaffold NG50|Number of Q10 scaffold breakpoints longer than 500 bp' "$@" \
+		| sed 's/^==> //;s/ <==$//;s/^.*: //' \
+		| paste -d'\t' - - - - -
+) | mlr --tsvlite put '$Total_breakpoints = $Contig_breakpoints + $Scaffold_breakpoints'
