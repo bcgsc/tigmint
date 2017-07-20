@@ -16,6 +16,7 @@
 *.sam
 *.tsv
 *.txt
+!README.md
 
 # BWA
 *.fa.amb
