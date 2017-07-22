@@ -1,4 +1,4 @@
-# Correct misassemblies using Tigmint
+# Correct misassemblies using Linked Reads
 
 Split sequences at positions with low depth of coverage and high number of molecule starts.
 
