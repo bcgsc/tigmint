@@ -16,6 +16,8 @@
 *.sam
 *.tsv
 *.txt
+*.xml
+xml-patch-make/
 !README.md
 
 # BWA
