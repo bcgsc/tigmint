@@ -259,6 +259,7 @@ starts_size_threshold=2000
 # Select positions with low depth of coverage and high number of molecule starts.
 %.depth$(depth_threshold).starts.breakpoints.tsv: %.depth$(depth_threshold).starts.tsv
 	mlr --tsvlite filter '$$Depth < $(depth_threshold) && $$Starts >= $(starts_threshold) && $$Pos >= $(pos_threshold)' $< >$@
+	test -s $@ || (head -n1 $< >$@)
 
 # Identify breakpoints with low depth of coverage and high number of molecule starts.
 %.size$(minsize).depth.starts.breakpoints.tsv: %.size$(minsize).bed.depth.tsv %.starts.tsv
