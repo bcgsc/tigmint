@@ -3,9 +3,34 @@
 
 SHELL=sh -eu -o pipefail
 
-all: tigmint-make.cwl
+all: tigmint-make.cwl tigmint-make.gv.svg
 
 check: mt.tigmint.fa
+
+# GraphViz
+
+# Create phony input files.
+draft.fa reads.fq.gz:
+	touch $@
+
+# Convert the pipepline graph to GraphViz using makefile2graph.
+tigmint-make.gv: tigmint-make draft.fa reads.fq.gz
+	makefile2graph -f $< \
+		| gsed -r \
+			-e 's/label="(all|arcs|tigmint)".*]/label="\1", shape=ellipse, style=filled]/' \
+			-e 's/label="(draft.tigmint.fa|draft.tigmint.arcs.fa)".*]/label="\1", shape=parallelogram, style=filled]/' \
+			-e 's/color="green"/shape=parallelogram, style=filled/;s/color="red"/shape=rectangle/' \
+		| tred >$@
+
+# Render a GraphViz file to PNG.
+%.gv.png: %.gv
+	dot -Tpng -Gsize=16,16 -o $@ $<
+
+# Render a GraphViz file to SVG.
+%.gv.svg: %.gv
+	dot -Tsvg -o $@ $<
+
+# Common Workflow Language (CWL)
 
 # Fetch lindenb/xml-patch-make.
 xml-patch-make/stylesheets/graph2cwl.xsl:
