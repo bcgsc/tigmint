@@ -1,8 +1,20 @@
+<img src="http://sjackman.ca/img/tigmint.png" style="width:4in">
+
 # Correct misassemblies using Linked Reads
 
 Split sequences at positions with low depth of coverage and high number of molecule starts.
 
-Written by [Shaun Jackman](http://sjackman.ca)
+Written by [Shaun Jackman](http://sjackman.ca).
+
+[Poster PDF](https://www.dropbox.com/s/c29ou3jnvth49ja/ISMB%202017%20Poster.pdf)
+and slides
+[HTML](http://sjackman.ca/tigmint-slides/)
+&middot; [PDF](https://github.com/sjackman/tigmint-slides/blob/master/tigmint-slides.pdf)
+&middot; [Markdown](https://github.com/sjackman/tigmint-slides/)
+
+# Description
+
+Tigmint identifies and corrects misassemblies using linked reads from 10x Genomics Chromium. The reads are first aligned to the assembly, and the extents of the large DNA molecules are inferred from the alignments of the reads. The physical coverage of the large molecules is more consistent and less prone to coverage dropouts than that of the short read sequencing data. Atypical drops in physical molecule coverage, less than the median minus two times the inter-quartile range, reveal possible misassemblies. Clipped alignments of the first and last reads of a molecule are used to refine the coordinates of the misassembly with base-pair accuracy.
 
 # Usage
 
