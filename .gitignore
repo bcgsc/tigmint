@@ -19,6 +19,7 @@
 *.xml
 xml-patch-make/
 !README.md
+!tigmint-make.gv.png
 
 # BWA
 *.fa.amb
