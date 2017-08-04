@@ -64,3 +64,7 @@ tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 # Support
 
 After first looking for existing issue at <https://github.com/bcgsc/tigmint/issues>, please report a new issue at <https://github.com/bcgsc/tigmint/issues/new>. Please report the names of your input files, the exact command line that you are using, and the entire output of `tigmint-make`.
+
+# Pipeline
+
+[![Tigmint pipeline](tigmint-make.gv.png)](tigmint-make.gv.svg)
