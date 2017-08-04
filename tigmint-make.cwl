@@ -17,8 +17,13 @@ $graph:
       type: File
       outputBinding:
           glob: "ok2.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "2" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - touch ok2.txt
 
 
 - id: tool1
@@ -38,8 +43,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok1.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "1" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        gunzip -c reads.fq.gz | gawk '  		{ bx = "NA" }  		match($0, "BX:Z:([ACGT]*)-1", x) { bx = x[1] }  		bx == "NA" { getline; getline; getline; next }  		{ print $1 "_" bx " " $2; getline; print; getline; print; getline; print }'  		| gzip >reads.bx.fq.gz;
+        ); touch ok1.txt
 
 
 - id: tool4
@@ -56,8 +69,13 @@ $graph:
       type: File
       outputBinding:
           glob: "ok4.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "4" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - touch ok4.txt
 
 
 - id: tool3
@@ -77,8 +95,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok3.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "3" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        bwa index draft.fa;
+        ); touch ok3.txt
 
 
 - id: tool5
@@ -101,8 +127,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok5.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "5" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        bwa mem -t8 -pC draft.fa reads.bx.fq.gz | samtools view -h -F4 | samtools sort -@8 -o draft.reads.bx.bam;
+        ); touch ok5.txt
 
 
 - id: tool6
@@ -122,8 +156,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok6.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "6" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        samtools index draft.reads.bx.bam;
+        ); touch ok6.txt
 
 
 - id: tool7
@@ -143,8 +185,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok7.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "7" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        samtools view -h -F4 draft.reads.bx.bam | gawk -F'\t' '  			/^@/ { print; next }  			{ as = 0 }  			match($0, "AS:.:([^\t]*)", x) { as = x[1] }  			as >= 100'  		| samtools view -@8 -b -o draft.reads.bx.as100.bam;
+        ); touch ok7.txt
 
 
 - id: tool8
@@ -164,8 +214,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok8.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "8" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        samtools view -h -F4 draft.reads.bx.as100.bam  		| gawk -F'\t' '  			/^@/ { print; next }  			{ nm = 999999999 }  			match($0, "NM:i:([^\t]*)", x) { nm = x[1] }  			nm < 5'  		| samtools view -@8 -b -o draft.reads.bx.as100.nm5.bam;
+        ); touch ok8.txt
 
 
 - id: tool9
@@ -185,8 +243,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok9.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "9" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        samtools index draft.reads.bx.as100.nm5.bam;
+        ); touch ok9.txt
 
 
 - id: tool10
@@ -206,8 +272,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok10.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "10" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        samtools view -F4 draft.reads.bx.as100.nm5.bam | gawk -F'\t' '  		BEGIN { print "Flags\tRname\tPos\tMapq\tAS\tNM\tBX\tMI" }  		{ as = bx = mi = nm = "NA" }  		match($0, "AS:.:([^\t]*)", x) { as = x[1] }  		match($0, "NM:.:([^\t]*)", x) { nm = x[1] }  		match($0, "BX:Z:([^\t]*)", x) { bx = x[1] }  		match($0, "MI:i:([^\t]*)", x) { mi = x[1] }  		{ print $2 "\t" $3 "\t" $4 "\t" $5 "\t" as "\t" nm "\t" bx "\t" mi }' >draft.reads.bx.as100.nm5.bam.bx.tsv;
+        ); touch ok10.txt
 
 
 - id: tool11
@@ -227,8 +301,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok11.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "11" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        ./mi.r draft.reads.bx.as100.nm5.bam.bx.tsv draft.reads.bx.as100.nm5.bam.mi.bx.tsv;
+        ); touch ok11.txt
 
 
 - id: tool12
@@ -248,8 +330,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok12.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "12" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        mlr --tsvlite  		then stats1 -g BX,MI,Rname -a count,min,p50,max -f Pos,Mapq,AS,NM  		then rename Pos_min,Start,Pos_max,End,Mapq_p50,Mapq_median,AS_p50,AS_median,NM_p50,NM_median,Pos_count,Reads  		then put '$Size = $End - $Start'  		then cut -o -f Rname,Start,End,Size,BX,MI,Reads,Mapq_median,AS_median,NM_median  		then filter '$Reads >= 4'  		draft.reads.bx.as100.nm5.bam.mi.bx.tsv >draft.reads.bx.as100.nm5.bam.mi.bx.molecule.tsv;
+        ); touch ok12.txt
 
 
 - id: tool13
@@ -269,8 +359,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok13.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "13" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        Rscript -e 'rmarkdown::render("summary.rmd", "html_document", "draft.reads.bx.as100.nm5.bam.mi.bx.molecule.summary.html", params = list(input_tsv="draft.reads.bx.as100.nm5.bam.mi.bx.molecule.tsv", output_tsv="draft.reads.bx.as100.nm5.bam.mi.summary.tsv"))';
+        ); touch ok13.txt
 
 
 - id: tool14
@@ -290,8 +388,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok14.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "14" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        mlr --tsvlite --headerless-csv-output  		put '$Start = $Start - 1; $End = $End - 1'  		then put '$Name = "Reads=" . $Reads . ",Size=" . $Size . ",Mapq=" . $Mapq_median . ",AS=" . $AS_median . ",NM=" . $NM_median . ",BX=" . $BX . ",MI=" . $MI'  		then cut -o -f Rname,Start,End,Name,Reads draft.reads.bx.as100.nm5.bam.mi.bx.molecule.tsv >draft.reads.bx.as100.nm5.bam.mi.bx.molecule.bed;
+        ); touch ok14.txt
 
 
 - id: tool15
@@ -311,8 +417,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok15.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "15" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        awk '$3 - $2 >= 2000' draft.reads.bx.as100.nm5.bam.mi.bx.molecule.bed >draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.bed;
+        ); touch ok15.txt
 
 
 - id: tool16
@@ -332,8 +446,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok16.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "16" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        samtools faidx draft.fa;
+        ); touch ok16.txt
 
 
 - id: tool17
@@ -356,8 +478,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok17.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "17" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        (printf "Rname\tDepth\tCount\tRsize\tFraction\n"; awk '$2 != $3' draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.bed | bedtools genomecov -g draft.fa.fai -i -) >draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.bed.genomecov.tsv;
+        ); touch ok17.txt
 
 
 - id: tool18
@@ -377,8 +507,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok18.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "18" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        mlr --tsvlite  		then filter '$Rname == "genome" && $Depth > 0'  		then step -a rsum -f Fraction  		then put -q '@Depth_count += $Count; if (is_null(@p25) && $Fraction_rsum >= 0.25) { @p25 = $Depth }; if (is_null(@p50) && $Fraction_rsum >= 0.50) { @p50 = $Depth }; if (is_null(@p75) && $Fraction_rsum >= 0.75) { @p75 = $Depth } end { emitf @Depth_count, @p25, @p50, @p75 }'  		then rename p25,Depth_p25,p50,Depth_p50,p75,Depth_p75  		then put '$Depth_IQR = $Depth_p75 - $Depth_p25'  		draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.bed.genomecov.tsv >draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.bed.genomecov.stats.tsv;
+        ); touch ok18.txt
 
 
 - id: tool19
@@ -401,8 +539,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok19.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "19" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        (printf "Rname\tPos\tDepth\n"; awk '$2 != $3' draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.bed | bedtools genomecov -d -g draft.fa.fai -i -) >draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.bed.depth.tsv;
+        ); touch ok19.txt
 
 
 - id: tool20
@@ -422,8 +568,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok20.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "20" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        mlr --tsvlite filter '$Depth < 100' draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.bed.depth.tsv >draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.bed.depth100.tsv;
+        ); touch ok20.txt
 
 
 - id: tool21
@@ -443,8 +597,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok21.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "21" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        mlr --tsvlite  		then filter '$Size >= 2000'  		then count-distinct -f Rname,Start  		then rename Start,Pos,count,Starts  		then sort -f Rname -n Pos  		draft.reads.bx.as100.nm5.bam.mi.bx.molecule.tsv >draft.reads.bx.as100.nm5.bam.mi.bx.molecule.starts.tsv;
+        ); touch ok21.txt
 
 
 - id: tool22
@@ -467,8 +629,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok22.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "22" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        mlr --tsvlite join -u -j Rname,Pos -f draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.bed.depth100.tsv draft.reads.bx.as100.nm5.bam.mi.bx.molecule.starts.tsv >draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.tsv;
+        ); touch ok22.txt
 
 
 - id: tool23
@@ -488,8 +658,17 @@ $graph:
       type: File
       outputBinding:
           glob: "ok23.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "23" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        mlr --tsvlite filter '$Depth < 100 && $Starts >= 4 && $Pos >= 1000' draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.tsv >draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tsv;
+        test -s draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tsv || (head -n1 draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.tsv >draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tsv);
+        ); touch ok23.txt
 
 
 - id: tool24
@@ -512,8 +691,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok24.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "24" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        Rscript -e 'rmarkdown::render("breaktigs.rmd", "html_notebook", "draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.nb.html", params = list(input_tsv="draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tsv", input_fai="draft.fa.fai", output_bed="draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.bed"))';
+        ); touch ok24.txt
 
 
 - id: tool25
@@ -536,8 +723,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok25.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "25" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        bedtools getfasta -name -fi draft.fa -bed draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.bed | sed 's/::/ /;s/^NN*//;s/NN*$//' >draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.fa;
+        ); touch ok25.txt
 
 
 - id: tool26
@@ -557,8 +752,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok26.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "26" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        ln -sf draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.fa draft.tigmint.fa;
+        ); touch ok26.txt
 
 
 - id: tool27
@@ -593,8 +796,13 @@ $graph:
       type: File
       outputBinding:
           glob: "ok27.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "27" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - touch ok27.txt
 
 
 - id: tool28
@@ -614,8 +822,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok28.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "28" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        bwa index draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.fa;
+        ); touch ok28.txt
 
 
 - id: tool29
@@ -638,8 +854,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok29.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "29" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        bwa mem -t8 -pC draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.fa reads.bx.fq.gz | samtools view -@8 -h -F4 -o draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.reads.bx.sortn.bam;
+        ); touch ok29.txt
 
 
 - id: tool30
@@ -662,8 +886,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok30.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "30" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        arcs -s98 -c5 -l0 -z500 -m4-20000 -d0 -e30000 -r0.05 -v  		-f draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.fa  		-b draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.reads.c5_e30000_r0.05.arcs  		-g draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.reads.c5_e30000_r0.05.arcs.dist.gv  		--tsv=draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.reads.c5_e30000_r0.05.arcs.dist.tsv  		--barcode-counts=draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.reads.bx.sortn.bam.barcode-counts.tsv  		draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.reads.bx.sortn.bam;
+        ); touch ok30.txt
 
 
 - id: tool31
@@ -686,8 +918,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok31.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "31" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        bin/arcs-makeTSVfile draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.reads.c5_e30000_r0.05.arcs_original.gv draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.reads.c5_e30000_r0.05.arcs.links.tsv draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.fa;
+        ); touch ok31.txt
 
 
 - id: tool32
@@ -710,8 +950,17 @@ $graph:
       type: File
       outputBinding:
           glob: "ok32.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "32" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        cp draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.reads.c5_e30000_r0.05.arcs.links.tsv draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.reads.c5_e30000_r0.05.arcs.a0.1_l10.links.tigpair_checkpoint.tsv;
+        LINKS -k20 -l10 -t2 -a0.1 -x1 -s /dev/null -f draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.fa -b draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.reads.c5_e30000_r0.05.arcs.a0.1_l10.links;
+        ); touch ok32.txt
 
 
 - id: tool33
@@ -731,8 +980,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok33.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "33" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        gsed -r 's/^>scaffold([^,]*),(.*)/>\1 scaffold\1,\2/' draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.reads.c5_e30000_r0.05.arcs.a0.1_l10.links.scaffolds.fa >draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.reads.c5_e30000_r0.05.arcs.a0.1_l10.links.fa;
+        ); touch ok33.txt
 
 
 - id: tool34
@@ -752,8 +1009,16 @@ $graph:
       type: File
       outputBinding:
           glob: "ok34.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "34" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - >
+        (cd '/home/sjackman/work/tigmint';
+        ln -sf draft.reads.bx.as100.nm5.bam.mi.bx.molecule.size2000.depth100.starts.breakpoints.tigs.reads.c5_e30000_r0.05.arcs.a0.1_l10.links.fa draft.tigmint.arcs.fa;
+        ); touch ok34.txt
 
 
 - id: tool35
@@ -776,8 +1041,13 @@ $graph:
       type: File
       outputBinding:
           glob: "ok35.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "35" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - touch ok35.txt
 
 
 - id: tool36
@@ -800,8 +1070,13 @@ $graph:
       type: File
       outputBinding:
           glob: "ok36.txt"
-  baseCommand: [ /Users/sjackman/work/tigmint/tigmint-make.cwl.sh, "36" ]
-
+  baseCommand:
+    - bash
+    - -eu
+    - -o
+    - pipefail
+    - -c
+    - touch ok36.txt
 
 
 
