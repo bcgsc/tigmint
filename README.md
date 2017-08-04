@@ -16,7 +16,42 @@ and slides
 
 Tigmint identifies and corrects misassemblies using linked reads from 10x Genomics Chromium. The reads are first aligned to the assembly, and the extents of the large DNA molecules are inferred from the alignments of the reads. The physical coverage of the large molecules is more consistent and less prone to coverage dropouts than that of the short read sequencing data. Atypical drops in physical molecule coverage, less than the median minus two times the inter-quartile range, reveal possible misassemblies. Clipped alignments of the first and last reads of a molecule are used to refine the coordinates of the misassembly with base-pair accuracy.
 
+# Installation
+
+Download and extract the source code. Compiling is not needed.
+
+```
+git clone https://github.com/bcgsc/tigmint && cd tigmint
+```
+or
+```
+curl -L https://github.com/bcgsc/tigmint/archive/master.tar.gz | tar xz && mv tigmint-master tigmint && cd tigmint
+```
+
+# Dependencies
+
+Dependencies may be installed using [Homebrew](https://brew.sh) on macOS or [Linuxbrew](http://linuxbrew.sh) on Linux.
+
+## Install the dependencies of Tigmint
+```sh
+brew tap homebrew/science
+brew install bedtools bwa gawk gnu-sed miller pigz r samtools seqtk
+Rscript -e 'install.packages(c("ggplot2", "rmarkdown", "tidyverse", "uniqtag"))'
+```
+
+## Install the dependencies of ARCS (optional)
+```sh
+brew install arcs links-scaffolder
+```
+
+## Install the dependencies for calculating assembly metrics (optional)
+```sh
+brew install abyss
+```
+
 # Usage
+
+Change your current working directory to the directory in which Tigmint is installed: `cd tigmint`
 
 To run Tigmint on the draft assembly `assembly.fa` with the reads `reads.fq.gz`, which have been run through `longranger basic`:
 
