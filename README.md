@@ -53,13 +53,13 @@ brew install abyss
 
 Change your current working directory to the directory in which Tigmint is installed: `cd tigmint`
 
-To run Tigmint on the draft assembly `assembly.fa` with the reads `reads.fq.gz`, which have been run through `longranger basic`:
+To run Tigmint on the draft assembly `myassembly.fa` with the reads `myreads.fq.gz`, which have been run through `longranger basic`:
 
 ```sh
 tigmint-make tigmint draft=myassembly reads=myreads
 ```
 
-To run Tigmint and ARCS on the draft assembly `assembly.fa` with the reads `reads.fq.gz`, which have been run through `longranger basic`:
+To run both Tigmint and scaffold the corrected assembly with [ARCS](https://github.com/bcgsc/arcs):
 
 ```sh
 tigmint-make arcs draft=myassembly reads=myreads
