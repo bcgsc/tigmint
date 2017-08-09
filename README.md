@@ -6,7 +6,7 @@ Split sequences at positions with low depth of coverage and high number of molec
 
 Written by [Shaun Jackman](http://sjackman.ca).
 
-[Poster PDF](https://www.dropbox.com/s/c29ou3jnvth49ja/ISMB%202017%20Poster.pdf)
+[Poster](https://f1000research.com/posters/6-1406)
 and slides
 [HTML](http://sjackman.ca/tigmint-slides/)
 &middot; [PDF](https://github.com/sjackman/tigmint-slides/blob/master/tigmint-slides.pdf)
