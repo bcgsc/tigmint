@@ -61,7 +61,17 @@ endif
 
 .DELETE_ON_ERROR:
 .SECONDARY:
-.PHONY: all tigmint arcs metrics draft_metrics tigmint_metrics arcs_metrics
+.PHONY: help version all tigmint arcs metrics draft_metrics tigmint_metrics arcs_metrics
+
+help:
+	@echo 'Tigmint: Correct misassemblies using linked reads'
+	@echo 'Usage: tigmint-make [COMMAND]... [PARAMETER=VALUE]...'
+	@echo 'Example: tigmint-make tigmint draft=myassembly reads=myreads'
+	@echo 'For more information see https://bcgsc.github.io/tigmint/'
+
+version:
+	@echo "Tigmint 0.1"
+	@echo "Written by Shaun Jackman @sjackman."
 
 all: tigmint arcs
 ifdef ref
