@@ -56,7 +56,7 @@ export SHELL=zsh -o pipefail
 export REPORTTIME=1
 export TIMEFMT=time user=%U system=%S elapsed=%E cpu=%P memory=%M job=%J
 else
-export SHELL=sh -o pipefail
+export SHELL=bash -o pipefail
 endif
 
 .DELETE_ON_ERROR:

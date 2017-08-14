@@ -1,7 +1,7 @@
 .DELETE_ON_ERROR:
 .SECONDARY:
 
-SHELL=sh -eu -o pipefail
+SHELL=bash -eu -o pipefail
 
 all: tigmint-make.cwl tigmint-make.gv.svg
 
