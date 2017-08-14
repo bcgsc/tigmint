@@ -63,7 +63,7 @@ tigmint-make.xml: tigmint-make xml-patch-make/make-4.1/make-4.1/make
 # Download the human mitochondrial genome.
 mt.fa:
 	curl ftp://ftp.ensembl.org/pub/release-89/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.MT.fa.gz \
-		| seqtk seq | gunzip -c >$@
+		| seqtk seq >$@
 
 # Simulate linked reads using LRSIM.
 %.lrsim_S1_L001_R1_001.fastq.gz %.lrsim_S1_L001_R2_001.fastq.gz: %.fa
