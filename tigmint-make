@@ -249,7 +249,7 @@ $(draft).%.bam: %.fq.gz $(draft).fa.bwt
 	awk '$$3 - $$2 >= $(minsize)' $< >$@
 
 # Count start positions of molecules larger than a threshold size.
-starts_size_threshold=2000
+starts_size_threshold=$(minsize)
 %.molecule.starts.tsv: %.molecule.tsv
 	mlr --tsvlite \
 		then filter '$$Size >= $(starts_size_threshold)' \
