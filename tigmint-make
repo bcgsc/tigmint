@@ -22,7 +22,7 @@ reads=reads
 
 # Select positions with low depth of coverage and high number of molecule starts.
 depth_threshold=100
-starts_threshold=4
+starts_threshold=2
 pos_threshold=1000
 
 # Minimum molecule size

@@ -87,7 +87,7 @@ tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 + `draft`: Name of the draft assembly, `draft.fa`
 + `reads`: Name of the reads, `reads.fq.gz`
 + `depth_threshold=100`: Depth of coverage threshold
-+ `starts_threshold=4`: Number of molecule starts threshold
++ `starts_threshold=2`: Number of molecule starts threshold
 + `minsize=2000`: Minimum molecule size
 + `as=100`: Minimum alignment score
 + `nm=5`: Maximum number of mismatches
