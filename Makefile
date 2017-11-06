@@ -24,7 +24,7 @@ tigmint-make.gv: tigmint-make draft.fa reads.fq.gz
 
 # Render a GraphViz file to PNG.
 %.gv.png: %.gv
-	dot -Tpng -Gsize=16,16 -o $@ $<
+	dot -Tpng -Gsize=4 -Gdpi=300 -o $@ $<
 
 # Render a GraphViz file to SVG.
 %.gv.svg: %.gv
