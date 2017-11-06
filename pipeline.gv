@@ -1,0 +1,52 @@
+digraph {
+	node [shape="rectangle"]
+
+	reads [label="Linked reads (FASTQ)", shape="parallelogram"]
+	draft [label="Draft genome (FASTA)", shape="parallelogram"]
+
+	subgraph {
+		node [width=7.5]
+
+		map [label="Align reads to the draft assembly with BWA-MEM (BAM)"]
+		filter_reads [label="Filter the alignments with AS ≥ 100 &and; NM < 5 (BAM)"]
+		molecules [label="Infer molecules extents from the linked reads (TSV)"]
+		filter_molecules [label="Filter out unusually small molecules with size < 2000 bp (TSV)"]
+		depth [label="Compute molecule depth of coverage with bedtools genomecov (TSV)"]
+		breakpoints [label="Identify breakpoints with molecule_depth < median - 2 &middot; IQR &and; molecule_starts ≥ 2 (TSV)"]
+	}
+
+	tigs [label="Corrected assembly (FASTA)", shape="ellipse"]
+
+	subgraph cluster_optional {
+		graph [label="Optional steps", style=dotted]
+
+		reference [label="Reference genome (FASTA)", shape="parallelogram"]
+
+		tigs_align [label="Align scaffolds to the reference genome with BWA-MEM (SAM)"]
+		tigs_metrics [label="Compute assembly metrics with abyss-samtobreak (TSV)", shape="ellipse"]
+
+		scaffold [label="Scaffold the assembly with ARCS + LINKS (FASTA)", shape="ellipse"]
+		scaffold_align [label="Align scaffolds to the reference genome with BWA-MEM (SAM)"]
+		scaffold_metrics [label="Compute assembly metrics with abyss-samtobreak (TSV)", shape="ellipse"]
+	}
+
+	reads -> map
+	draft -> map
+	map -> filter_reads
+	filter_reads -> molecules
+	molecules -> filter_molecules
+	filter_molecules -> depth
+	depth -> breakpoints
+	breakpoints -> tigs
+
+	reference -> tigs_align
+	tigs -> tigs_align
+	tigs_align -> tigs_metrics
+
+	tigs -> scaffold
+	reads -> scaffold
+
+	reference -> scaffold_align
+	scaffold -> scaffold_align
+	scaffold_align -> scaffold_metrics
+}
