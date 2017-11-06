@@ -14,11 +14,15 @@
 *.orig
 *.png
 *.sam
+*.svg
 *.tsv
 *.txt
 *.xml
 xml-patch-make/
 !README.md
+!pipeline.gv
+!pipeline.gv.png
+!pipeline.gv.png.svg
 !tigmint-make.gv.png
 
 # BWA
