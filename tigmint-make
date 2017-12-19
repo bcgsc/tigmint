@@ -36,6 +36,9 @@ trim=0
 #Threshold for number of spanning molecules to consider properly assembled
 span=2
 
+#Window size for checking for spanning molecules
+window=1000
+
 # Parameters of ARCS
 c=5
 e=30000
@@ -100,32 +103,32 @@ draft_metrics: \
 # Correct misassemblies using Tigmint
 tigmint: \
 	$(draft).$(reads).as$(as).nm$(nm).molecule.tsv \
-        $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.fa \
+        $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa \
         $(draft).tigmint.fa
 
 # Calculate assembly metrics after Tigmint
 tigmint_metrics: \
-	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.abyss-fac.tsv \
-	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.scaftigs.abyss-fac.tsv \
-	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.scaftigs.$(ref).samtobreak.tsv
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.abyss-fac.tsv \
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.scaftigs.abyss-fac.tsv \
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.scaftigs.$(ref).samtobreak.tsv
 
 # Scaffold using ARCS
 arcs: \
-	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.fa \
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.fa \
 	$(draft).tigmint.arcs.fa
 
 # Calculate assembly metrics after ARCS
 arcs_metrics: \
-	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.abyss-fac.tsv \
-	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.scaftigs.abyss-fac.tsv \
-	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.scaftigs.$(ref).samtobreak.tsv
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.abyss-fac.tsv \
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.scaftigs.abyss-fac.tsv \
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.scaftigs.$(ref).samtobreak.tsv
 
 # Symlink the Tigmint results
-$(draft).tigmint.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.fa
+$(draft).tigmint.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa
 	ln -sf $< $@
 
 # Symlink the ARCS results
-$(draft).tigmint.arcs.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.fa
+$(draft).tigmint.arcs.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.fa
 	ln -sf $< $@
 
 # BWA
@@ -184,8 +187,8 @@ $(draft).%.bam: %.fq.gz $(draft).fa.bwt
 	awk '$$3 - $$2 >= $(minsize)' $< |bedtools sort > $@ 
 
 #Make breakpoints BED file
-%.size$(minsize).trim$(trim).span$(span).breaktigs.fa: %.size$(minsize).bed  $(draft).fa $(draft).fa.fai
-	python $(path)/bin/findSpanningMolecules.py -f $(draft).fa -p $(t) -t $(trim) -n $(span) -o $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span) $< 
+%.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa: %.size$(minsize).bed  $(draft).fa $(draft).fa.fai
+	python $(path)/bin/findSpanningMolecules.py -f $(draft).fa -d $(window) -p $(t) -t $(trim) -n $(span) -o $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span) $< 
 
 ################################################################################
 # Calculate assembly contiguity and correctness metrics.

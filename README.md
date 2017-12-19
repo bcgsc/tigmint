@@ -81,6 +81,7 @@ tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 + `draft`: Name of the draft assembly, `draft.fa`
 + `reads`: Name of the reads, `reads.fq.gz`
 + `span=2`: Number of spanning molecules threshold
++ `window=1000`: Window size (bp) for checking spanning molecules
 + `minsize=2000`: Minimum molecule size
 + `as=0.65`: Minimum AS/read length ratio
 + `nm=5`: Maximum number of mismatches
