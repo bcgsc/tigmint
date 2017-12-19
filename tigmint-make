@@ -1,6 +1,7 @@
 #!/usr/bin/make -rRf
 # Correct misassemblies using Tigmint
 # Written by Shaun Jackman @sjackman
+# Contributions by Lauren Coombe
 
 # Usage:
 # tigmint-make draft=myassembly reads=myreads
@@ -20,19 +21,20 @@ reads=reads
 # Size of the reference genome, for calculating NG50 and NGA50
 #G=0
 
-# Select positions with low depth of coverage and high number of molecule starts.
-depth_threshold=100
-starts_threshold=2
-pos_threshold=1000
-
 # Minimum molecule size
 minsize=2000
 
-# Minimum alignment score
-as=100
+# Minimum AS/Read length ratio
+as=0.65
 
 # Maximum number of mismatches
 nm=5
+
+# Bp of contigs to trim after cutting at error
+trim=0
+
+#Threshold for number of spanning molecules to consider properly assembled
+span=2
 
 # Parameters of ARCS
 c=5
@@ -45,6 +47,13 @@ l=10
 
 # Number of threads
 t=8
+
+# Determine path to tigmint executables
+path?=$(shell dirname `which $(MAKEFILE_LIST)`)
+ifdef path
+PATH:=$(path):$(PATH)
+endif
+ 
 
 # gzip compression program, use pigz for parallelized compression
 gzip=gzip
@@ -90,46 +99,34 @@ draft_metrics: \
 
 # Correct misassemblies using Tigmint
 tigmint: \
-	$(draft).$(reads).bx.bam.bai \
-	$(draft).$(reads).bx.as$(as).nm$(nm).bam.bai \
-	$(draft).$(reads).bx.as$(as).nm$(nm).bam.mi.bx.molecule.summary.html \
-	$(draft).$(reads).bx.as$(as).nm$(nm).bam.mi.bx.molecule.size$(minsize).bed.genomecov.stats.tsv \
-	$(draft).$(reads).bx.as$(as).nm$(nm).bam.mi.bx.molecule.size$(minsize).depth$(depth_threshold).starts.breakpoints.tigs.fa \
-	$(draft).tigmint.fa
+	$(draft).$(reads).as$(as).nm$(nm).molecule.tsv \
+        $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.fa \
+        $(draft).tigmint.fa
 
 # Calculate assembly metrics after Tigmint
 tigmint_metrics: \
-	$(draft).$(reads).bx.as$(as).nm$(nm).bam.mi.bx.molecule.size$(minsize).depth$(depth_threshold).starts.breakpoints.tigs.abyss-fac.tsv \
-	$(draft).$(reads).bx.as$(as).nm$(nm).bam.mi.bx.molecule.size$(minsize).depth$(depth_threshold).starts.breakpoints.tigs.scaftigs.abyss-fac.tsv \
-	$(draft).$(reads).bx.as$(as).nm$(nm).bam.mi.bx.molecule.size$(minsize).depth$(depth_threshold).starts.breakpoints.tigs.scaftigs.$(ref).samtobreak.tsv
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.abyss-fac.tsv \
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.scaftigs.abyss-fac.tsv \
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.scaftigs.$(ref).samtobreak.tsv
 
 # Scaffold using ARCS
 arcs: \
-	$(draft).$(reads).bx.as$(as).nm$(nm).bam.mi.bx.molecule.size$(minsize).depth$(depth_threshold).starts.breakpoints.tigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.fa \
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.fa \
 	$(draft).tigmint.arcs.fa
 
 # Calculate assembly metrics after ARCS
 arcs_metrics: \
-	$(draft).$(reads).bx.as$(as).nm$(nm).bam.mi.bx.molecule.size$(minsize).depth$(depth_threshold).starts.breakpoints.tigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.abyss-fac.tsv \
-	$(draft).$(reads).bx.as$(as).nm$(nm).bam.mi.bx.molecule.size$(minsize).depth$(depth_threshold).starts.breakpoints.tigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.scaftigs.abyss-fac.tsv \
-	$(draft).$(reads).bx.as$(as).nm$(nm).bam.mi.bx.molecule.size$(minsize).depth$(depth_threshold).starts.breakpoints.tigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.scaftigs.$(ref).samtobreak.tsv
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.abyss-fac.tsv \
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.scaftigs.abyss-fac.tsv \
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.scaftigs.$(ref).samtobreak.tsv
 
 # Symlink the Tigmint results
-$(draft).tigmint.fa: $(draft).$(reads).bx.as$(as).nm$(nm).bam.mi.bx.molecule.size$(minsize).depth$(depth_threshold).starts.breakpoints.tigs.fa
+$(draft).tigmint.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.fa
 	ln -sf $< $@
 
 # Symlink the ARCS results
-$(draft).tigmint.arcs.fa: $(draft).$(reads).bx.as$(as).nm$(nm).bam.mi.bx.molecule.size$(minsize).depth$(depth_threshold).starts.breakpoints.tigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.fa
+$(draft).tigmint.arcs.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.fa
 	ln -sf $< $@
-
-# Add the barcode to the read ID, and skip reads without barcodes.
-%.bx.fq.gz: %.fq.gz
-	gunzip -c $< | gawk ' \
-		{ bx = "NA" } \
-		match($$0, "BX:Z:([ACGT]*)-1", x) { bx = x[1] } \
-		bx == "NA" { getline; getline; getline; next } \
-		{ print $$1 "_" bx " " $$2; getline; print; getline; print; getline; print }' \
-		| $(gzip) >$@
 
 # BWA
 
@@ -151,82 +148,20 @@ $(draft).%.bam: %.fq.gz $(draft).fa.bwt
 %.bam.bai: %.bam
 	samtools index $<
 
-# Remove alignments with an alignment score below a threshold.
-%.as100.bam: %.bam
-	samtools view -h -F4 $< | gawk -F'\t' ' \
-			/^@/ { print; next } \
-			{ as = 0 } \
-			match($$0, "AS:.:([^\t]*)", x) { as = x[1] } \
-			as >= 100' \
-		| samtools view -@$t -b -o $@
 
-# Select alignments with number of mismatches below a threshold.
-%.nm$(nm).bam: %.bam
-	samtools view -h -F4 $< \
-		| gawk -F'\t' ' \
-			/^@/ { print; next } \
-			{ nm = 999999999 } \
-			match($$0, "NM:i:([^\t]*)", x) { nm = x[1] } \
-			nm < $(nm)' \
-		| samtools view -@$t -b -o $@
-
-# Extract the alignment score, barcode and molecule identifier.
-%.bam.bx.tsv: %.bam
-	samtools view -F4 $< | gawk -F'\t' ' \
-		BEGIN { print "Flags\tRname\tPos\tMapq\tAS\tNM\tBX\tMI" } \
-		{ as = bx = mi = nm = "NA" } \
-		match($$0, "AS:.:([^\t]*)", x) { as = x[1] } \
-		match($$0, "NM:.:([^\t]*)", x) { nm = x[1] } \
-		match($$0, "BX:Z:([^\t]*)", x) { bx = x[1] } \
-		match($$0, "MI:i:([^\t]*)", x) { mi = x[1] } \
-		{ print $$2 "\t" $$3 "\t" $$4 "\t" $$5 "\t" as "\t" nm "\t" bx "\t" mi }' >$@
-
-# Group reads into molecules and add molecule identifiers.
-%.bam.mi.bx.tsv: %.bam.bx.tsv
-	./mi.r $< $@
-
-# Create a TSV file of molecule extents.
-%.bx.molecule.tsv: %.bx.tsv
-	mlr --tsvlite \
-		then stats1 -g BX,MI,Rname -a count,min,p50,max -f Pos,Mapq,AS,NM \
-		then rename Pos_min,Start,Pos_max,End,Mapq_p50,Mapq_median,AS_p50,AS_median,NM_p50,NM_median,Pos_count,Reads \
-		then put '$$Size = $$End - $$Start' \
-		then cut -o -f Rname,Start,End,Size,BX,MI,Reads,Mapq_median,AS_median,NM_median \
-		then filter '$$Reads >= 4' \
-		$< >$@
+# Filter the BAM file, create molecule extents TSV
+%.as$(as).nm$(nm).molecule.tsv: %.bam
+	python $(path)/bin/MolecLenEst.py -b $< -o $@ -a $(as) -q 0 
 
 # Create a BED file of molecule extents.
-%.bx.molecule.bed: %.bx.molecule.tsv
-	mlr --tsvlite --headerless-csv-output \
-		put '$$Start = $$Start - 1; $$End = $$End - 1' \
-		then put '$$Name = "Reads=" . $$Reads . ",Size=" . $$Size . ",Mapq=" . $$Mapq_median . ",AS=" . $$AS_median . ",NM=" . $$NM_median . ",BX=" . $$BX . ",MI=" . $$MI' \
-		then cut -o -f Rname,Start,End,Name,Reads $< >$@
+%.molecule.bed: %.molecule.tsv
+	tail -n+2 $< |awk '{print $$1"\t"$$2-1"\t"$$3-1"\t"$$6"\tReads="$$7",Size="$$4",Mapq="$$8",AS="$$9"NM="$$10",BX="$$5",MI="$$6}' > $@
 
 # Report summary statistics of a Chromium library
-%.bx.molecule.summary.html: %.bx.molecule.tsv
-	Rscript -e 'rmarkdown::render("summary.rmd", "html_document", "$@", params = list(input_tsv="$<", output_tsv="$*.summary.tsv"))'
+%.molecule.summary.html: %.molecule.tsv
+	Rscript -e 'rmarkdown::render("$(path)/summary.rmd", "html_document", "$@", params = list(input_tsv="$<", output_tsv="$*.summary.tsv"))'
 
 # bedtools
-
-# Convert BED to BAM.
-%.bed.bam: %.bed $(draft).fa.fai
-	awk '$$2 != $$3' $< | bedtools bedtobam -i - -g $(draft).fa.fai | samtools sort -@$t -Obam -o $@
-
-# Compute the depth of coverage of a BAM file.
-%.bam.depth.tsv: %.bam
-	(printf "Rname\tPos\tDepth\n"; bedtools genomecov -d -ibam $<) >$@
-
-# Compute the depth of coverage of a BED file.
-%.bed.depth.tsv: %.bed $(draft).fa.fai
-	(printf "Rname\tPos\tDepth\n"; awk '$$2 != $$3' $< | bedtools genomecov -d -g $(draft).fa.fai -i -) >$@
-
-# Calculate depth of coverage statistics.
-%.depth.stats.tsv: %.depth.tsv
-	mlr --tsvlite stats1 -a count,p25,p50,p75,mean,stddev -f Depth $< >$@
-
-# Calculate depth of coverage statistics per sequence.
-%.depth.seqstats.tsv: %.depth.tsv
-	mlr --tsvlite stats1 -a count,p25,p50,p75,mean,stddev -f Depth -g Rname $< >$@
 
 # Compute statistics on the depth of coverage of a BED file.
 %.bed.genomecov.tsv: %.bed $(draft).fa.fai
@@ -246,43 +181,11 @@ $(draft).%.bam: %.fq.gz $(draft).fa.bwt
 
 # Select BED records of a given size or larger.
 %.size$(minsize).bed: %.bed
-	awk '$$3 - $$2 >= $(minsize)' $< >$@
+	awk '$$3 - $$2 >= $(minsize)' $< |bedtools sort > $@ 
 
-# Count start positions of molecules larger than a threshold size.
-starts_size_threshold=$(minsize)
-%.molecule.starts.tsv: %.molecule.tsv
-	mlr --tsvlite \
-		then filter '$$Size >= $(starts_size_threshold)' \
-		then count-distinct -f Rname,Start \
-		then rename Start,Pos,count,Starts \
-		then sort -f Rname -n Pos \
-		$< >$@
-
-# Select position below the coverage threshold.
-%.depth$(depth_threshold).tsv: %.depth.tsv
-	mlr --tsvlite filter '$$Depth < $(depth_threshold)' $< >$@
-
-# Join the tables of depth of coverage and number of molecule starts.
-%.molecule.size$(minsize).depth$(depth_threshold).starts.tsv: %.molecule.size$(minsize).bed.depth$(depth_threshold).tsv %.molecule.starts.tsv
-	mlr --tsvlite join -u -j Rname,Pos -f $^ >$@
-
-# Select positions with low depth of coverage and high number of molecule starts.
-%.depth$(depth_threshold).starts.breakpoints.tsv: %.depth$(depth_threshold).starts.tsv
-	mlr --tsvlite filter '$$Depth < $(depth_threshold) && $$Starts >= $(starts_threshold) && $$Pos >= $(pos_threshold)' $< >$@
-	test -s $@ || (head -n1 $< >$@)
-
-# Identify breakpoints with low depth of coverage and high number of molecule starts.
-%.size$(minsize).depth.starts.breakpoints.tsv: %.size$(minsize).bed.depth.tsv %.starts.tsv
-	Rscript -e 'rmarkdown::render("breakpoints.rmd", "html_notebook", "$*.depth.starts.breakpoints.nb.html", params = list(depth_tsv="$<", starts_tsv="$*.starts.tsv", depth_starts_tsv="$*.depth.starts.tsv", breakpoints_tsv="$@"))'
-
-# Determine coordinates of the breaktig subsequences.
-%.breakpoints.tigs.bed: %.breakpoints.tsv $(draft).fa.fai
-	Rscript -e 'rmarkdown::render("breaktigs.rmd", "html_notebook", "$*.breakpoints.tigs.nb.html", params = list(input_tsv="$<", input_fai="$(draft).fa.fai", output_bed="$@"))'
-
-# Break scaffolds at the breakpoints.
-%.breakpoints.tigs.fa: %.breakpoints.tigs.bed $(draft).fa
-	bedtools getfasta -name -fi $(draft).fa -bed $< \
-		| sed 's/::/ /;s/^NN*//;s/NN*$$//;s/^$$/N/' >$@
+#Make breakpoints BED file
+%.size$(minsize).trim$(trim).span$(span).breaktigs.fa: %.size$(minsize).bed  $(draft).fa $(draft).fa.fai
+	python $(path)/bin/findSpanningMolecules.py -f $(draft).fa -p $(t) -t $(trim) -n $(span) -o $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).span$(span) $< 
 
 ################################################################################
 # Calculate assembly contiguity and correctness metrics.
@@ -292,6 +195,15 @@ starts_size_threshold=$(minsize)
 # Align an assembly to the reference using BWA-MEM.
 %.$(ref).sam: %.fa $(ref).fa.bwt
 	bwa mem -xintractg -t$t $(ref).fa $< >$@
+
+# Add the barcode to the read ID, and skip reads without barcodes.
+%.bx.fq.gz: %.fq.gz
+	gunzip -c $< | gawk ' \
+		{ bx = "NA" } \
+		match($$0, "BX:Z:([ACGT]*)-1", x) { bx = x[1] } \
+		bx == "NA" { getline; getline; getline; next } \
+		{ print $$1 "_" bx " " $$2; getline; print; getline; print; getline; print }' \
+		| $(gzip) >$@
 
 # Align paired-end reads to the draft genome and do not sort.
 %.$(reads).bx.sortn.bam: %.fa.bwt $(reads).bx.fq.gz
@@ -333,9 +245,6 @@ starts_size_threshold=$(minsize)
 	abyss-fac -G$G -t500 $< >$@
 
 # Calculate assembly contiguity and correctness metrics.
-%.samtobreak.txt: %.sam
-	(echo '==> $< <=='; abyss-samtobreak -G$G -l500 $<) >$@
+%.samtobreak.tsv: %.sam
+	(echo '==> $< <=='; $(path)/bin/abyss-samtobreak  -G$G -l500 $<) >$@
 
-# Convert samtobreak.txt to TSV.
-%.samtobreak.tsv: %.samtobreak.txt
-	bin/abyss-samtobreak-to-tsv $< >$@
