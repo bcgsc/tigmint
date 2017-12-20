@@ -1,4 +1,4 @@
-#!/home/lcoombe/miniconda2/envs/py3/bin/python
+#!/usr/bin/env python3
 '''
 Created on Monday, May 15 2017
 Last Updated Friday, Oct 20 2017

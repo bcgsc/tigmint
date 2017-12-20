@@ -1,4 +1,12 @@
 #!/usr/bin/python3
+
+'''
+Given a BED file of molecule extents, scan the input draft assembly with windows of a fixed size to find windows with few spanning molecules. These areas are likely misassembled areas. Cut the input assembly at the potentially misassembled regions.
+
+@author: Lauren Coombe
+
+'''
+
 import sys
 import pybedtools
 import argparse
@@ -6,14 +14,16 @@ from intervaltree import IntervalTree
 from multiprocessing import Queue, Process
 import subprocess
 import shlex
+from datetime import datetime
 
+#Helper class to represent a run of windows with no spanning molecules. Keeps positions of the last end_window before the run, and the first start_window after the run, to be used as breakpoints
 class NoSpanningRun:
 	def __init__(self):
-		self.beforeRun_bp = float("inf")
-		self.afterRun_bp = float("inf")
+		self.beforeRun_bp = 0
+		self.afterRun_bp = 0
 
 
-#Add the breakpoint to the Process queue
+#Add the breakpoints to the Process queue
 def tallyBreakpoints(bps_queue, contig, noSpanningRun):
 	if noSpanningRun.beforeRun_bp == noSpanningRun.afterRun_bp:
 		bps_queue.put((contig, noSpanningRun.beforeRun_bp))
@@ -23,6 +33,8 @@ def tallyBreakpoints(bps_queue, contig, noSpanningRun):
 
 #Given the molecule intervals on a contig, check all windows of specified lengths for flanking chromium molecules. Cuts
 # will be made in windows of the genome where there are no spanning molecules
+# Cut 1: The end of the last spanning window before a run of windows with no spanning molecules
+# Cut 2: The start of the first spanning window after a run of windows with no spanning molecules
 def checkSpanningMolecules(intervals, window, contigLengths, contig, num_spanning, bps_queue):
 	contigLength = contigLengths[contig]
 	
@@ -43,7 +55,7 @@ def checkSpanningMolecules(intervals, window, contigLengths, contig, num_spannin
 			else:
 				break #sorted by decreasing end position, so if this interval isn't spanning, can break out of loop
 			if numSpanningMolecs >= num_spanning:
-				break #Over the threshold seen, keep going
+				break 
 
 		if numSpanningMolecs < num_spanning:
 			if pastStart:
@@ -63,7 +75,7 @@ def checkSpanningMolecules(intervals, window, contigLengths, contig, num_spannin
 			start_window = end_window - window
 
 
-#Given an input sorted BED file, find all breakpoints (regions where there are no spanning molecules), based on the specified window size
+#Given an input sorted BED file, find all breakpoints (in regions where there are no spanning molecules), based on the specified window size
 def findBreakpoints(bed_name, window_length, contigLengths, num_spanning, bps_queue):
 	bedfile = pybedtools.BedTool(bed_name)
 	contig = ""
@@ -78,7 +90,7 @@ def findBreakpoints(bed_name, window_length, contigLengths, num_spanning, bps_qu
 				interval_tree.clear()
 			contig = bed.chrom
 			interval_tree[bed.start:bed.stop] = bed.name
-		else: #Same chromosome, keep reading in the BED file
+		else: #Same contig ID, keep reading in the BED file to collect all molecule extents for that contig
 			interval_tree[bed.start:bed.stop] = bed.name
 	#Ensuring final contig in the bed file is also checked for spanning molecules
 	if contig != "":
@@ -113,8 +125,8 @@ def launchFindBreakpoints(bedfile, window, num_processes, partitioned_contigLeng
 	
 	return breakpoints	
 	
-#Reads through the fai index of the fasta file, partitioning the contigs, and tracking the contig lengths in dictionaries. Returns a 
-# list of dictionaries, with one dictionary for each breakpoint-finding process to be launched. 
+#Reads through the fai index of the fasta file to partition the contigs, and tracking the contig lengths in a dictionary per partition.  
+# Returns the list of dictionaries (length of list = number of partitions) 
 def findContigLengths(fasta, num_processes):
 	fasta_faidx_name = fasta + ".fai"
 	try:
@@ -139,7 +151,7 @@ def findContigLengths(fasta, num_processes):
 		print("Error when trying to open %s.\nGenerate the fai index file for %s with: samtools faidx %s" % (fasta_faidx_name, fasta, fasta))
 		sys.exit(1)
 
-# Given a list of breakpoints and a reference FAI file, print a BED file representing the regions of the FASTA to output.
+# Given a list of breakpoints and a reference FAI file, print a BED file representing the cuts to the assembly.
 def printBreakpoints(breakpoints, partitioned_contigLengths, outprefix, len_trim):
 	breakpoints_bedString = ""
 
@@ -162,9 +174,7 @@ def printBreakpoints(breakpoints, partitioned_contigLengths, outprefix, len_trim
 				breakpoints_bedString += "%s\t%d\t%d\t%s\n" % (contig, 0, contigLength, contig)
 
 	breakpoints_bed = pybedtools.BedTool(breakpoints_bedString, from_string=True).sort()
-	bed_out = open(outprefix + ".breaktigs.bed", 'w')
 	breakpoints_bed.saveas(outprefix + ".breaktigs.bed")
-	bed_out.close()
 
 #Use bedtools to cut the assembly based on the breakpoints identified in the breaktigs bed file, stripping Ns from beginning and end of the sequences
 def cutAssembly(fasta, outprefix):
@@ -178,7 +188,7 @@ def cutAssembly(fasta, outprefix):
 		line = line.strip()
 		if line[0] == ">": #Header line
 			out_fasta.write(line + "\n")
-		else: #Sequence line, check for Ns at beginning or trailing	
+		else: #Sequence line, strip leading or trailing "N"s 
 			strippedNs = line.strip("Nn")
 			if strippedNs == "": #Just give single N if the sequence will become empty
 				strippedNs = "N"
@@ -190,13 +200,14 @@ def main():
 	parser.add_argument("bed", type=str, help="Sorted bed file of molecule extents")
 	parser.add_argument("-f", type=str, help="Reference genome fasta file (must have FAI index generated)", required=True)
 	parser.add_argument("-d", type=int, help="Window size used to check for spanning molecules (bp) [1000]", default=1000)
-	parser.add_argument("-p", type=int, help="Number of parallel processes to launch for breakpoint-finding [8]", default=8)
+	parser.add_argument("-p", type=int, help="Number of parallel processes to launch [8]", default=8)
 	parser.add_argument("-t", type=int, help="Number of base pairs to trim at contig cuts [0bp]", default=0)
-	parser.add_argument("-n", type=int, help="Spanning molecules threshold (no misassembly in window if num. spanning molecules >= n [2]", default=2)
+	parser.add_argument("-n", type=int, help="Spanning molecules threshold (no misassembly in window if num. spanning molecules >= n [2])", default=2)
 	parser.add_argument("-o", type=str, help="Prefix for output files", required=True)
 
 	args = parser.parse_args()
-	
+
+	print("Started at: %s" % datetime.now())	
 	print ("Reading contig lengths...")	
 	partitioned_contigLengths = findContigLengths(args.f, args.p)
 
@@ -206,7 +217,9 @@ def main():
 
 	print("Cutting assembly at breakpoints...")
 	cutAssembly(args.f, args.o)
-	
+
+	print("DONE!")	
+	print("Ended at: %s" % datetime.now())
 	
 if __name__ == "__main__":
 	main()
