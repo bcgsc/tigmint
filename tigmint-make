@@ -30,6 +30,9 @@ as=0.65
 # Maximum number of mismatches
 nm=5
 
+# Mapping quality threshold
+map=0
+
 # Bp of contigs to trim after cutting at error
 trim=0
 
@@ -154,7 +157,7 @@ $(draft).%.bam: %.fq.gz $(draft).fa.bwt
 
 # Filter the BAM file, create molecule extents TSV
 %.as$(as).nm$(nm).molecule.tsv: %.bam
-	python $(path)/bin/MolecLenEst.py -b $< -o $@ -a $(as) -q 0 
+	python $(path)/bin/MolecLenEst.py -b $< -o $@ -a $(as) -n $(nm) -q $(map) 
 
 # Create a BED file of molecule extents.
 %.molecule.bed: %.molecule.tsv

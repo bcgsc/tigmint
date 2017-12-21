@@ -85,6 +85,7 @@ tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 + `minsize=2000`: Minimum molecule size
 + `as=0.65`: Minimum AS/read length ratio
 + `nm=5`: Maximum number of mismatches
++ `map=0`: Mapping quality threshold
 + `trim=0`: Number of bases to trim off contigs following cuts
 + `t=8`: Number of threads
 + `gzip=gzip`: gzip compression program, use `pigz -p8` for parallelized compression
@@ -102,6 +103,9 @@ tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 
 + `ref`: Reference genome, `ref.fa`, for calculating assembly contiguity metrics
 + `G`: Size of the reference genome, for calculating NG50 and NGA50
+
+# Tips
++ If your barcoded reads are split up into multiple partitions, the initial alignments of the barcoded reads to the draft assembly can be done in parallel and merged prior to running Tigmint. When aligning with BWA mem, use the "-C" option to include the barcode in the BX tag of the alignments, and sort by BX tag (samtools sort -tBX). Once merged (samtools merge -tBX), the filename should be draft.reads.bam (where draft and reads are the supplied as parameters), then tigmint will use this file to assess molecule extents, and continue through the pipeline.
 
 # Support
 
