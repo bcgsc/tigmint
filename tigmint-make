@@ -30,6 +30,9 @@ as=0.65
 # Maximum number of mismatches
 nm=5
 
+# Maximum distance between reads to be considered the same molecule
+dist=50000
+
 # Mapping quality threshold
 map=0
 
@@ -157,7 +160,7 @@ $(draft).%.bam: %.fq.gz $(draft).fa.bwt
 
 # Filter the BAM file, create molecule extents TSV
 %.as$(as).nm$(nm).molecule.tsv: %.bam
-	python $(path)/bin/MolecLenEst.py -b $< -o $@ -a $(as) -n $(nm) -q $(map) 
+	python $(path)/bin/MolecLenEst.py -b $< -o $@ -a $(as) -n $(nm) -q $(map) -d $(dist) 
 
 # Create a BED file of molecule extents.
 %.molecule.bed: %.molecule.tsv

@@ -85,6 +85,7 @@ tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 + `minsize=2000`: Minimum molecule size
 + `as=0.65`: Minimum AS/read length ratio
 + `nm=5`: Maximum number of mismatches
++ `dist=50000`: Maximum distance (bp) between reads to be considered the same molecule
 + `map=0`: Mapping quality threshold
 + `trim=0`: Number of bases to trim off contigs following cuts
 + `t=8`: Number of threads
