@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 '''
 Created on Monday, May 15 2017
-Last Updated Friday, Oct 20 2017
+Last Updated Thursday, January 18 2018 
 
 Computes molecule size and stdev (for error bounds of molecule size)
 
@@ -250,7 +250,7 @@ if __name__ == '__main__':
     parser.add_option("-b", "--bam", dest="bam",
                   help="Read to genome BAM file file instead of stdin (optional)", metavar="BAM")
     parser.add_option("-d", "--dist", dest="dist",
-                  help="Minimum distance between reads to be considered the same molecule [60000]", metavar="DIST")
+                  help="Maximum distance between reads to be considered the same molecule [60000]", metavar="DIST")
     parser.add_option("-o", "--output", dest="output",
                   help="file name of tsv file instead of stdout (optional)", metavar="OUTPUT")
     parser.add_option("-w", "--new_bam", dest="newBam",
