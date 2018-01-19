@@ -143,9 +143,9 @@ $(draft).tigmint.arcs.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsi
 %.fa.bwt: %.fa
 	bwa index $<
 
-# Align paired-end reads to the draft genome and sort.
+# Align paired-end reads to the draft genome and sort by BX tag.
 $(draft).%.bam: %.fq.gz $(draft).fa.bwt
-	bwa mem -t$t -pC $(draft).fa $< | samtools view -h -F4 | samtools sort -@$t -o $@
+	bwa mem -t$t -pC $(draft).fa $< | samtools view -h -F4 | samtools sort -@$t -tBX -o $@
 
 # samtools
 
