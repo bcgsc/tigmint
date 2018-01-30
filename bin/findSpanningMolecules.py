@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 '''
 Given a BED file of molecule extents, scan the input draft assembly with windows of a fixed size to find windows with few spanning molecules. These areas are likely misassembled areas. Cut the input assembly at the potentially misassembled regions.
