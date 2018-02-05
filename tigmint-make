@@ -69,8 +69,10 @@ gzip=gzip
 #gzip=pigz -p$t
 
 # Report run time and memory usage using zsh
-ifdef time
-export SHELL=zsh -o pipefail
+time=command time -v -o $@.time
+zshtime=1
+ifdef zshtime
+export SHELL=zsh -e -o pipefail
 export REPORTTIME=1
 export TIMEFMT=time user=%U system=%S elapsed=%E cpu=%P memory=%M job=%J
 else
@@ -144,8 +146,9 @@ $(draft).tigmint.arcs.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsi
 	bwa index $<
 
 # Align paired-end reads to the draft genome and sort by BX tag.
-$(draft).%.bam: %.fq.gz $(draft).fa.bwt
-	bwa mem -t$t -pC $(draft).fa $< | samtools view -h -F4 | samtools sort -@$t -tBX -o $@
+$(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
+	rm -f $(TMPDIR)/$@.* || true
+	$(time) bwa mem -t$t -pC $(draft).fa $< | samtools view -u -F4 | samtools sort -@$t -tBX -T $(TMPDIR)/$@ -o $@
 
 # samtools
 
@@ -159,12 +162,12 @@ $(draft).%.bam: %.fq.gz $(draft).fa.bwt
 
 
 # Filter the BAM file, create molecule extents TSV
-%.as$(as).nm$(nm).molecule.tsv: %.bam
-	python $(path)/bin/MolecLenEst.py -b $< -o $@ -a $(as) -n $(nm) -q $(map) -d $(dist) 
+%.as$(as).nm$(nm).molecule.tsv: %.sortbx.bam
+	$(time) $(path)/bin/MolecLenEst.py -b $< -o $@ -a $(as) -n $(nm) -q $(map) -d $(dist)
 
 # Create a BED file of molecule extents.
 %.molecule.bed: %.molecule.tsv
-	tail -n+2 $< |awk '{print $$1"\t"$$2-1"\t"$$3-1"\t"$$6"\tReads="$$7",Size="$$4",Mapq="$$8",AS="$$9"NM="$$10",BX="$$5",MI="$$6}' > $@
+	$(time) awk 'NR>1 { print $$1"\t"$$2-1"\t"$$3-1"\t"$$6"\tReads="$$7",Size="$$4",Mapq="$$8",AS="$$9",NM="$$10",BX="$$5",MI="$$6 }' $< >$@
 
 # Report summary statistics of a Chromium library
 %.molecule.summary.html: %.molecule.tsv
@@ -190,11 +193,11 @@ $(draft).%.bam: %.fq.gz $(draft).fa.bwt
 
 # Select BED records of a given size or larger.
 %.size$(minsize).bed: %.bed
-	awk '$$3 - $$2 >= $(minsize)' $< |bedtools sort > $@ 
+	$(time) awk '$$3 - $$2 >= $(minsize)' $< |bedtools sort > $@ 
 
 #Make breakpoints BED file
 %.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa: %.size$(minsize).bed  $(draft).fa $(draft).fa.fai
-	python $(path)/bin/findSpanningMolecules.py -f $(draft).fa -d $(window) -p $(t) -t $(trim) -n $(span) -o $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span) $< 
+	$(time) $(path)/bin/findSpanningMolecules.py -f $(draft).fa -d $(window) -p $(t) -t $(trim) -n $(span) -o $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span) $<
 
 ################################################################################
 # Calculate assembly contiguity and correctness metrics.
