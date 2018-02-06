@@ -162,7 +162,7 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 
 # Filter the BAM file, create molecule extents TSV
-%.as$(as).nm$(nm).molecule.tsv: %.sortbx.bam
+%.as$(as).nm$(nm).dist$(dist).molecule.tsv: %.sortbx.bam
 	$(time) $(path)/bin/MolecLenEst.py -b $< -o $@ -a $(as) -n $(nm) -q $(map) -d $(dist)
 
 # Create a BED file of molecule extents.
@@ -195,9 +195,9 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 %.size$(minsize).bed: %.bed
 	$(time) awk '$$3 - $$2 >= $(minsize)' $< |bedtools sort > $@ 
 
-#Make breakpoints BED file
-%.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa: %.size$(minsize).bed  $(draft).fa $(draft).fa.fai
-	$(time) $(path)/bin/findSpanningMolecules.py -f $(draft).fa -d $(window) -p $(t) -t $(trim) -n $(span) -o $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span) $<
+# Make breakpoints BED file
+%.trim$(trim).window$(window).span$(span).breaktigs.fa: %.bed $(draft).fa $(draft).fa.fai
+	$(time) $(path)/bin/findSpanningMolecules.py -f $(draft).fa -d $(window) -p $(t) -t $(trim) -n $(span) -o $*.trim$(trim).window$(window).span$(span) $<
 
 ################################################################################
 # Calculate assembly contiguity and correctness metrics.
