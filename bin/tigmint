@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+if [ $# -eq 0 ]; then
+	set help
+fi
+
+case $1 in
+	--help) set help ;;
+	--version) set version ;;
+esac
+
+exec `dirname $0`/tigmint-make "$@"
