@@ -171,7 +171,7 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Filter the BAM file, create molecule extents TSV
 %.as$(as).nm$(nm).molecule.tsv: %.sortbx.bam
-	$(gtime) $(bin)/MolecLenEst.py -b $< -o $@ -a $(as) -n $(nm) -q $(map) -d $(dist)
+	$(gtime) $(bin)/tigmint-molecule -b $< -o $@ -a $(as) -n $(nm) -q $(map) -d $(dist)
 
 # Create a BED file of molecule extents.
 %.molecule.bed: %.molecule.tsv
