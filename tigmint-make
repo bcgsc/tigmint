@@ -164,7 +164,7 @@ $(draft).%.bam: %.fq.gz $(draft).fa.bwt
 
 # Create a BED file of molecule extents.
 %.molecule.bed: %.molecule.tsv
-	tail -n+2 $< |awk '{print $$1"\t"$$2-1"\t"$$3-1"\t"$$6"\tReads="$$7",Size="$$4",Mapq="$$8",AS="$$9"NM="$$10",BX="$$5",MI="$$6}' > $@
+	awk 'NR>1 { print $$1"\t"$$2-1"\t"$$3-1"\t"$$6"\tReads="$$7",Size="$$4",Mapq="$$8",AS="$$9",NM="$$10",BX="$$5",MI="$$6 }' $< >$@
 
 # Report summary statistics of a Chromium library
 %.molecule.summary.html: %.molecule.tsv
