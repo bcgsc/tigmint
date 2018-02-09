@@ -205,7 +205,7 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Make breakpoints BED file
 %.trim$(trim).window$(window).span$(span).breaktigs.fa: %.bed $(draft).fa $(draft).fa.fai
-	$(gtime) $(bin)/findSpanningMolecules.py -f $(draft).fa -d $(window) -p $(t) -t $(trim) -n $(span) -o $*.trim$(trim).window$(window).span$(span) $<
+	$(gtime) $(bin)/tigmint-cut -f $(draft).fa -d $(window) -p $(t) -t $(trim) -n $(span) -o $*.trim$(trim).window$(window).span$(span) $<
 
 ################################################################################
 # Calculate assembly contiguity and correctness metrics.
