@@ -89,9 +89,9 @@ def findBreakpoints(bed_name, window_length, contigLengths, num_spanning, bps_qu
 				checkSpanningMolecules(interval_tree, window_length, contigLengths, contig, num_spanning, bps_queue)
 				interval_tree.clear()
 			contig = bed.chrom
-			interval_tree[bed.start:bed.stop] = bed.name
+			interval_tree[bed.start:bed.stop] = bed.score
 		else: #Same contig ID, keep reading in the BED file to collect all molecule extents for that contig
-			interval_tree[bed.start:bed.stop] = bed.name
+			interval_tree[bed.start:bed.stop] = bed.score
 	#Ensuring final contig in the bed file is also checked for spanning molecules
 	if contig != "":
 		checkSpanningMolecules(interval_tree, window_length, contigLengths, contig, num_spanning, bps_queue)

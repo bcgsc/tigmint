@@ -175,7 +175,8 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Create a BED file of molecule extents.
 %.molecule.bed: %.molecule.tsv
-	awk 'NR>1 { print $$1"\t"$$2-1"\t"$$3-1"\t"$$6"\tReads="$$7",Size="$$4",Mapq="$$8",AS="$$9",NM="$$10",BX="$$5",MI="$$6 }' $< >$@
+	awk 'NR>1 { print $$1"\t"$$2-1"\t"$$3-1"\tReads="$$7",Size="$$4",Mapq="$$8",AS="$$9",NM="$$10",BX="$$5",MI="$$6"\t"$$7 }' $< \
+		| sort -k1,1 -k2,2n -k3,3n >$@
 
 # Report summary statistics of a Chromium library
 %.molecule.summary.html: %.molecule.tsv
@@ -201,7 +202,7 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Select BED records of a given size or larger.
 %.size$(minsize).bed: %.bed
-	awk '$$3 - $$2 >= $(minsize)' $< | bedtools sort >$@
+	awk '$$3 - $$2 >= $(minsize)' $< >$@
 
 # Make breakpoints BED file
 %.trim$(trim).window$(window).span$(span).breaktigs.fa: %.bed $(draft).fa $(draft).fa.fai
