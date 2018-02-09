@@ -243,7 +243,7 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Convert the ARCS graph to LINKS TSV format.
 %.$(reads).c$c_e$e_r$r.arcs.links.tsv: %.$(reads).c$c_e$e_r$r.arcs_original.gv %.fa
-	$(bin)/arcs-makeTSVfile $< $@ $*.fa
+	$(bin)/tigmint-arcs-tsv $< $@ $*.fa
 
 # Scaffold the assembly using the ARCS graph and LINKS.
 %.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.scaffolds.fa %.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.assembly_correspondence.tsv: %.$(reads).c$c_e$e_r$r.arcs.links.tsv %.fa
