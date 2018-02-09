@@ -58,9 +58,9 @@ l=10
 t=8
 
 # Determine path to tigmint executables
-path?=$(shell dirname `which $(MAKEFILE_LIST)`)
-ifdef path
-PATH:=$(path):$(PATH)
+bin=$(shell dirname `command -v $(MAKEFILE_LIST)`)
+ifdef bin
+PATH:=$(bin):$(PATH)
 endif
 
 # Use pigz or bgzip for parallel compression if available.
@@ -171,7 +171,7 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Filter the BAM file, create molecule extents TSV
 %.as$(as).nm$(nm).molecule.tsv: %.sortbx.bam
-	$(gtime) $(path)/bin/MolecLenEst.py -b $< -o $@ -a $(as) -n $(nm) -q $(map) -d $(dist)
+	$(gtime) $(bin)/MolecLenEst.py -b $< -o $@ -a $(as) -n $(nm) -q $(map) -d $(dist)
 
 # Create a BED file of molecule extents.
 %.molecule.bed: %.molecule.tsv
@@ -179,7 +179,7 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Report summary statistics of a Chromium library
 %.molecule.summary.html: %.molecule.tsv
-	Rscript -e 'rmarkdown::render("$(path)/summary.rmd", "html_document", "$@", params = list(input_tsv="$<", output_tsv="$*.summary.tsv"))'
+	Rscript -e 'rmarkdown::render("$(bin)/../summary.rmd", "html_document", "$@", params = list(input_tsv="$<", output_tsv="$*.summary.tsv"))'
 
 # bedtools
 
@@ -205,7 +205,7 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Make breakpoints BED file
 %.trim$(trim).window$(window).span$(span).breaktigs.fa: %.bed $(draft).fa $(draft).fa.fai
-	$(gtime) $(path)/bin/findSpanningMolecules.py -f $(draft).fa -d $(window) -p $(t) -t $(trim) -n $(span) -o $*.trim$(trim).window$(window).span$(span) $<
+	$(gtime) $(bin)/findSpanningMolecules.py -f $(draft).fa -d $(window) -p $(t) -t $(trim) -n $(span) -o $*.trim$(trim).window$(window).span$(span) $<
 
 ################################################################################
 # Calculate assembly contiguity and correctness metrics.
@@ -243,7 +243,7 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Convert the ARCS graph to LINKS TSV format.
 %.$(reads).c$c_e$e_r$r.arcs.links.tsv: %.$(reads).c$c_e$e_r$r.arcs_original.gv %.fa
-	bin/arcs-makeTSVfile $< $@ $*.fa
+	$(bin)/arcs-makeTSVfile $< $@ $*.fa
 
 # Scaffold the assembly using the ARCS graph and LINKS.
 %.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.scaffolds.fa %.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.assembly_correspondence.tsv: %.$(reads).c$c_e$e_r$r.arcs.links.tsv %.fa
@@ -266,5 +266,5 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Calculate assembly contiguity and correctness metrics.
 %.samtobreak.tsv: %.sam
-	(echo '==> $< <=='; $(path)/bin/abyss-samtobreak -G$G -l500 $<) >$@
+	(echo '==> $< <=='; abyss-samtobreak -G$G -l500 $<) >$@
 

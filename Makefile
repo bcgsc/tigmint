@@ -14,7 +14,7 @@ draft.fa reads.fq.gz:
 	touch $@
 
 # Convert the pipepline graph to GraphViz using makefile2graph.
-tigmint-make.gv: tigmint-make draft.fa reads.fq.gz
+tigmint-make.gv: bin/tigmint-make draft.fa reads.fq.gz
 	makefile2graph -f $< all \
 		| gsed -r \
 			-e 's/label="(all|arcs|tigmint)".*]/label="\1", shape=ellipse, style=filled]/' \
@@ -41,12 +41,12 @@ xml-patch-make/make-4.1/make-4.1/make: xml-patch-make/stylesheets/graph2cwl.xsl
 	make -C xml-patch-make
 
 # Generate a generic XML pipeline.
-tigmint-make.xml: tigmint-make xml-patch-make/make-4.1/make-4.1/make
+tigmint-make.xml: bin/tigmint-make xml-patch-make/make-4.1/make-4.1/make
 	xml-patch-make/make-4.1/make-4.1/make --xml $@ -f $< all
 
 # Generate a XML pipeline.
 %.xml: %.fa %.lrsim.fq.gz xml-patch-make/make-4.1/make-4.1/make
-	xml-patch-make/make-4.1/make-4.1/make --xml $@ -f tigmint-make tigmint \
+	xml-patch-make/make-4.1/make-4.1/make --xml $@ -f bin/tigmint-make tigmint \
 		draft=$* reads=$*.lrsim ref=$* G=16569
 
 # Convert Makefile XML to CWL.
@@ -77,4 +77,4 @@ mt.fa:
 
 # Run Tigmint on the mitochondrial test data.
 mt.tigmint.fa: %.tigmint.fa: %.fa %.lrsim.fq.gz
-	./tigmint-make tigmint draft=$* reads=$*.lrsim depth_threshold=150 starts_threshold=2 ref=$* G=16569
+	bin/tigmint-make tigmint draft=$* reads=$*.lrsim depth_threshold=150 starts_threshold=2 ref=$* G=16569
