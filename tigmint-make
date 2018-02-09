@@ -63,7 +63,7 @@ ifdef path
 PATH:=$(path):$(PATH)
 endif
 
-# Use pigz or bgzip for parallelized compression if available.
+# Use pigz or bgzip for parallel compression if available.
 ifneq ($(shell command -v pigz),)
 gzip=pigz -p$t
 else
@@ -161,7 +161,7 @@ $(draft).tigmint.arcs.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsi
 
 # Align paired-end reads to the draft genome and sort by BX tag.
 $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
-	$(gtime) bwa mem -t$t -pC $(draft).fa $< | samtools view -u -F4 | samtools sort -@$t -tBX -o $@
+	$(gtime) bwa mem -t$t -pC $(draft).fa $< | samtools view -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
 
 # samtools
 
