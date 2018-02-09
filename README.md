@@ -50,24 +50,24 @@ brew install abyss
 To run Tigmint on the draft assembly `myassembly.fa` with the reads `myreads.fq.gz`, which have been run through `longranger basic`:
 
 ```sh
-tigmint-make tigmint draft=myassembly reads=myreads
+tigmint tigmint draft=myassembly reads=myreads
 ```
 
 To run both Tigmint and scaffold the corrected assembly with [ARCS](https://github.com/bcgsc/arcs):
 
 ```sh
-tigmint-make arcs draft=myassembly reads=myreads
+tigmint arcs draft=myassembly reads=myreads
 ```
 
 To run Tigmint, ARCS, and calculate assembly metrics using the reference genome `GRCh38.fa`:
 
 ```sh
-tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
+tigmint metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 ```
 
 # Note
 
-+ `tigmint-make` is a Makefile script, and so any `make` options may also be used with `tigmint-make`, such as `-n` (`--dry-run`).
++ `tigmint` runs `tigmint-make`, which is a Makefile script, and so any `make` options may also be used with `tigmint-make`, such as `-n` (`--dry-run`).
 + The file extension of the assembly must be `.fa` and the reads `.fq.gz`, and the extension is not included in the parameters `draft` and `reads`. These specific file name requirements result from implementing the pipeline in GNU Make.
 
 # Commands
@@ -110,7 +110,7 @@ tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 
 # Support
 
-After first looking for existing issue at <https://github.com/bcgsc/tigmint/issues>, please report a new issue at <https://github.com/bcgsc/tigmint/issues/new>. Please report the names of your input files, the exact command line that you are using, and the entire output of `tigmint-make`.
+After first looking for existing issue at <https://github.com/bcgsc/tigmint/issues>, please report a new issue at <https://github.com/bcgsc/tigmint/issues/new>. Please report the names of your input files, the exact command line that you are using, and the entire output of `tigmint`.
 
 # Pipeline
 
