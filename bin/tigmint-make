@@ -213,8 +213,8 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 # BWA
 
 # Align an assembly to the reference using BWA-MEM.
-%.$(ref).sam: %.fa $(ref).fa.bwt
-	bwa mem -xintractg -t$t $(ref).fa $< >$@
+%.$(ref).sam.gz: %.fa $(ref).fa.bwt
+	bwa mem -xintractg -t$t $(ref).fa $< | $(gzip) >$@
 
 # Add the barcode to the read ID, and skip reads without barcodes.
 %.bx.fq.gz: %.fq.gz
@@ -264,7 +264,12 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 %.abyss-fac.tsv: %.fa
 	abyss-fac -G$G -t500 $< >$@
 
-# Calculate assembly contiguity and correctness metrics.
-%.samtobreak.tsv: %.sam
-	(echo '==> $< <=='; abyss-samtobreak -G$G -l500 $<) >$@
+ifdef G
+abyss_samtobreak=abyss-samtobreak -l500 -G$G
+else
+abyss_samtobreak=abyss-samtobreak -l500
+endif
 
+# Calculate assembly contiguity and correctness metrics.
+%.samtobreak.tsv: %.sam.gz
+	gunzip -c $< | $(abyss_samtobreak) >$@
