@@ -125,8 +125,8 @@ draft_metrics: \
 # Correct misassemblies using Tigmint
 tigmint: \
 	$(draft).$(reads).as$(as).nm$(nm).molecule.tsv \
-        $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa \
-        $(draft).tigmint.fa
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa \
+	$(draft).tigmint.fa
 
 # Calculate assembly metrics after Tigmint
 tigmint_metrics: \
@@ -169,11 +169,6 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 %.fa.fai: %.fa
 	samtools faidx $<
 
-# Index a BAM file.
-%.bam.bai: %.bam
-	samtools index $<
-
-
 # Filter the BAM file, create molecule extents TSV
 %.as$(as).nm$(nm).molecule.tsv: %.sortbx.bam
 	$(gtime) $(path)/bin/MolecLenEst.py -b $< -o $@ -a $(as) -n $(nm) -q $(map) -d $(dist)
@@ -206,7 +201,7 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Select BED records of a given size or larger.
 %.size$(minsize).bed: %.bed
-	awk '$$3 - $$2 >= $(minsize)' $< |bedtools sort > $@ 
+	awk '$$3 - $$2 >= $(minsize)' $< | bedtools sort >$@
 
 # Make breakpoints BED file
 %.trim$(trim).window$(window).span$(span).breaktigs.fa: %.bed $(draft).fa $(draft).fa.fai
@@ -271,5 +266,5 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Calculate assembly contiguity and correctness metrics.
 %.samtobreak.tsv: %.sam
-	(echo '==> $< <=='; $(path)/bin/abyss-samtobreak  -G$G -l500 $<) >$@
+	(echo '==> $< <=='; $(path)/bin/abyss-samtobreak -G$G -l500 $<) >$@
 
