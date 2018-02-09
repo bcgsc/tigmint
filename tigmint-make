@@ -62,11 +62,17 @@ path?=$(shell dirname `which $(MAKEFILE_LIST)`)
 ifdef path
 PATH:=$(path):$(PATH)
 endif
- 
 
-# gzip compression program, use pigz for parallelized compression
+# Use pigz or bgzip for parallelized compression if available.
+ifneq ($(shell command -v pigz),)
+gzip=pigz -p$t
+else
+ifneq ($(shell command -v bgzip),)
+gzip=bgzip -@$t
+else
 gzip=gzip
-#gzip=pigz -p$t
+endif
+endif
 
 ifneq ($(shell command -v zsh),)
 # Set pipefail to ensure that all commands of a pipe succeed.
