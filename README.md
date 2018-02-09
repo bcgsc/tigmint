@@ -24,14 +24,16 @@ curl -L https://github.com/bcgsc/tigmint/archive/master.tar.gz | tar xz && mv ti
 
 # Dependencies
 
-Dependencies may be installed using [Homebrew](https://brew.sh) on macOS or [Linuxbrew](http://linuxbrew.sh) on Linux.
+## Python package dependencies
+```sh
+pip3 install intervaltree pybedtools pysam statistics`
+```
+
+Tigmint uses BWA and Samtools. These dependencies may be installed using [Homebrew](https://brew.sh) on macOS or [Linuxbrew](http://linuxbrew.sh) on Linux.
 
 ## Install the dependencies of Tigmint
-Python requirements: Python 3.4+, pybedtools (https://daler.github.io/pybedtools/), intervaltree (https://github.com/chaimleib/intervaltree)
 ```sh
-brew tap homebrew/science
-brew install bedtools bwa gawk gnu-sed miller pigz r samtools seqtk
-Rscript -e 'install.packages(c("ggplot2", "rmarkdown", "tidyverse", "uniqtag"))'
+brew install bwa samtools
 ```
 
 ## Install the dependencies of ARCS (optional)
@@ -41,7 +43,7 @@ brew install arcs links-scaffolder
 
 ## Install the dependencies for calculating assembly metrics (optional)
 ```sh
-brew install abyss
+brew install abyss seqtk
 ```
 
 # Usage
