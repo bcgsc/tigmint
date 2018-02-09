@@ -15,7 +15,7 @@ draft.fa reads.fq.gz:
 
 # Convert the pipepline graph to GraphViz using makefile2graph.
 tigmint-make.gv: tigmint-make draft.fa reads.fq.gz
-	makefile2graph -f $< \
+	makefile2graph -f $< all \
 		| gsed -r \
 			-e 's/label="(all|arcs|tigmint)".*]/label="\1", shape=ellipse, style=filled]/' \
 			-e 's/label="(draft.tigmint.fa|draft.tigmint.arcs.fa)".*]/label="\1", shape=parallelogram, style=filled]/' \
@@ -42,7 +42,7 @@ xml-patch-make/make-4.1/make-4.1/make: xml-patch-make/stylesheets/graph2cwl.xsl
 
 # Generate a generic XML pipeline.
 tigmint-make.xml: tigmint-make xml-patch-make/make-4.1/make-4.1/make
-	xml-patch-make/make-4.1/make-4.1/make --xml $@ -f $<
+	xml-patch-make/make-4.1/make-4.1/make --xml $@ -f $< all
 
 # Generate a XML pipeline.
 %.xml: %.fa %.lrsim.fq.gz xml-patch-make/make-4.1/make-4.1/make
@@ -52,7 +52,6 @@ tigmint-make.xml: tigmint-make xml-patch-make/make-4.1/make-4.1/make
 # Convert Makefile XML to CWL.
 %.cwl: %.xml xml-patch-make/stylesheets/graph2cwl.xsl
 	xsltproc -o $@ --stringparam shellpath $(PWD)/$*.cwl.sh xml-patch-make/stylesheets/graph2cwl.xsl $<
-	chmod +x $@.sh
 
 # Create a CWL JSON driver script.
 %.cwl.json: %.cwl
