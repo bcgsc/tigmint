@@ -152,7 +152,7 @@ def findContigLengths(fasta, num_processes):
 		sys.exit(1)
 
 # Given a list of breakpoints and a reference FAI file, print a BED file representing the cuts to the assembly.
-def printBreakpoints(breakpoints, partitioned_contigLengths, outprefix, len_trim):
+def printBreakpoints(breakpoints, partitioned_contigLengths, bedout, len_trim):
 	breakpoints_bedString = ""
 
 	for part in partitioned_contigLengths:
@@ -174,14 +174,13 @@ def printBreakpoints(breakpoints, partitioned_contigLengths, outprefix, len_trim
 				breakpoints_bedString += "%s\t%d\t%d\t%s\n" % (contig, 0, contigLength, contig)
 
 	breakpoints_bed = pybedtools.BedTool(breakpoints_bedString, from_string=True).sort()
-	breakpoints_bed.saveas(outprefix + ".breaktigs.bed")
+	breakpoints_bed.saveas(bedout)
 
 #Use bedtools to cut the assembly based on the breakpoints identified in the breaktigs bed file, stripping Ns from beginning and end of the sequences
-def cutAssembly(fasta, outprefix):
-	bedfile = outprefix + ".breaktigs.bed"	
+def cutAssembly(fasta, bedfile, out_fasta_filename):
 	cmd = "bedtools getfasta -fi %s -bed %s -name" % (fasta, bedfile)
 	cmd_shlex = shlex.split(cmd)
-	out_fasta = open(outprefix + ".breaktigs.fa", 'w')	
+	out_fasta = open(out_fasta_filename, 'w')
 
 	cutFasta = subprocess.Popen(cmd_shlex, stdout=subprocess.PIPE, universal_newlines=True)
 	for line in iter(cutFasta.stdout.readline, ''):
@@ -203,9 +202,12 @@ def main():
 	parser.add_argument("-p", type=int, help="Number of parallel processes to launch [8]", default=8)
 	parser.add_argument("-t", type=int, help="Number of base pairs to trim at contig cuts [0bp]", default=0)
 	parser.add_argument("-n", type=int, help="Spanning molecules threshold (no misassembly in window if num. spanning molecules >= n [2])", default=2)
-	parser.add_argument("-o", type=str, help="Prefix for output files", required=True)
+	parser.add_argument("-o", "--fastaout", type=str, help="The output FASTA file.", required=True)
+	parser.add_argument("-b", "--bedout", type=str, help="The output BED file. Default is the output FASTA filename plus .bed")
 
 	args = parser.parse_args()
+	if args.bedout == None:
+		args.bedout = args.fastaout + ".bed"
 
 	print("Started at: %s" % datetime.now())	
 	print ("Reading contig lengths...")	
@@ -213,10 +215,10 @@ def main():
 
 	print("Finding breakpoints...")
 	breakpoints = launchFindBreakpoints(args.bed, args.d, args.p, partitioned_contigLengths, args.n)	
-	printBreakpoints(breakpoints, partitioned_contigLengths, args.o, args.t)	
+	printBreakpoints(breakpoints, partitioned_contigLengths, args.bedout, args.t)
 
 	print("Cutting assembly at breakpoints...")
-	cutAssembly(args.f, args.o)
+	cutAssembly(args.f, args.bedout, args.fastaout)
 
 	print("DONE!")	
 	print("Ended at: %s" % datetime.now())
