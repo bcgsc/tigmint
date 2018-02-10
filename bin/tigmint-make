@@ -40,7 +40,7 @@ mapq=0
 trim=0
 
 #Threshold for number of spanning molecules to consider properly assembled
-span=2
+span=20
 
 #Window size for checking for spanning molecules
 window=1000
