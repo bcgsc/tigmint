@@ -6,6 +6,7 @@ SHELL=bash -eu -o pipefail
 all: tigmint-make.cwl tigmint-make.gv.svg
 
 check: mt.tigmint.fa
+	diff mt.tigmint.fa.wc <(wc $<)
 
 # GraphViz
 
@@ -64,6 +65,18 @@ mt.fa:
 	curl ftp://ftp.ensembl.org/pub/release-89/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.MT.fa.gz \
 		| seqtk seq >$@
 
+# Cut the mitochondrial genome in two.
+mt1.fa: mt.fa
+	samtools faidx $< MT:1-8284 | seqtk seq | sed 's/>.*/>MT1/' >$@
+
+# Cut the mitochondrial genome in two.
+mt2.fa: mt.fa
+	samtools faidx $< MT:8285-16569 | seqtk seq | sed 's/>.*/>MT2/' >$@
+
+# Concatenate reads from the two halves of the genome.
+mt.halved.lrsim.fq.gz: mt1.lrsim.fq.gz mt2.lrsim.fq.gz
+	cat $^ >$@
+
 # Simulate linked reads using LRSIM.
 %.lrsim_S1_L001_R1_001.fastq.gz %.lrsim_S1_L001_R2_001.fastq.gz: %.fa
 	simulateLinkedReads -g $< -p $*.lrsim -o -x0.005 -f4 -t1 -m1 -z1
@@ -76,5 +89,11 @@ mt.fa:
 		| gzip >$@
 
 # Run Tigmint on the mitochondrial test data.
-mt.tigmint.fa: %.tigmint.fa: %.fa %.lrsim.fq.gz
-	bin/tigmint-make tigmint draft=$* reads=$*.lrsim depth_threshold=150 starts_threshold=2 ref=$* G=16569
+mt.tigmint.fa: %.tigmint.fa: %.fa %.halved.lrsim.fq.gz
+	bin/tigmint-make tigmint draft=$* reads=$*.halved.lrsim depth_threshold=150 starts_threshold=2 ref=$* G=16569
+
+# Bedtools
+
+# Create a bedgraph coverage track from a BED file.
+%.bedgraph: %.bed mt.fa.fai
+	bedtools genomecov -bg -g mt.fa.fai -i $< >$@
