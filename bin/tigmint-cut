@@ -196,14 +196,14 @@ def cutAssembly(fasta, bedfile, out_fasta_filename):
 
 def main():
 	parser = argparse.ArgumentParser(description="Find misassembled regions in assembly using Chromium molecule extents")
+	parser.add_argument("fasta", type=str, help="Reference genome fasta file (must have FAI index generated)")
 	parser.add_argument("bed", type=str, help="Sorted bed file of molecule extents")
-	parser.add_argument("-f", type=str, help="Reference genome fasta file (must have FAI index generated)", required=True)
-	parser.add_argument("-d", type=int, help="Window size used to check for spanning molecules (bp) [1000]", default=1000)
-	parser.add_argument("-p", type=int, help="Number of parallel processes to launch [8]", default=8)
-	parser.add_argument("-t", type=int, help="Number of base pairs to trim at contig cuts [0bp]", default=0)
-	parser.add_argument("-n", type=int, help="Spanning molecules threshold (no misassembly in window if num. spanning molecules >= n [2])", default=2)
 	parser.add_argument("-o", "--fastaout", type=str, help="The output FASTA file.", required=True)
 	parser.add_argument("-b", "--bedout", type=str, help="The output BED file. Default is the output FASTA filename plus .bed")
+	parser.add_argument("-p", "--processes", type=int, help="Number of parallel processes to launch [8]", default=8)
+	parser.add_argument("-w", "--window", type=int, help="Window size used to check for spanning molecules (bp) [1000]", default=1000)
+	parser.add_argument("-n", "--spanning", type=int, help="Spanning molecules threshold (no misassembly in window if num. spanning molecules >= n [2])", default=2)
+	parser.add_argument("-t", "--trim", type=int, help="Number of base pairs to trim at contig cuts (bp) [0]", default=0)
 
 	args = parser.parse_args()
 	if args.bedout == None:
@@ -211,14 +211,14 @@ def main():
 
 	print("Started at: %s" % datetime.now())	
 	print ("Reading contig lengths...")	
-	partitioned_contigLengths = findContigLengths(args.f, args.p)
+	partitioned_contigLengths = findContigLengths(args.fasta, args.processes)
 
 	print("Finding breakpoints...")
-	breakpoints = launchFindBreakpoints(args.bed, args.d, args.p, partitioned_contigLengths, args.n)	
-	printBreakpoints(breakpoints, partitioned_contigLengths, args.bedout, args.t)
+	breakpoints = launchFindBreakpoints(args.bed, args.window, args.processes, partitioned_contigLengths, args.spanning)	
+	printBreakpoints(breakpoints, partitioned_contigLengths, args.bedout, args.trim)
 
 	print("Cutting assembly at breakpoints...")
-	cutAssembly(args.f, args.bedout, args.fastaout)
+	cutAssembly(args.fasta, args.bedout, args.fastaout)
 
 	print("DONE!")	
 	print("Ended at: %s" % datetime.now())
