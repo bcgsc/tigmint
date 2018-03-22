@@ -27,7 +27,7 @@ class NoSpanningRun:
 def tallyBreakpoints(bps_queue, contig, noSpanningRun):
 	if noSpanningRun.beforeRun_bp == noSpanningRun.afterRun_bp:
 		bps_queue.put((contig, noSpanningRun.beforeRun_bp))
-	else:		
+	else:
 		bps_queue.put((contig, noSpanningRun.beforeRun_bp))
 		bps_queue.put((contig, noSpanningRun.afterRun_bp))
 
@@ -37,7 +37,7 @@ def tallyBreakpoints(bps_queue, contig, noSpanningRun):
 # Cut 2: The start of the first spanning window after a run of windows with no spanning molecules
 def checkSpanningMolecules(intervals, window, contigLengths, contig, num_spanning, bps_queue):
 	contigLength = contigLengths[contig]
-	
+
 	start_window = 0
 	end_window = window
 
@@ -47,30 +47,30 @@ def checkSpanningMolecules(intervals, window, contigLengths, contig, num_spannin
 	while end_window < contigLength:
 		numSpanningMolecs = 0
 		smallestEndPos_spanningMolecs = float("inf")
-		overlap_intervals = sorted(intervals[start_window], key=lambda x:x[1], reverse=True) 
-		for interval in overlap_intervals: 
+		overlap_intervals = sorted(intervals[start_window], key=lambda x:x[1], reverse=True)
+		for interval in overlap_intervals:
 			if interval.end > end_window: #last overlapping base for interval is interval.end - 1 (range is inclusive of lower limit, non-inclusive of upper limit)
 				numSpanningMolecs += 1
 				smallestEndPos_spanningMolecs = min(smallestEndPos_spanningMolecs, interval.end-1)
 			else:
 				break #sorted by decreasing end position, so if this interval isn't spanning, can break out of loop
 			if numSpanningMolecs >= num_spanning:
-				break 
+				break
 
 		if numSpanningMolecs < num_spanning:
 			if pastStart:
 				if noSpanningRun is None: #First non-spanning interval for a new run
 					noSpanningRun = NoSpanningRun()
-					noSpanningRun.beforeRun_bp = end_window 
+					noSpanningRun.beforeRun_bp = end_window
 			start_window += 1
 			end_window += 1
 		else:
 			if pastStart and noSpanningRun is not None: #We have come to the end of a valid string of non-spanning molecule windows
-				noSpanningRun.afterRun_bp = start_window 
+				noSpanningRun.afterRun_bp = start_window
 				tallyBreakpoints(bps_queue, contig, noSpanningRun)
 				noSpanningRun = None
 			pastStart = True
-			
+
 			end_window = max(smallestEndPos_spanningMolecs + 1, end_window + 1)
 			start_window = end_window - window
 
@@ -95,14 +95,14 @@ def findBreakpoints(bed_name, window_length, contigLengths, num_spanning, bps_qu
 	#Ensuring final contig in the bed file is also checked for spanning molecules
 	if contig != "":
 		checkSpanningMolecules(interval_tree, window_length, contigLengths, contig, num_spanning, bps_queue)
-	
-	
+
+
 #Launch processes to find breakpoints for partitioned contigs in parallel. Returns dictionary of identified breakpoints.
 def launchFindBreakpoints(bedfile, window, num_processes, partitioned_contigLengths, num_spanning):
 	processes = []
-	bp_queue = Queue() 
+	bp_queue = Queue()
 	breakpoints = {}
-	
+
 	for i in range(0, num_processes):
 		p = Process(target=findBreakpoints, args=(bedfile, window, partitioned_contigLengths[i], num_spanning, bp_queue))
 		processes.append(p)
@@ -118,24 +118,24 @@ def launchFindBreakpoints(bedfile, window, num_processes, partitioned_contigLeng
 				breakpoints[chrom] = []
 			breakpoints[chrom].append(pos)
 		if not running:
-			break			
+			break
 
 	for p in processes:
 		p.join()
-	
-	return breakpoints	
-	
-#Reads through the fai index of the fasta file to partition the contigs, and tracking the contig lengths in a dictionary per partition.  
-# Returns the list of dictionaries (length of list = number of partitions) 
+
+	return breakpoints
+
+#Reads through the fai index of the fasta file to partition the contigs, and tracking the contig lengths in a dictionary per partition.
+# Returns the list of dictionaries (length of list = number of partitions)
 def findContigLengths(fasta, num_processes):
 	fasta_faidx_name = fasta + ".fai"
 	try:
 		fasta_faidx = open(fasta_faidx_name, 'r')
-		
+
 		contig_lengths = []
 		for i in range(0, num_processes):
-			contig_lengths.append({})	
-		
+			contig_lengths.append({})
+
 		count = 0
 		for seq in fasta_faidx:
 			seq = seq.strip().split("\t")
@@ -146,7 +146,7 @@ def findContigLengths(fasta, num_processes):
 			count += 1
 		fasta_faidx.close()
 		return contig_lengths
-	
+
 	except:
 		print("Error when trying to open %s.\nGenerate the fai index file for %s with: samtools faidx %s" % (fasta_faidx_name, fasta, fasta))
 		sys.exit(1)
@@ -187,7 +187,7 @@ def cutAssembly(fasta, bedfile, out_fasta_filename):
 		line = line.strip()
 		if line[0] == ">": #Header line
 			out_fasta.write(line + "\n")
-		else: #Sequence line, strip leading or trailing "N"s 
+		else: #Sequence line, strip leading or trailing "N"s
 			strippedNs = line.strip("Nn")
 			if strippedNs == "": #Just give single N if the sequence will become empty
 				strippedNs = "N"
@@ -209,19 +209,19 @@ def main():
 	if args.bedout == None:
 		args.bedout = args.fastaout + ".bed"
 
-	print("Started at: %s" % datetime.now())	
-	print ("Reading contig lengths...")	
+	print("Started at: %s" % datetime.now())
+	print ("Reading contig lengths...")
 	partitioned_contigLengths = findContigLengths(args.fasta, args.processes)
 
 	print("Finding breakpoints...")
-	breakpoints = launchFindBreakpoints(args.bed, args.window, args.processes, partitioned_contigLengths, args.spanning)	
+	breakpoints = launchFindBreakpoints(args.bed, args.window, args.processes, partitioned_contigLengths, args.spanning)
 	printBreakpoints(breakpoints, partitioned_contigLengths, args.bedout, args.trim)
 
 	print("Cutting assembly at breakpoints...")
 	cutAssembly(args.fasta, args.bedout, args.fastaout)
 
-	print("DONE!")	
+	print("DONE!")
 	print("Ended at: %s" % datetime.now())
-	
+
 if __name__ == "__main__":
 	main()
