@@ -7,6 +7,7 @@ Given a BED file of molecule extents, scan the input draft assembly with windows
 
 '''
 
+import os
 import sys
 import pybedtools
 import argparse
@@ -194,6 +195,21 @@ def cutAssembly(fasta, bedfile, out_fasta_filename):
 			out_fasta.write(strippedNs + "\n")
 	out_fasta.close()
 
+def ensure_writable(f):
+	"Ensure that the file f is writable."
+	if os.access(f, os.W_OK):
+		return
+	d = os.path.dirname(f) if "/" in f else "."
+	if os.access(f, os.F_OK):
+		print("tigmint-cut: error: file exists and is not writable:", f, file=sys.stderr)
+		sys.exit(1)
+	if not os.access(d, os.F_OK):
+		print("tigmint-cut: error: parent directory does not exist:", f, file=sys.stderr)
+		sys.exit(1)
+	if not os.access(d, os.W_OK):
+		print("tigmint-cut: error: cannot write to parent directory:", f, file=sys.stderr)
+		sys.exit(1)
+
 def main():
 	parser = argparse.ArgumentParser(description="Find misassembled regions in assembly using Chromium molecule extents")
 	parser.add_argument("fasta", type=str, help="Reference genome fasta file (must have FAI index generated)")
@@ -208,6 +224,9 @@ def main():
 	args = parser.parse_args()
 	if args.bedout == None:
 		args.bedout = args.fastaout + ".bed"
+
+	ensure_writable(args.fastaout)
+	ensure_writable(args.bedout)
 
 	print("Started at: %s" % datetime.now())
 	print ("Reading contig lengths...")
