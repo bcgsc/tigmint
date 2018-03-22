@@ -174,7 +174,7 @@ def printBreakpoints(breakpoints, partitioned_contigLengths, bedout, len_trim):
 			else: #No breakpoints, have BED for entire length of the contig.
 				breakpoints_bedString += "%s\t%d\t%d\t%s\n" % (contig, 0, contigLength, contig)
 
-	breakpoints_bed = pybedtools.BedTool(breakpoints_bedString, from_string=True).sort()
+	breakpoints_bed = pybedtools.BedTool(breakpoints_bedString, from_string=True)
 	breakpoints_bed.saveas(bedout)
 
 #Use bedtools to cut the assembly based on the breakpoints identified in the breaktigs bed file, stripping Ns from beginning and end of the sequences
