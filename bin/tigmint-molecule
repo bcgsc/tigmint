@@ -115,11 +115,11 @@ class MolecIdentifier:
         newMolecID = 0
         for read in samfile:
             barcode = ""
-            if read.is_unmapped or \
-            read.is_supplementary or \
-            read.mapping_quality < self._mapq or \
-            read.get_tag("AS") < self._asRatio*len(read.query_sequence) or \
-            read.get_tag("NM") >= self._nm:
+            if read.is_unmapped \
+            or read.is_supplementary \
+            or read.mapping_quality < self._mapq \
+            or read.has_tag("AS") and read.get_tag("AS") < self._asRatio*len(read.query_sequence) \
+            or read.has_tag("NM") and read.get_tag("NM") >= self._nm:
                 continue
 
             # extract barcode
@@ -150,8 +150,10 @@ class MolecIdentifier:
                     value = curRead.pos
                     absDist = value - prevVal
                     mapQs.append(curRead.mapping_quality)
-                    alSs.append(curRead.get_tag("AS"))
-                    noMs.append(curRead.get_tag("NM"))
+                    if curRead.has_tag("AS"):
+                        alSs.append(curRead.get_tag("AS"))
+                    if curRead.has_tag("NM"):
+                        noMs.append(curRead.get_tag("NM"))
 
                     #check if molecules should be terminated
                     if absDist > self._maxDist and prevVal > 0:
@@ -162,8 +164,8 @@ class MolecIdentifier:
                                  newMolecID, prevBarcode, \
                                  interArrivals, count, \
                                  statistics.median(mapQs), \
-                                 statistics.median(alSs), \
-                                 statistics.median(noMs))
+                                 statistics.median(alSs) if alSs else "NA", \
+                                 statistics.median(noMs) if noMs else "NA")
 
                         if prevRead.is_reverse:
                             prevVal2 = value
@@ -183,8 +185,10 @@ class MolecIdentifier:
                         alSs = []
                         noMs = []
                         mapQs.append(curRead.mapping_quality)
-                        alSs.append(curRead.get_tag("AS"))
-                        noMs.append(curRead.get_tag("NM"))
+                        if curRead.has_tag("AS"):
+                            alSs.append(curRead.get_tag("AS"))
+                        if curRead.has_tag("NM"):
+                            noMs.append(curRead.get_tag("NM"))
                         prevVal = value
                         count = 0
                         continue
@@ -223,8 +227,8 @@ class MolecIdentifier:
                                  newMolecID, prevBarcode, \
                                  interArrivals, count, \
                                  statistics.median(mapQs), \
-                                 statistics.median(alSs), \
-                                 statistics.median(noMs))
+                                 statistics.median(alSs) if alSs else "NA", \
+                                 statistics.median(noMs) if noMs else "NA")
 
 
                 if count >= self._min:
