@@ -12,11 +12,17 @@ Version 0.0.1
 @author: cjustin
 '''
 
+from enum import Enum
 import argparse
 import statistics
 import sys
 
 import pysam
+
+class FileFormat(Enum):
+    "File format"
+    BED = 1
+    TSV = 2
 
 class Molecule:
     "A molecule of linked reads"
@@ -37,14 +43,29 @@ class Molecule:
         self.as_median = as_median
         self.nm_median = nm_median
 
-    def print_tsv(self, file):
-        "Print this molecule to a file"
+    def print_bed(self, file):
+        "Print this molecule to a BED file"
         print(
             self.rname, self.start, self.end,
-            self.end - self.start, self.barcode,
-            self.new_molec_id, self.count,
-            self.mapq_median, self.as_median,
-            self.nm_median, sep="\t", file=file)
+            self.barcode,
+            self.count,
+            sep="\t", file=file)
+
+    def print_tsv(self, file):
+        "Print this molecule to a TSV file"
+        print(
+            self.rname, self.start, self.end, self.end - self.start,
+            self.barcode, self.new_molec_id,
+            self.count,
+            self.mapq_median, self.as_median, self.nm_median,
+            sep="\t", file=file)
+
+    def print_molecule(self, file, output_format):
+        "Print this molecule to a file"
+        if output_format == FileFormat.BED:
+            self.print_bed(file)
+        if output_format == FileFormat.TSV:
+            self.print_tsv(file)
 
 class MolecIdentifier:
     "Group molecules into barcodes"
@@ -66,13 +87,15 @@ class MolecIdentifier:
         else:
             out_bam_file = None
 
-        if self.opt.out_tsv_filename:
-            out_molecules_file = open(self.opt.out_tsv_filename, "w")
+        if self.opt.out_molecules_filename:
+            out_molecules_file = open(self.opt.out_molecules_filename, "w")
         else:
             out_molecules_file = sys.stdout
-        print(
-            "Rname\tStart\tEnd\tSize\tBX\tMI\tReads\tMapq_median\tAS_median\tNM_median",
-            file=out_molecules_file)
+
+        if self.opt.output_format == FileFormat.TSV:
+            print(
+                "Rname\tStart\tEnd\tSize\tBX\tMI\tReads\tMapq_median\tAS_median\tNM_median",
+                file=out_molecules_file)
 
         prev_barcode = None
         prev_chr = None
@@ -141,7 +164,7 @@ class MolecIdentifier:
                             prev_val2 = 0
                         start = value
                         if count >= self.opt.min_reads:
-                            molec.print_tsv(file=out_molecules_file)
+                            molec.print_molecule(out_molecules_file, self.opt.output_format)
                             new_molec_id += 1
                         if self.opt.out_bam_filename:
                             cur_read.set_tag("MI", new_molec_id)
@@ -197,7 +220,7 @@ class MolecIdentifier:
                                  statistics.median(nms) if nms else "NA")
 
                 if count >= self.opt.min_reads:
-                    molec.print_tsv(file=out_molecules_file)
+                    molec.print_molecule(out_molecules_file, self.opt.output_format)
                     new_molec_id += 1
                 cur_reads = []
             cur_reads.append(read)
@@ -222,13 +245,20 @@ class MolecIdentifier:
             help="Input BAM file sorted by BX tag then position [stdin]",
             metavar="FILE")
         parser.add_argument(
-            "-o", "--output", dest="out_tsv_filename",
+            "-o", "--output", dest="out_molecules_filename",
             help="Output TSV file [stdout]",
             metavar="FILE")
         parser.add_argument(
             "-w", "--out-bam", dest="out_bam_filename",
             help="Output BAM file with MI tags (optional)",
             metavar="FILE")
+        parser.add_argument(
+            "--bed", action="store_const", dest="output_format", const=FileFormat.BED,
+            default=FileFormat.BED,
+            help="Output in BED format [default]")
+        parser.add_argument(
+            "--tsv", action="store_const", dest="output_format", const=FileFormat.TSV,
+            help="Output in TSV format")
         parser.add_argument(
             "-d", "--dist", dest="max_dist", type=int, default=50000,
             help="Maximum distance between reads in the same molecule [50000]",
