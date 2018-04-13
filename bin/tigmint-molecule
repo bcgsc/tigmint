@@ -80,9 +80,9 @@ class MolecIdentifier:
         self._mapq = 1
         self._asRatio = 0.8
         self._nm = 5
-        self._newBamFilename = ""
-        self._tsvFilename = ""
-        self._bam = ""
+        self._newBamFilename = None
+        self._tsvFilename = None
+        self._bam = None
 
     def run(self):
         if self._bam:
@@ -101,14 +101,14 @@ class MolecIdentifier:
             self._newMolecFH = sys.stdout
         print("Rname\tStart\tEnd\tSize\tBX\tMI\tReads\tMapq_median\tAS_median\tNM_median", file=self._newMolecFH)
 
-        prevBarcode = ""
-        prevChr = ""
+        prevBarcode = None
+        prevChr = None
         curReads = []
         trueMolecs = {}
 
         newMolecID = 0
         for read in samfile:
-            barcode = ""
+            barcode = None
             if read.is_unmapped \
             or read.is_supplementary \
             or read.mapping_quality < self._mapq \
@@ -124,7 +124,7 @@ class MolecIdentifier:
                 if self._newBamFilename:
                     self._outfilebam.write(read)
                 continue
-            if prevChr == "" or prevBarcode == "":
+            if prevChr is None or prevBarcode is None:
                 prevBarcode = barcode
                 prevChr = read.reference_id
             if prevBarcode != barcode or read.reference_id != prevChr:
