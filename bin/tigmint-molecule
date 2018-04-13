@@ -13,267 +13,301 @@ Version 0.0.1
 '''
 
 from optparse import OptionParser
-import pysam
-import statistics
 import sys
+import statistics
+import pysam
 
 class Molecule:
-    def __init__(self, rname, start, end, \
-                 newMolecID, barcode, \
-                 interArrivals, count, \
-                 mapqMedian, asMedian, nmMedian):
+    "A molecule of linked reads"
 
+    def __init__(
+            self, rname, start, end, \
+            new_molec_id, barcode, \
+            inter_arrivals, count, \
+            mapq_median, as_median, nm_median):
         self.rname = rname
         self.start = start
         self.end = end
         self.barcode = barcode
-        self.newMolecID = newMolecID
-        self.interArrivals = interArrivals
+        self.new_molec_id = new_molec_id
+        self.inter_arrivals = inter_arrivals
         self.count = count
-        self.mapqMedian = mapqMedian
-        self.asMedian = asMedian
-        self.nmMedian = nmMedian
+        self.mapq_median = mapq_median
+        self.as_median = as_median
+        self.nm_median = nm_median
 
-    def getLength(self):
-        return self.end-self.start
-
-    def printTSV(self, file):
+    def print_tsv(self, file):
+        "Print this molecule to a file"
         print(
-           self.rname, 1 + self.start, 1 + self.end,
-           self.end - self.start, self.barcode,
-           self.newMolecID, self.count,
-           self.mapqMedian, self.asMedian,
-           self.nmMedian, sep="\t", file=file)
+            self.rname, 1 + self.start, 1 + self.end,
+            self.end - self.start, self.barcode,
+            self.new_molec_id, self.count,
+            self.mapq_median, self.as_median,
+            self.nm_median, sep="\t", file=file)
 
 class MolecIdentifier:
+    "Group molecules into barcodes"
 
-    def setBAM(self,bam):
-        self._bam = bam
+    def set_in_bam_filename(self, bam):
+        "Set the input BAM filename"
+        self._in_bam_filename = bam
 
-    def setDist(self, dist):
-        self._maxDist = int(dist)
+    def set_dist(self, dist):
+        "Set the maximum distance between reads"
+        self._max_dist = int(dist)
 
-    def setMin(self, min):
-        self._min = int(min)
+    def set_min(self, min_reads):
+        "Set the minimum number of reads"
+        self._min_reads = int(min_reads)
 
-    def setMAPQ(self, mapq):
-        self._mapq = int(mapq)
+    def set_min_mapq(self, min_mapq):
+        "Set the minimum mapping quality"
+        self._min_mapq = int(min_mapq)
 
-    def setASRatio(self, asRatio):
-        self._asRatio = float(asRatio)
+    def set_min_as_ratio(self, min_as_ratio):
+        "Set the minimum alignment score ratio"
+        self._min_as_ratio = float(min_as_ratio)
 
-    def setNM(self, nm):
-        self._nm = int(nm)
+    def set_max_nm(self, max_nm):
+        "Set the maximum number of mismatches"
+        self._max_nm = int(max_nm)
 
-    def setNewBam(self, filename):
-        self._newBamFilename = filename
+    def set_out_bam_filename(self, filename):
+        "Set the output SAM/BAM filename"
+        self._out_bam_filename = filename
 
-    def setOutput(self, filename):
-        self._tsvFilename = filename
+    def set_out_tsv_filename(self, filename):
+        "Set the output TSV filename"
+        self._out_tsv_filename = filename
 
     def __init__(self):
         """
         Constructor, identifies molecules based on inter-arrival time threshold
         """
-        self._min = 4
-        self._maxDist = 60000
-        self._mapq = 1
-        self._asRatio = 0.8
-        self._nm = 5
-        self._newBamFilename = None
-        self._tsvFilename = None
-        self._bam = "-"
+        self._min_reads = 4
+        self._max_dist = 60000
+        self._min_mapq = 1
+        self._min_as_ratio = 0.8
+        self._max_nm = 5
+        self._in_bam_filename = "-"
+        self._out_bam_filename = None
+        self._out_tsv_filename = None
 
     def run(self):
-        samfile = pysam.AlignmentFile(self._bam, "rb")
+        "Group molecules into barcodes"
 
-        if self._newBamFilename:
-            self._outfilebam = pysam.AlignmentFile(self._newBamFilename, "wb", template=samfile)
+        samfile = pysam.AlignmentFile(self._in_bam_filename, "rb")
+
+        if self._out_bam_filename:
+            out_bam_file = pysam.AlignmentFile(self._out_bam_filename, "wb", template=samfile)
         else:
-            self._outfilebam = None
+            out_bam_file = None
 
-        if self._tsvFilename:
-            self._newMolecFH = open(self._tsvFilename, "w")
+        if self._out_tsv_filename:
+            out_molecules_file = open(self._out_tsv_filename, "w")
         else:
-            self._newMolecFH = sys.stdout
-        print("Rname\tStart\tEnd\tSize\tBX\tMI\tReads\tMapq_median\tAS_median\tNM_median", file=self._newMolecFH)
+            out_molecules_file = sys.stdout
+        print(
+            "Rname\tStart\tEnd\tSize\tBX\tMI\tReads\tMapq_median\tAS_median\tNM_median",
+            file=out_molecules_file)
 
-        prevBarcode = None
-        prevChr = None
-        curReads = []
-        trueMolecs = {}
+        prev_barcode = None
+        prev_chr = None
+        cur_reads = []
 
-        newMolecID = 0
+        new_molec_id = 0
         for read in samfile:
             barcode = None
             if read.is_unmapped \
             or read.is_supplementary \
-            or read.mapping_quality < self._mapq \
-            or read.has_tag("AS") and read.get_tag("AS") < self._asRatio*len(read.query_sequence) \
-            or read.has_tag("NM") and read.get_tag("NM") >= self._nm:
+            or read.mapping_quality < self._min_mapq \
+            or read.has_tag("NM") and read.get_tag("NM") >= self._max_nm:
+                continue
+            if read.has_tag("AS") \
+            and read.get_tag("AS") < self._min_as_ratio * len(read.query_sequence):
                 continue
 
             if not read.has_tag("BX"):
-                if self._outfilebam:
-                    self._outfilebam.write(read)
+                if out_bam_file:
+                    out_bam_file.write(read)
                 continue
 
             barcode = read.get_tag("BX")
-            if prevChr is None or prevBarcode is None:
-                prevBarcode = barcode
-                prevChr = read.reference_id
-            if prevBarcode != barcode or read.reference_id != prevChr:
-                prevVal = 0
-                prevRead = curReads[0]
-                prevVal1 = 0
-                prevVal2 = 0
-                start = curReads[0].pos
-                rname = curReads[0].reference_name
-                interArrivals = []
-                mapQs = []
-                alSs = []
-                noMs = []
+            if prev_chr is None or prev_barcode is None:
+                prev_barcode = barcode
+                prev_chr = read.reference_id
+            if prev_barcode != barcode or read.reference_id != prev_chr:
+                prev_val = 0
+                prev_read = cur_reads[0]
+                prev_val1 = 0
+                prev_val2 = 0
+                start = cur_reads[0].pos
+                rname = cur_reads[0].reference_name
+                inter_arrivals = []
+                mapqs = []
+                scores = []
+                nms = []
                 count = 0
 
-                for curRead in curReads:
-                    value = curRead.pos
-                    absDist = value - prevVal
-                    mapQs.append(curRead.mapping_quality)
-                    if curRead.has_tag("AS"):
-                        alSs.append(curRead.get_tag("AS"))
-                    if curRead.has_tag("NM"):
-                        noMs.append(curRead.get_tag("NM"))
+                for cur_read in cur_reads:
+                    value = cur_read.pos
+                    abs_dist = value - prev_val
+                    mapqs.append(cur_read.mapping_quality)
+                    if cur_read.has_tag("AS"):
+                        scores.append(cur_read.get_tag("AS"))
+                    if cur_read.has_tag("NM"):
+                        nms.append(cur_read.get_tag("NM"))
 
                     #check if molecules should be terminated
-                    if absDist > self._maxDist and prevVal > 0:
-                        end = prevRead.reference_end
+                    if abs_dist > self._max_dist and prev_val > 0:
+                        end = prev_read.reference_end
 
                         #find distance from nearest read
                         molec = Molecule(rname, start, end, \
-                                 newMolecID, prevBarcode, \
-                                 interArrivals, count, \
-                                 statistics.median(mapQs), \
-                                 statistics.median(alSs) if alSs else "NA", \
-                                 statistics.median(noMs) if noMs else "NA")
+                                 new_molec_id, prev_barcode, \
+                                 inter_arrivals, count, \
+                                 statistics.median(mapqs), \
+                                 statistics.median(scores) if scores else "NA", \
+                                 statistics.median(nms) if nms else "NA")
 
-                        if prevRead.is_reverse:
-                            prevVal2 = value
-                            prevVal1 = 0
+                        if prev_read.is_reverse:
+                            prev_val2 = value
+                            prev_val1 = 0
                         else:
-                            prevVal1 = value
-                            prevVal2 = 0
-                        start = value;
-                        if count >= self._min:
-                            molec.printTSV(file=self._newMolecFH)
-                            newMolecID += 1
-                        if self._newBamFilename:
-                            curRead.set_tag("MI", newMolecID)
-                            self._outfilebam.write(curRead)
-                        interArrivals = []
-                        mapQs = []
-                        alSs = []
-                        noMs = []
-                        mapQs.append(curRead.mapping_quality)
-                        if curRead.has_tag("AS"):
-                            alSs.append(curRead.get_tag("AS"))
-                        if curRead.has_tag("NM"):
-                            noMs.append(curRead.get_tag("NM"))
-                        prevVal = value
+                            prev_val1 = value
+                            prev_val2 = 0
+                        start = value
+                        if count >= self._min_reads:
+                            molec.print_tsv(file=out_molecules_file)
+                            new_molec_id += 1
+                        if self._out_bam_filename:
+                            cur_read.set_tag("MI", new_molec_id)
+                            out_bam_file.write(cur_read)
+                        inter_arrivals = []
+                        mapqs = []
+                        scores = []
+                        nms = []
+                        mapqs.append(cur_read.mapping_quality)
+                        if cur_read.has_tag("AS"):
+                            scores.append(cur_read.get_tag("AS"))
+                        if cur_read.has_tag("NM"):
+                            nms.append(cur_read.get_tag("NM"))
+                        prev_val = value
                         count = 0
                         continue
                     else:
-                        if self._newBamFilename:
-                            curRead.set_tag("MI", newMolecID)
-                            self._outfilebam.write(curRead)
+                        if self._out_bam_filename:
+                            cur_read.set_tag("MI", new_molec_id)
+                            out_bam_file.write(cur_read)
 
                     #inter arrival time is distance between read of the same direction
-                    interArrival = 0
-                    if curRead.is_reverse:
-                        if prevVal2 == 0:
-                            prevVal2 = value
-                            prevVal = value
+                    inter_arrival = 0
+                    if cur_read.is_reverse:
+                        if prev_val2 == 0:
+                            prev_val2 = value
+                            prev_val = value
                             count += 1
                             continue
                         else:
-                            interArrival = value - prevVal2
-                            prevVal2 = value
+                            inter_arrival = value - prev_val2
+                            prev_val2 = value
                     else:
-                        if prevVal1 == 0:
-                            prevVal1 = value
-                            prevVal = value
+                        if prev_val1 == 0:
+                            prev_val1 = value
+                            prev_val = value
                             count += 1
                             continue
                         else:
-                            interArrival = value - prevVal1
-                            prevVal1 = value
-                    if interArrival > 0:
+                            inter_arrival = value - prev_val1
+                            prev_val1 = value
+                    if inter_arrival > 0:
                         count += 1
-                        interArrivals.append(interArrival)
-                    prevVal = value
-                    prevRead = curRead
-                end = prevRead.reference_end
+                        inter_arrivals.append(inter_arrival)
+                    prev_val = value
+                    prev_read = cur_read
+                end = prev_read.reference_end
                 molec = Molecule(rname, start, end, \
-                                 newMolecID, prevBarcode, \
-                                 interArrivals, count, \
-                                 statistics.median(mapQs), \
-                                 statistics.median(alSs) if alSs else "NA", \
-                                 statistics.median(noMs) if noMs else "NA")
+                                 new_molec_id, prev_barcode, \
+                                 inter_arrivals, count, \
+                                 statistics.median(mapqs), \
+                                 statistics.median(scores) if scores else "NA", \
+                                 statistics.median(nms) if nms else "NA")
 
-
-                if count >= self._min:
-                    molec.printTSV(file=self._newMolecFH)
-                    newMolecID += 1
-                curReads = []
-            curReads.append(read)
-            prevBarcode = barcode
-            prevChr = read.reference_id
+                if count >= self._min_reads:
+                    molec.print_tsv(file=out_molecules_file)
+                    new_molec_id += 1
+                cur_reads = []
+            cur_reads.append(read)
+            prev_barcode = barcode
+            prev_chr = read.reference_id
 
         # Clean up
         samfile.close()
-        if self._newMolecFH != sys.stdout:
-            self._newMolecFH.close()
-        if self._outfilebam != None:
-            self._outfilebam.close()
+        if out_molecules_file != sys.stdout:
+            out_molecules_file.close()
+        if out_bam_file != None:
+            out_bam_file.close()
 
 if __name__ == '__main__':
 
     # specify parser options
     parser = OptionParser()
-    parser.set_description("Takes a bam file via stdin and outputs molecules to a bed-like (1-based coordinates) TSV file. Read to genome bam file used must be sorted by BX tag and then by position.")
-    parser.add_option("-b", "--bam", dest="bam",
-                  help="Read to genome BAM file file instead of stdin (optional)", metavar="BAM")
-    parser.add_option("-d", "--dist", dest="dist",
-                  help="Maximum distance between reads to be considered the same molecule [60000]", metavar="DIST")
-    parser.add_option("-o", "--output", dest="output",
-                  help="file name of tsv file instead of stdout (optional)", metavar="OUTPUT")
-    parser.add_option("-w", "--new_bam", dest="newBam",
-                  help="New bam file with MI tags added (optional)", metavar="NEWBAM")
-    parser.add_option("-m", "--min", dest="min",
-                  help="minimum number of reads in alignment to consider (dupes are not considered) [4]", metavar="MIN")
-    parser.add_option("-q", "--mapq", dest="mapq",
-                  help="Reads MAPQ greater or equal to this will be kept [1]", metavar="MAPQ")
-    parser.add_option("-a", "--asRatio", dest="asRatio",
-                  help="Reads with an AS/Read length ratio greater or equal to this will be kept [0.8]", metavar="AS")
-    parser.add_option("-n", "--nm", dest="nm",
-                  help="Reads that have NM tag lower than this will be kept [5]", metavar="NM")
+    parser.set_description(
+        """
+        Group linked reads into molecules.
+        Read a SAM/BAM file and output a TSV file.
+        The SAM/BAM file must be sorted by BX tag and then by position.
+        """)
+    parser.add_option(
+        "-b", "--bam", dest="bam",
+        help="Read to genome BAM file file instead of stdin (optional)",
+        metavar="BAM")
+    parser.add_option(
+        "-d", "--dist", dest="dist",
+        help="Maximum distance between reads to be considered the same molecule [60000]",
+        metavar="DIST")
+    parser.add_option(
+        "-o", "--output", dest="output",
+        help="file name of tsv file instead of stdout (optional)",
+        metavar="OUTPUT")
+    parser.add_option(
+        "-w", "--new_bam", dest="newBam",
+        help="New bam file with MI tags added (optional)",
+        metavar="NEWBAM")
+    parser.add_option(
+        "-m", "--min", dest="min",
+        help="minimum number of reads in alignment to consider (dupes are not considered) [4]",
+        metavar="MIN")
+    parser.add_option(
+        "-q", "--mapq", dest="mapq",
+        help="Reads MAPQ greater or equal to this will be kept [1]",
+        metavar="MAPQ")
+    parser.add_option(
+        "-a", "--as-ratio", dest="as_ratio",
+        help="Reads with an AS/Read length ratio greater or equal to this will be kept [0.8]",
+        metavar="AS")
+    parser.add_option(
+        "-n", "--nm", dest="nm",
+        help="Reads that have NM tag lower than this will be kept [5]",
+        metavar="NM")
 
     (options, args) = parser.parse_args()
 
     molecID = MolecIdentifier()
     if options.bam:
-        molecID.setBAM(options.bam)
+        molecID.set_in_bam_filename(options.bam)
     if options.dist:
-        molecID.setDist(options.dist)
+        molecID.set_dist(options.dist)
     if options.min:
-        molecID.setMin(options.min)
+        molecID.set_min(options.min)
     if options.mapq:
-        molecID.setMAPQ(options.mapq)
-    if options.asRatio:
-        molecID.setASRatio(options.asRatio)
+        molecID.set_min_mapq(options.mapq)
+    if options.as_ratio:
+        molecID.set_min_as_ratio(options.as_ratio)
     if options.nm:
-        molecID.setNM(options.nm)
+        molecID.set_max_nm(options.nm)
     if options.newBam:
-        molecID.setNewBam(options.newBam)
+        molecID.set_out_bam_filename(options.newBam)
     if options.output:
-        molecID.setOutput(options.output)
+        molecID.set_out_tsv_filename(options.output)
     molecID.run()
