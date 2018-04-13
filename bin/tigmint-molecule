@@ -48,63 +48,25 @@ class Molecule:
 class MolecIdentifier:
     "Group molecules into barcodes"
 
-    def set_in_bam_filename(self, bam):
-        "Set the input BAM filename"
-        self._in_bam_filename = bam
-
-    def set_dist(self, dist):
-        "Set the maximum distance between reads"
-        self._max_dist = int(dist)
-
-    def set_min(self, min_reads):
-        "Set the minimum number of reads"
-        self._min_reads = int(min_reads)
-
-    def set_min_mapq(self, min_mapq):
-        "Set the minimum mapping quality"
-        self._min_mapq = int(min_mapq)
-
-    def set_min_as_ratio(self, min_as_ratio):
-        "Set the minimum alignment score ratio"
-        self._min_as_ratio = float(min_as_ratio)
-
-    def set_max_nm(self, max_nm):
-        "Set the maximum number of mismatches"
-        self._max_nm = int(max_nm)
-
-    def set_out_bam_filename(self, filename):
-        "Set the output SAM/BAM filename"
-        self._out_bam_filename = filename
-
-    def set_out_tsv_filename(self, filename):
-        "Set the output TSV filename"
-        self._out_tsv_filename = filename
-
     def __init__(self):
         """
         Constructor, identifies molecules based on inter-arrival time threshold
         """
-        self._min_reads = 4
-        self._max_dist = 60000
-        self._min_mapq = 1
-        self._min_as_ratio = 0.8
-        self._max_nm = 5
-        self._in_bam_filename = "-"
-        self._out_bam_filename = None
-        self._out_tsv_filename = None
+        self.opt = None
 
     def run(self):
         "Group molecules into barcodes"
 
-        samfile = pysam.AlignmentFile(self._in_bam_filename, "rb")
+        self.parse_arguments()
+        samfile = pysam.AlignmentFile(self.opt.in_bam_filename, "rb")
 
-        if self._out_bam_filename:
-            out_bam_file = pysam.AlignmentFile(self._out_bam_filename, "wb", template=samfile)
+        if self.opt.out_bam_filename:
+            out_bam_file = pysam.AlignmentFile(self.opt.out_bam_filename, "wb", template=samfile)
         else:
             out_bam_file = None
 
-        if self._out_tsv_filename:
-            out_molecules_file = open(self._out_tsv_filename, "w")
+        if self.opt.out_tsv_filename:
+            out_molecules_file = open(self.opt.out_tsv_filename, "w")
         else:
             out_molecules_file = sys.stdout
         print(
@@ -120,11 +82,11 @@ class MolecIdentifier:
             barcode = None
             if read.is_unmapped \
             or read.is_supplementary \
-            or read.mapping_quality < self._min_mapq \
-            or read.has_tag("NM") and read.get_tag("NM") >= self._max_nm:
+            or read.mapping_quality < self.opt.min_mapq \
+            or read.has_tag("NM") and read.get_tag("NM") >= self.opt.max_nm:
                 continue
             if read.has_tag("AS") \
-            and read.get_tag("AS") < self._min_as_ratio * len(read.query_sequence):
+            and read.get_tag("AS") < self.opt.min_as_ratio * len(read.query_sequence):
                 continue
 
             if not read.has_tag("BX"):
@@ -159,7 +121,7 @@ class MolecIdentifier:
                         nms.append(cur_read.get_tag("NM"))
 
                     #check if molecules should be terminated
-                    if abs_dist > self._max_dist and prev_val > 0:
+                    if abs_dist > self.opt.max_dist and prev_val > 0:
                         end = prev_read.reference_end
 
                         #find distance from nearest read
@@ -177,10 +139,10 @@ class MolecIdentifier:
                             prev_val1 = value
                             prev_val2 = 0
                         start = value
-                        if count >= self._min_reads:
+                        if count >= self.opt.min_reads:
                             molec.print_tsv(file=out_molecules_file)
                             new_molec_id += 1
-                        if self._out_bam_filename:
+                        if self.opt.out_bam_filename:
                             cur_read.set_tag("MI", new_molec_id)
                             out_bam_file.write(cur_read)
                         inter_arrivals = []
@@ -196,7 +158,7 @@ class MolecIdentifier:
                         count = 0
                         continue
                     else:
-                        if self._out_bam_filename:
+                        if self.opt.out_bam_filename:
                             cur_read.set_tag("MI", new_molec_id)
                             out_bam_file.write(cur_read)
 
@@ -233,7 +195,7 @@ class MolecIdentifier:
                                  statistics.median(scores) if scores else "NA", \
                                  statistics.median(nms) if nms else "NA")
 
-                if count >= self._min_reads:
+                if count >= self.opt.min_reads:
                     molec.print_tsv(file=out_molecules_file)
                     new_molec_id += 1
                 cur_reads = []
@@ -248,66 +210,46 @@ class MolecIdentifier:
         if out_bam_file != None:
             out_bam_file.close()
 
+    def parse_arguments(self):
+        "Parse the command line arguments."
+        parser = OptionParser()
+        parser.set_description(
+            "Group linked reads into molecules. "
+            "Read a SAM/BAM file and output a TSV file. "
+            "The SAM/BAM file must be sorted by BX tag and then by position.")
+        parser.add_option(
+            "-b", "--bam", dest="in_bam_filename", default="-",
+            help="Input BAM file sorted by BX tag then position [stdin]",
+            metavar="FILE")
+        parser.add_option(
+            "-o", "--output", dest="out_tsv_filename",
+            help="file name of tsv file instead of stdout (optional)",
+            metavar="FILE")
+        parser.add_option(
+            "-w", "--out-bam", dest="out_bam_filename",
+            help="New bam file with MI tags added (optional)",
+            metavar="FILE")
+        parser.add_option(
+            "-d", "--dist", dest="max_dist", type=int, default=60000,
+            help="Maximum distance between reads to be considered the same molecule [60000]",
+            metavar="N")
+        parser.add_option(
+            "-m", "--reads", dest="min_reads", type=int, default=4,
+            help="minimum number of reads in alignment to consider (dupes are not considered) [4]",
+            metavar="N")
+        parser.add_option(
+            "-q", "--mapq", dest="min_mapq", type=int, default=1,
+            help="Reads MAPQ greater or equal to this will be kept [1]",
+            metavar="N")
+        parser.add_option(
+            "-a", "--as-ratio", dest="min_as_ratio", type=float, default=0.8,
+            help="Reads with an AS/Read length ratio greater or equal to this will be kept [0.8]",
+            metavar="N")
+        parser.add_option(
+            "-n", "--nm", dest="max_nm", type=int, default=5,
+            help="Reads that have NM tag lower than this will be kept [5]",
+            metavar="N")
+        (self.opt, _) = parser.parse_args()
+
 if __name__ == '__main__':
-
-    # specify parser options
-    parser = OptionParser()
-    parser.set_description(
-        """
-        Group linked reads into molecules.
-        Read a SAM/BAM file and output a TSV file.
-        The SAM/BAM file must be sorted by BX tag and then by position.
-        """)
-    parser.add_option(
-        "-b", "--bam", dest="bam",
-        help="Read to genome BAM file file instead of stdin (optional)",
-        metavar="BAM")
-    parser.add_option(
-        "-d", "--dist", dest="dist",
-        help="Maximum distance between reads to be considered the same molecule [60000]",
-        metavar="DIST")
-    parser.add_option(
-        "-o", "--output", dest="output",
-        help="file name of tsv file instead of stdout (optional)",
-        metavar="OUTPUT")
-    parser.add_option(
-        "-w", "--new_bam", dest="newBam",
-        help="New bam file with MI tags added (optional)",
-        metavar="NEWBAM")
-    parser.add_option(
-        "-m", "--min", dest="min",
-        help="minimum number of reads in alignment to consider (dupes are not considered) [4]",
-        metavar="MIN")
-    parser.add_option(
-        "-q", "--mapq", dest="mapq",
-        help="Reads MAPQ greater or equal to this will be kept [1]",
-        metavar="MAPQ")
-    parser.add_option(
-        "-a", "--as-ratio", dest="as_ratio",
-        help="Reads with an AS/Read length ratio greater or equal to this will be kept [0.8]",
-        metavar="AS")
-    parser.add_option(
-        "-n", "--nm", dest="nm",
-        help="Reads that have NM tag lower than this will be kept [5]",
-        metavar="NM")
-
-    (options, args) = parser.parse_args()
-
-    molecID = MolecIdentifier()
-    if options.bam:
-        molecID.set_in_bam_filename(options.bam)
-    if options.dist:
-        molecID.set_dist(options.dist)
-    if options.min:
-        molecID.set_min(options.min)
-    if options.mapq:
-        molecID.set_min_mapq(options.mapq)
-    if options.as_ratio:
-        molecID.set_min_as_ratio(options.as_ratio)
-    if options.nm:
-        molecID.set_max_nm(options.nm)
-    if options.newBam:
-        molecID.set_out_bam_filename(options.newBam)
-    if options.output:
-        molecID.set_out_tsv_filename(options.output)
-    molecID.run()
+    MolecIdentifier().run()
