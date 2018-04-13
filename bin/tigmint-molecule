@@ -223,31 +223,31 @@ class MolecIdentifier:
             metavar="FILE")
         parser.add_argument(
             "-o", "--output", dest="out_tsv_filename",
-            help="file name of tsv file instead of stdout (optional)",
+            help="Output TSV file [stdout]",
             metavar="FILE")
         parser.add_argument(
             "-w", "--out-bam", dest="out_bam_filename",
-            help="New bam file with MI tags added (optional)",
+            help="Output BAM file with MI tags (optional)",
             metavar="FILE")
         parser.add_argument(
             "-d", "--dist", dest="max_dist", type=int, default=50000,
-            help="Maximum distance between reads to be considered the same molecule [50000]",
+            help="Maximum distance between reads in the same molecule [50000]",
             metavar="N")
         parser.add_argument(
             "-m", "--reads", dest="min_reads", type=int, default=4,
-            help="minimum number of reads in alignment to consider (dupes are not considered) [4]",
+            help="Minimum number of reads per molecule (duplicates are filtered out) [4]",
             metavar="N")
         parser.add_argument(
             "-q", "--mapq", dest="min_mapq", type=int, default=0,
-            help="Reads MAPQ greater or equal to this will be kept [0]",
+            help="Minimum mapping quality [0]",
             metavar="N")
         parser.add_argument(
             "-a", "--as-ratio", dest="min_as_ratio", type=float, default=0.65,
-            help="Reads with an AS/Read length ratio greater or equal to this will be kept [0.65]",
+            help="Minimum ratio of alignment score (AS) over read length [0.65]",
             metavar="N")
         parser.add_argument(
             "-n", "--nm", dest="max_nm", type=int, default=5,
-            help="Reads that have NM tag lower than this will be kept [5]",
+            help="Maximum number of mismatches (NM) [5]",
             metavar="N")
         self.opt = parser.parse_args()
 
