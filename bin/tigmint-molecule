@@ -15,6 +15,7 @@ Version 0.0.1
 from optparse import OptionParser
 import pysam
 import statistics
+import sys
 
 class Molecule:
     def __init__(self, rname, start, end, \
@@ -33,15 +34,16 @@ class Molecule:
         self.asMedian = asMedian
         self.nmMedian = nmMedian
 
-    def asTSV(self):
-        return self.rname + "\t" + str(self.start+1) + "\t" + str(self.end+1) \
-            + "\t" + str(self.end - self.start) + "\t" + self.barcode \
-            + "\t" + str(self.newMolecID) + "\t" + str(self.count) \
-            + "\t" + str(self.mapqMedian) + "\t" + str(self.asMedian) \
-            + "\t" + str(self.nmMedian)
-
     def getLength(self):
         return self.end-self.start
+
+    def printTSV(self, file):
+        print(
+           self.rname, 1 + self.start, 1 + self.end,
+           self.end - self.start, self.barcode,
+           self.newMolecID, self.count,
+           self.mapqMedian, self.asMedian,
+           self.nmMedian, sep="\t", file=file)
 
 class MolecIdentifier:
 
@@ -69,12 +71,6 @@ class MolecIdentifier:
     def setOutput(self, filename):
         self._tsvFilename = filename
 
-    def printTSV(self, molec):
-        if self._tsvFilename:
-            self._newMolecFH.write(molec.asTSV() + "\n")
-        else:
-            print(molec.asTSV())
-
     def __init__(self):
         """
         Constructor, identifies molecules based on inter-arrival time threshold
@@ -99,13 +95,11 @@ class MolecIdentifier:
         else:
             self._outfilebam = None
 
-        header = "Rname\tStart\tEnd\tSize\tBX\tMI\tReads\tMapq_median\tAS_median\tNM_median"
         if self._tsvFilename:
-            self._newMolecFH = open(self._tsvFilename, "w");
-            self._newMolecFH.write(header + "\n")
+            self._newMolecFH = open(self._tsvFilename, "w")
         else:
-            self._newMolecFH = None
-            print(header)
+            self._newMolecFH = sys.stdout
+        print("Rname\tStart\tEnd\tSize\tBX\tMI\tReads\tMapq_median\tAS_median\tNM_median", file=self._newMolecFH)
 
         prevBarcode = ""
         prevChr = ""
@@ -175,7 +169,7 @@ class MolecIdentifier:
                             prevVal2 = 0
                         start = value;
                         if count >= self._min:
-                            self.printTSV(molec)
+                            molec.printTSV(file=self._newMolecFH)
                             newMolecID += 1
                         if self._newBamFilename:
                             curRead.tags += [("MI", newMolecID)]
@@ -232,16 +226,16 @@ class MolecIdentifier:
 
 
                 if count >= self._min:
-                    self.printTSV(molec)
+                    molec.printTSV(file=self._newMolecFH)
                     newMolecID += 1
                 curReads = []
             curReads.append(read)
             prevBarcode = barcode
             prevChr = read.reference_id
 
-        #clean up
+        # Clean up
         samfile.close()
-        if self._newMolecFH != None:
+        if self._newMolecFH != sys.stdout:
             self._newMolecFH.close()
         if self._outfilebam != None:
             self._outfilebam.close()
