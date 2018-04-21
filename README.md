@@ -119,5 +119,3 @@ After first looking for existing issue at <https://github.com/bcgsc/tigmint/issu
 [![Tigmint pipeline illustration](pipeline.gv.png)](pipeline.gv.svg)
 
 [Makefile](tigmint-make) &middot; [CWL](tigmint-make.cwl) &middot; [CWLViewer](https://view.commonwl.org/workflows/github.com/bcgsc/tigmint/tree/master/tigmint-make.cwl)
-
-[![Tigmint pipeline Makefile](tigmint-make.gv.png)](tigmint-make.gv.svg)
