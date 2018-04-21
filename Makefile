@@ -6,7 +6,7 @@ SHELL=bash -eu -o pipefail
 all: tigmint-make.cwl tigmint-make.gv.svg
 
 check: mt.tigmint.fa
-	diff mt.tigmint.fa.wc <(wc $<)
+	diff -b mt.tigmint.fa.wc <(wc $<)
 
 # GraphViz
 
