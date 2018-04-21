@@ -5,11 +5,11 @@ digraph {
 	draft [label="Draft genome (FASTA)", shape="parallelogram"]
 
 	subgraph {
-		node [width=7.5]
+		node [width=5]
 
-		map [label="Align reads to the draft assembly with BWA-MEM (BAM)"]
-		molecules [label="Infer molecules extents from the linked reads (TSV)"]
-		breakpoints [label="Identify regions poorly supported by molecules (BED)"]
+		map [label="BWA-MEM\nAlign reads to the draft assembly (BAM)"]
+		molecules [label="tigmint-molecule\nInfer molecules extents from the linked reads (BED)"]
+		breakpoints [label="tigmint-cut\nIdentify regions poorly supported by molecules (BED)"]
 	}
 
 	tigs [label="Corrected assembly (FASTA)", shape="ellipse"]
@@ -19,10 +19,10 @@ digraph {
 
 		reference [label="Reference genome (FASTA)", shape="parallelogram"]
 
-		tigs_metrics [label="Compute assembly metrics with QUAST (TSV)", shape="ellipse"]
+		tigs_metrics [label="QUAST\nCompute assembly metrics (TSV)", shape="ellipse"]
 
-		scaffold [label="Scaffold the assembly with ARCS + ABySS-Scaffold (FASTA)", shape="ellipse"]
-		scaffold_metrics [label="Compute assembly metrics with QUAST (TSV)", shape="ellipse"]
+		scaffold [label="ARCS\nScaffold the assembly (FASTA)", shape="ellipse"]
+		scaffold_metrics [label="QUAST\nCompute assembly metrics (TSV)", shape="ellipse"]
 	}
 
 	reads -> map
