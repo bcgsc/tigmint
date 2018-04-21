@@ -16,6 +16,15 @@ Each window of a specified fixed size is checked for a minimum number of spannin
 
 # Installation
 
+## Install Tigmint using Brew
+
+Install [Linuxbrew](http://linuxbrew.sh/) on Linux or Windows Subsystem for Linux (WSL), or 
+install [Homebrew](https://brew.sh/) on macOS, and then run the command
+
+	brew install brewsci/bio/abyss
+
+## Install Tigmint from the source code
+
 Download and extract the source code. Compiling is not needed.
 
 ```
@@ -28,7 +37,7 @@ curl -L https://github.com/bcgsc/tigmint/archive/master.tar.gz | tar xz && mv ti
 
 # Dependencies
 
-## Python package dependencies
+## Install Python package dependencies
 ```sh
 pip3 install intervaltree pybedtools pysam statistics
 ```
