@@ -1,14 +1,18 @@
 <img src="http://sjackman.ca/img/tigmint.png" style="width:4in">
 
-# Correct misassemblies using Linked Reads
+# Correct misassemblies using linked reads
 
-Split sequences at positions with a low number of spanning molecules 
+Cut sequences at positions with few spanning molecules.
 
-Written by [Shaun Jackman](http://sjackman.ca).
+Written by [Shaun Jackman](http://sjackman.ca), Lauren Coombe, and Justin Chu.
+
+[bioRxiv doi:10.1101/304253](https://www.biorxiv.org/content/early/2018/04/20/304253) &middot; [Slides](http://sjackman.ca/tigmint-recomb-slides) &middot; [Poster](https://f1000research.com/posters/6-1406)
 
 # Description
 
-Tigmint identifies and corrects misassemblies using linked reads from 10x Genomics Chromium. The reads are first aligned to the assembly, and the extents of the large DNA molecules are inferred from the alignments of the reads. The physical coverage of the large molecules is more consistent and less prone to coverage dropouts than that of the short read sequencing data. Each scaffold is scanned with a fixed window to identify areas where there are few spanning molecules, revealing possible misassemblies. Scaffolds are cut where spanning molecules are identified following windows with no spanning molecules. 
+Tigmint identifies and corrects misassemblies using linked reads from 10x Genomics Chromium. The reads are first aligned to the assembly, and the extents of the large DNA molecules are inferred from the alignments of the reads. The physical coverage of the large molecules is more consistent and less prone to coverage dropouts than that of the short read sequencing data. The sequences are cut at positions that have insufficient spanning molecules. Tigmint outputs a BED file of these cut points, and a FASTA file of the cut sequences.
+
+Each window of a specified fixed size is checked for a minimum number of spanning molecules. Sequences are cut at those positions where a window with sufficient coverage is followed by some number of windows with insufficient coverage is then followed again by a window with sufficient coverage.
 
 # Installation
 
@@ -82,16 +86,15 @@ tigmint metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 
 + `draft`: Name of the draft assembly, `draft.fa`
 + `reads`: Name of the reads, `reads.fq.gz`
-+ `span=2`: Number of spanning molecules threshold
++ `span=20`: Number of spanning molecules threshold
 + `window=1000`: Window size (bp) for checking spanning molecules
 + `minsize=2000`: Minimum molecule size
 + `as=0.65`: Minimum AS/read length ratio
 + `nm=5`: Maximum number of mismatches
 + `dist=50000`: Maximum distance (bp) between reads to be considered the same molecule
-+ `map=0`: Mapping quality threshold
++ `mapq=0`: Mapping quality threshold
 + `trim=0`: Number of bases to trim off contigs following cuts
 + `t=8`: Number of threads
-+ `gzip=gzip`: gzip compression program, use `pigz -p8` for parallelized compression
 
 # Parameters of ARCS
 + `c=5`
