@@ -215,23 +215,14 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 %.$(ref).sam.gz: %.fa $(ref).fa.bwt
 	bwa mem -xintractg -t$t $(ref).fa $< | $(gzip) >$@
 
-# Add the barcode to the read ID, and skip reads without barcodes.
-%.bx.fq.gz: %.fq.gz
-	gunzip -c $< | gawk ' \
-		{ bx = "NA" } \
-		match($$0, "BX:Z:([ACGT]*)-1", x) { bx = x[1] } \
-		bx == "NA" { getline; getline; getline; next } \
-		{ print $$1 "_" bx " " $$2; getline; print; getline; print; getline; print }' \
-		| $(gzip) >$@
-
 # Align paired-end reads to the draft genome and do not sort.
-%.$(reads).bx.sortn.bam: %.fa.bwt $(reads).bx.fq.gz
-	bwa mem -t$t -pC $*.fa $(reads).bx.fq.gz | samtools view -@$t -h -F4 -o $@
+%.$(reads).sortn.bam: %.fa.bwt $(reads).fq.gz
+	bwa mem -t$t -pC $*.fa $(reads).fq.gz | samtools view -@$t -h -F4 -o $@
 
 # ARCS
 
 # Create a graph of linked contigs using ARCS.
-%.$(reads).c$c_e$e_r$r.arcs_original.gv %.$(reads).c$c_e$e_r$r.arcs.dist.gv %.$(reads).c$c_e$e_r$r.arcs.dist.tsv: %.$(reads).bx.sortn.bam %.fa
+%.$(reads).c$c_e$e_r$r.arcs_original.gv %.$(reads).c$c_e$e_r$r.arcs.dist.gv %.$(reads).c$c_e$e_r$r.arcs.dist.tsv: %.$(reads).sortn.bam %.fa
 	arcs -s98 -c$c -l0 -z500 -m4-20000 -d0 -e$e -r$r -v \
 		-f $*.fa \
 		-b $*.$(reads).c$c_e$e_r$r.arcs \
