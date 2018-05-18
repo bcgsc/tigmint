@@ -170,11 +170,11 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Create molecule extents BED
 %.as$(as).nm$(nm).molecule.bed: %.sortbx.bam
-	$(gtime) $(bin)/tigmint-molecule -a$(as) -n$(nm) -q$(mapq) -d$(dist) -o $@ $<
+	$(gtime) $(bin)/tigmint-molecule -a$(as) -n$(nm) -q$(mapq) -d$(dist) $< | sort -k1,1 -k2,2n -k3,3n >$@
 
 # Create molecule extents TSV
 %.as$(as).nm$(nm).molecule.tsv: %.sortbx.bam
-	$(gtime) $(bin)/tigmint-molecule --tsv -a$(as) -n$(nm) -q$(mapq) -d$(dist) -o $@ $<
+	$(gtime) $(bin)/tigmint-molecule --tsv -a$(as) -n$(nm) -q$(mapq) -d$(dist) $< | sort -k1,1 -k2,2n -k3,3n >$@
 
 # Report summary statistics of a Chromium library
 %.molecule.summary.html: %.molecule.tsv
