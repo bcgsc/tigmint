@@ -169,12 +169,12 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 	samtools faidx $<
 
 # Create molecule extents BED
-%.as$(as).nm$(nm).molecule.bed: %.sortbx.bam
-	$(gtime) $(bin)/tigmint-molecule -a$(as) -n$(nm) -q$(mapq) -d$(dist) $< | sort -k1,1 -k2,2n -k3,3n >$@
+%.as$(as).nm$(nm).molecule.size$(minsize).bed: %.sortbx.bam
+	$(gtime) $(bin)/tigmint-molecule -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) $< | sort -k1,1 -k2,2n -k3,3n >$@
 
 # Create molecule extents TSV
-%.as$(as).nm$(nm).molecule.tsv: %.sortbx.bam
-	$(gtime) $(bin)/tigmint-molecule --tsv -a$(as) -n$(nm) -q$(mapq) -d$(dist) $< | sort -k1,1 -k2,2n -k3,3n >$@
+%.as$(as).nm$(nm).molecule.size$(minsize).tsv: %.sortbx.bam
+	$(gtime) $(bin)/tigmint-molecule --tsv -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) $< | sort -k1,1 -k2,2n -k3,3n >$@
 
 # Report summary statistics of a Chromium library
 %.molecule.summary.html: %.molecule.tsv
@@ -197,10 +197,6 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 		$< >$@
 
 # Identify breakpoints
-
-# Select BED records of a given size or larger.
-%.size$(minsize).bed: %.bed
-	awk '$$3 - $$2 >= $(minsize)' $< >$@
 
 # Make breakpoints BED file
 %.trim$(trim).window$(window).span$(span).breaktigs.fa: %.bed $(draft).fa $(draft).fa.fai
