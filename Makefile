@@ -8,6 +8,13 @@ all: tigmint-make.cwl tigmint-make.gv.svg
 check: mt.tigmint.fa
 	diff -b mt.tigmint.fa.wc <(wc $<)
 
+clean:
+	rm -f \
+		mt.mt.halved.lrsim.as0.65.nm5.molecule.size2000.bed \
+		mt.mt.halved.lrsim.as0.65.nm5.molecule.size2000.trim0.window1000.span20.breaktigs.fa \
+		mt.mt.halved.lrsim.as0.65.nm5.molecule.size2000.trim0.window1000.span20.breaktigs.fa.bed \
+		mt.tigmint.fa
+
 # GraphViz
 
 # Create phony input files.
