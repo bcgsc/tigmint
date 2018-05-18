@@ -163,7 +163,7 @@ class MolecIdentifier:
                             prev_val1 = value
                             prev_val2 = 0
                         start = value
-                        if count >= self.opt.min_reads:
+                        if count >= self.opt.min_reads and end - start >= self.opt.min_size:
                             molec.print_molecule(out_molecules_file, self.opt.output_format)
                             new_molec_id += 1
                         if self.opt.out_bam_filename:
@@ -219,7 +219,7 @@ class MolecIdentifier:
                                  statistics.median(scores) if scores else "NA", \
                                  statistics.median(nms) if nms else "NA")
 
-                if count >= self.opt.min_reads:
+                if count >= self.opt.min_reads and end - start >= self.opt.min_size:
                     molec.print_molecule(out_molecules_file, self.opt.output_format)
                     new_molec_id += 1
                 cur_reads = []
@@ -277,6 +277,10 @@ class MolecIdentifier:
         parser.add_argument(
             "-n", "--nm", dest="max_nm", type=int, default=5,
             help="Maximum number of mismatches (NM) [5]",
+            metavar="N")
+        parser.add_argument(
+            "-s", "--size", dest="min_size", type=int, default=2000,
+            help="Minimum molecule size [2000]",
             metavar="N")
         self.opt = parser.parse_args()
 
