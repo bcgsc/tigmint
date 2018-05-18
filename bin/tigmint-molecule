@@ -1,15 +1,8 @@
 #!/usr/bin/env python3
 '''
-Created on Monday, May 15 2017
-Last Updated Thursday, January 18 2018
+Group linked reads into molecules.
 
-Computes molecule size and stdev (for error bounds of molecule size)
-
-Columns: Rname Start End Size BX MI Reads Mapq_median AS_median NM_median
-
-Version 0.0.1
-
-@author: cjustin
+@author: Justin Chu and Shaun Jackman
 '''
 
 from enum import Enum
@@ -240,6 +233,8 @@ class MolecIdentifier:
             description="Group linked reads into molecules. "
             "Read a SAM/BAM file and output a TSV file. "
             "The SAM/BAM file must be sorted by BX tag and then by position.")
+        parser.add_argument(
+            '--version', action='version', version='tigmint-molecule 1.1.0')
         parser.add_argument(
             metavar="BAM", dest="in_bam_filename",
             help="Input BAM file sorted by BX tag then position, - for stdin")
