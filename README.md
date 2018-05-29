@@ -51,6 +51,8 @@ brew install bedtools bwa samtools
 
 ## Install the dependencies of ARCS (optional)
 ```sh
+brew tap brewsci/bio
+brew tap brewsci/science
 brew install arcs links-scaffolder
 ```
 
