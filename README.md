@@ -21,7 +21,7 @@ Each window of a specified fixed size is checked for a minimum number of spannin
 Install [Linuxbrew](http://linuxbrew.sh/) on Linux or Windows Subsystem for Linux (WSL), or 
 install [Homebrew](https://brew.sh/) on macOS, and then run the command
 
-	brew install brewsci/bio/abyss
+	brew install tigmint
 
 ## Install Tigmint from the source code
 
@@ -52,7 +52,6 @@ brew install bedtools bwa samtools
 ## Install the dependencies of ARCS (optional)
 ```sh
 brew tap brewsci/bio
-brew tap brewsci/science
 brew install arcs links-scaffolder
 ```
 
