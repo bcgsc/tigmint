@@ -15,6 +15,15 @@ clean:
 		mt.mt.halved.lrsim.as0.65.nm5.molecule.size2000.trim0.window1000.span20.breaktigs.fa.bed \
 		mt.tigmint.fa
 
+# Install Tigmint in this directory.
+prefix=/usr/local
+bindir=$(prefix)/bin
+
+# Install Tigmint.
+install:
+	install -d $(DESTDIR)$(bindir)
+	install bin/* $(DESTDIR)$(bindir)/
+
 # GraphViz
 
 # Create phony input files.
