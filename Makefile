@@ -1,6 +1,9 @@
 .DELETE_ON_ERROR:
 .SECONDARY:
 
+# Number of threads.
+t=16
+
 SHELL=bash -eu -o pipefail
 
 all: tigmint-make.cwl tigmint-make.gv.svg
@@ -74,7 +77,7 @@ tigmint-make.xml: bin/tigmint-make xml-patch-make/make-4.1/make-4.1/make
 %.cwl.json: %.cwl
 	printf '#!/usr/bin/env cwl-runner\n{ "cwl:tool": "$<#main" }\n' >$@
 
-# Generate test data.
+# Generate human mitochondrial test data.
 
 # Download the human mitochondrial genome.
 mt.fa:
@@ -107,6 +110,26 @@ mt.halved.lrsim.fq.gz: mt1.lrsim.fq.gz mt2.lrsim.fq.gz
 # Run Tigmint on the mitochondrial test data.
 mt.tigmint.fa: %.tigmint.fa: %.fa %.halved.lrsim.fq.gz
 	bin/tigmint-make tigmint draft=$* reads=$*.halved.lrsim depth_threshold=150 starts_threshold=2 ref=$* G=16569
+
+# Generate yeast test data.
+
+# Download the yeast genome.
+scerevisiae/scerevisiae.fa:
+	mkdir -p $(@D)
+	curl ftp://ftp.ensembl.org/pub/release-92/fasta/saccharomyces_cerevisiae/dna/Saccharomyces_cerevisiae.R64-1-1.dna.toplevel.fa.gz \
+		| seqtk seq >$@
+
+# Simulate linked reads using LRSIM.
+scerevisiae/%.lrsim_S1_L001_R1_001.fastq.gz scerevisiae/%.lrsim_S1_L001_R2_001.fastq.gz: scerevisiae/%.fa
+	cd $(@D) && simulateLinkedReads -g $(<F) -p $*.lrsim -o -x2 -f50 -t5 -m10 -z$t
+
+# Add assembly errors.
+%.fuse.fa: %.fa
+	sed '3~4d' $< | seqtk seq >$@
+
+# Run Tigmint on the yeast test data.
+scerevisiae/%.tigmint.fa: scerevisiae/%.fa scerevisiae/scerevisiae.lrsim.fq.gz
+	$(PWD)/bin/tigmint-make -C $(@D) tigmint draft=$* reads=scerevisiae.lrsim ref=scerevisiae G=12157105
 
 # Bedtools
 
