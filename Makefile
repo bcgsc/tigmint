@@ -125,7 +125,7 @@ scerevisiae/%.lrsim_S1_L001_R1_001.fastq.gz scerevisiae/%.lrsim_S1_L001_R2_001.f
 
 # Add assembly errors.
 %.fuse.fa: %.fa
-	sed '3~4d' $< | seqtk seq >$@
+	gsed '3~4d' $< | seqtk seq >$@
 
 # Run Tigmint on the yeast test data.
 scerevisiae/%.tigmint.fa: scerevisiae/%.fa scerevisiae/scerevisiae.lrsim.fq.gz
