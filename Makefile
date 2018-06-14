@@ -136,3 +136,13 @@ scerevisiae/%.tigmint.fa: scerevisiae/%.fa scerevisiae/scerevisiae.lrsim.fq.gz
 # Create a bedgraph coverage track from a BED file.
 %.bedgraph: %.bed mt.fa.fai
 	bedtools genomecov -bg -g mt.fa.fai -i $< >$@
+
+# Convert BED to BAM.
+scerevisiae/scerevisiae.fuse.%.bed.bam: scerevisiae/scerevisiae.fuse.%.bed scerevisiae/scerevisiae.fuse.fa.fai
+	awk '$$2 != $$3' $< | bedtools bedtobam -i - -g scerevisiae/scerevisiae.fuse.fa.fai | samtools sort -@$t -Obam -o $@
+
+# Samtools
+
+# Index a BAM file.
+%.bam.bai: %.bam
+	samtools index -@$t $<
