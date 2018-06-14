@@ -146,3 +146,9 @@ scerevisiae/scerevisiae.fuse.%.bed.bam: scerevisiae/scerevisiae.fuse.%.bed scere
 # Index a BAM file.
 %.bam.bai: %.bam
 	samtools index -@$t $<
+
+# ChromeQC
+
+# Report summary statistics of a Chromium library using ChromeQC.
+%.chromeqc.html: %.bed
+	Rscript -e 'rmarkdown::render("chromeqc/report/summary.rmd", "html_document", "$(PWD)/$@", params = list(molecules_bed="$(PWD)/$<"))'
