@@ -57,6 +57,15 @@ l=10
 # Number of threads
 t=8
 
+SHELL=bash -e -o pipefail
+ifneq ($(shell command -v zsh),)
+# Set pipefail to ensure that all commands of a pipe succeed.
+SHELL=zsh -e -o pipefail
+# Report run time and memory usage with zsh.
+export REPORTTIME=1
+export TIMEFMT=time user=%U system=%S elapsed=%E cpu=%P memory=%M job=%J
+endif
+
 # Determine path to tigmint executables
 bin=$(shell dirname `command -v $(MAKEFILE_LIST)`)
 ifdef bin
@@ -72,16 +81,6 @@ gzip=bgzip -@$t
 else
 gzip=gzip
 endif
-endif
-
-ifneq ($(shell command -v zsh),)
-# Set pipefail to ensure that all commands of a pipe succeed.
-SHELL=zsh -e -o pipefail
-# Report run time and memory usage with zsh.
-export REPORTTIME=1
-export TIMEFMT=time user=%U system=%S elapsed=%E cpu=%P memory=%M job=%J
-else
-SHELL=bash -e -o pipefail
 endif
 
 # Record run time and memory usage in a file using GNU time.
