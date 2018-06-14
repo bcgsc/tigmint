@@ -147,6 +147,10 @@ scerevisiae/scerevisiae.fuse.%.bed.bam: scerevisiae/scerevisiae.fuse.%.bed scere
 %.bam.bai: %.bam
 	samtools index -@$t $<
 
+# Index a FASTA file.
+%.fa.fai: %.fa
+	samtools faidx $<
+
 # ChromeQC
 
 # Report summary statistics of a Chromium library using ChromeQC.
