@@ -121,7 +121,11 @@ tigmint metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 + `G`: Size of the reference genome, for calculating NG50 and NGA50
 
 # Tips
-+ If your barcoded reads are split up into multiple partitions, the initial alignments of the barcoded reads to the draft assembly can be done in parallel and merged prior to running Tigmint. When aligning with BWA mem, use the "-C" option to include the barcode in the BX tag of the alignments, and sort by BX tag (samtools sort -tBX). Once merged (samtools merge -tBX), the filename should be draft.reads.bam (where draft and reads are the supplied as parameters), then tigmint will use this file to assess molecule extents, and continue through the pipeline.
+
+- If your barcoded reads are in multiple FASTQ files, the initial alignments of the barcoded reads to the draft assembly can be done in parallel and merged prior to running Tigmint.
+- When aligning with BWA-MEM, use the `-C` option to include the barcode in the BX tag of the alignments.
+- Sort by BX tag using `samtools sort -tBX`.
+- Merge multiple BAM files using `samtools merge -tBX`.
 
 # Support
 
