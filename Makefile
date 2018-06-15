@@ -4,6 +4,9 @@
 # Number of threads.
 t=16
 
+# Parallel gzip.
+gzip=pigz -p$t
+
 SHELL=bash -eu -o pipefail
 
 all: tigmint-make.cwl tigmint-make.gv.svg
@@ -106,7 +109,7 @@ mt/%.lrsim_S1_L001_R1_001.fastq.gz mt/%.lrsim_S1_L001_R2_001.fastq.gz: mt/%.fa
 	seqtk mergepe $^ \
 		| paste - - - - - - - - \
 		| awk -v OFS='\n' '{ print $$1 " BX:Z:" substr($$3, 1, 15) "-1", substr($$3, 16), "+", substr($$5, 16), $$6 " BX:Z:" substr($$3, 1, 15) "-1", $$8, $$9, $$10 }' \
-		| gzip >$@
+		| $(gzip) >$@
 
 # Run Tigmint on the mitochondrial test data.
 mt/%.tigmint.fa: mt/%.fa mt/%.halved.lrsim.fq.gz
@@ -125,12 +128,44 @@ scerevisiae/%.lrsim_S1_L001_R1_001.fastq.gz scerevisiae/%.lrsim_S1_L001_R2_001.f
 	cd $(@D) && simulateLinkedReads -g $(<F) -p $*.lrsim -o -x2 -f50 -t5 -m10 -z$t
 
 # Add assembly errors.
-%.fuse.fa: %.fa
+scerevisiae/%.fuse.fa: scerevisiae/%.fa
 	gsed '3~4d' $< | seqtk seq >$@
 
 # Run Tigmint on the yeast test data.
 scerevisiae/%.tigmint.fa: scerevisiae/%.fa scerevisiae/scerevisiae.lrsim.fq.gz
 	$(PWD)/bin/tigmint-make -C $(@D) tigmint draft=$* reads=scerevisiae.lrsim ref=scerevisiae G=12157105
+
+# Convert BED to BAM.
+scerevisiae/scerevisiae.fuse.%.bed.bam: scerevisiae/scerevisiae.fuse.%.bed scerevisiae/scerevisiae.fuse.fa.fai
+	bedtools bedtobam -i $< -g scerevisiae/scerevisiae.fuse.fa.fai | samtools sort -@$t -Obam -o $@
+
+# Generate Caenorhabditis elegans test data.
+
+# Download the C. elegans genome.
+celegans/celegans.orig.fa:
+	mkdir -p $(@D)
+	curl ftp://ftp.ensembl.org/pub/release-92/fasta/caenorhabditis_elegans/dna/Caenorhabditis_elegans.WBcel235.dna.toplevel.fa.gz \
+		| seqtk seq >$@
+
+# Remove the mitochondrial chromosome.
+celegans/celegans.fa: celegans/celegans.orig.fa
+	sed '/MtDNA/,+1d' $< >$@
+
+# Simulate linked reads using LRSIM.
+celegans/%.lrsim_S1_L001_R1_001.fastq.gz celegans/%.lrsim_S1_L001_R2_001.fastq.gz: celegans/%.fa
+	cd $(@D) && simulateLinkedReads -g $(<F) -p $*.lrsim -o -x20 -f100 -t20 -m10 -z$t
+
+# Add assembly errors.
+celegans/%.fuse.fa: celegans/%.fa
+	gsed '3~6d;5~6d' $< | seqtk seq >$@
+
+# Run Tigmint on the C. elegans test data.
+celegans/%.tigmint.fa: celegans/%.fa celegans/celegans.lrsim.fq.gz
+	$(PWD)/bin/tigmint-make -C $(@D) tigmint draft=$* reads=celegans.lrsim ref=celegans G=100286401
+
+# Convert BED to BAM.
+celegans/celegans.fuse.%.bed.bam: celegans/celegans.fuse.%.bed celegans/celegans.fuse.fa.fai
+	bedtools bedtobam -i $< -g celegans/celegans.fuse.fa.fai | samtools sort -@$t -Obam -o $@
 
 # Bedtools
 
@@ -138,11 +173,11 @@ scerevisiae/%.tigmint.fa: scerevisiae/%.fa scerevisiae/scerevisiae.lrsim.fq.gz
 %.bedgraph: %.bed mt.fa.fai
 	bedtools genomecov -bg -g mt.fa.fai -i $< >$@
 
-# Convert BED to BAM.
-scerevisiae/scerevisiae.fuse.%.bed.bam: scerevisiae/scerevisiae.fuse.%.bed scerevisiae/scerevisiae.fuse.fa.fai
-	awk '$$2 != $$3' $< | bedtools bedtobam -i - -g scerevisiae/scerevisiae.fuse.fa.fai | samtools sort -@$t -Obam -o $@
-
 # Samtools
+
+# Sort a BX-sorted BAM file by position.
+%.sort.bam: %.sortbx.bam
+	samtools sort -@$t -T$$(mktemp -u -t $(@F).XXXXXX) -o $@ $<
 
 # Index a BAM file.
 %.bam.bai: %.bam
