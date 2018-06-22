@@ -237,7 +237,7 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Rename the scaffolds.
 %.links.fa: %.links.scaffolds.fa
-	gsed -r 's/^>scaffold([^,]*),(.*)/>\1 scaffold\1,\2/' $< >$@
+	sed -r 's/^>scaffold([^,]*),(.*)/>\1 scaffold\1,\2/' $< >$@
 
 # ABySS
 
