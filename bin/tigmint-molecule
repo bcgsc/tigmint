@@ -156,7 +156,7 @@ class MolecIdentifier:
                             prev_val1 = value
                             prev_val2 = 0
                         start = value
-                        if count >= self.opt.min_reads and end - start >= self.opt.min_size:
+                        if count >= self.opt.min_reads and molec.end - molec.start >= self.opt.min_size:
                             molec.print_molecule(out_molecules_file, self.opt.output_format)
                             new_molec_id += 1
                         if self.opt.out_bam_filename:
