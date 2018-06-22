@@ -206,24 +206,20 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # BWA
 
-# Sort the breaktig file
-%.sorth.fa: %.fa
-	awk 'BEGIN{RS=">"} NR>1 {gsub("\n", "\t"); print ">"$$0}' $< | sort -t $$'\t' -k1d,1| awk '{sub("\t", "\n"); gsub("\t", ""); print $$0}' > $@
-
 # Align an assembly to the reference using BWA-MEM.
-%.$(ref).sam.gz: %.sorth.fa $(ref).fa.bwt
+%.$(ref).sam.gz: %.fa $(ref).fa.bwt
 	bwa mem -xintractg -t$t $(ref).fa $< | $(gzip) >$@
 
 # Align paired-end reads to the draft genome and do not sort.
-%.$(reads).sortn.bam: %.sorth.fa.bwt $(reads).fq.gz
-	bwa mem -t$t -pC $*.sorth.fa $(reads).fq.gz | samtools view -@$t -h -F4 -o $@
+%.$(reads).sortn.bam: %.fa.bwt $(reads).fq.gz
+	bwa mem -t$t -pC $*.fa $(reads).fq.gz | samtools view -@$t -h -F4 -o $@
 
 # ARCS
 
 # Create a graph of linked contigs using ARCS.
-%.$(reads).c$c_e$e_r$r.arcs_original.gv %.$(reads).c$c_e$e_r$r.arcs.dist.gv %.$(reads).c$c_e$e_r$r.arcs.dist.tsv: %.$(reads).sortn.bam %.sorth.fa
-	/projects/btl_scratch/jzhang/arcs/Arcs/arcs -s98 -c$c -l0 -z500 -m4-20000 -d0 -e$e -r$r -v \
-		-f $*.sorth.fa \
+%.$(reads).c$c_e$e_r$r.arcs_original.gv %.$(reads).c$c_e$e_r$r.arcs.dist.gv %.$(reads).c$c_e$e_r$r.arcs.dist.tsv: %.$(reads).sortn.bam %.fa
+	arcs -s98 -c$c -l0 -z500 -m4-20000 -d0 -e$e -r$r -v \
+		-f $*.fa \
 		-b $*.$(reads).c$c_e$e_r$r.arcs \
 		-g $*.$(reads).c$c_e$e_r$r.arcs.dist.gv \
 		--tsv=$*.$(reads).c$c_e$e_r$r.arcs.dist.tsv \
@@ -231,13 +227,13 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 		$<
 
 # Convert the ARCS graph to LINKS TSV format.
-%.$(reads).c$c_e$e_r$r.arcs.links.tsv: %.$(reads).c$c_e$e_r$r.arcs_original.gv %.sorth.fa
-	$(bin)/tigmint-arcs-tsv $< $@ $*.sorth.fa
+%.$(reads).c$c_e$e_r$r.arcs.links.tsv: %.$(reads).c$c_e$e_r$r.arcs_original.gv %.fa
+	$(bin)/tigmint-arcs-tsv $< $@ $*.fa
 
 # Scaffold the assembly using the ARCS graph and LINKS.
-%.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.scaffolds.fa %.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.assembly_correspondence.tsv: %.$(reads).c$c_e$e_r$r.arcs.links.tsv %.sorth.fa
+%.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.scaffolds.fa %.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.assembly_correspondence.tsv: %.$(reads).c$c_e$e_r$r.arcs.links.tsv %.fa
 	cp $< $*.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.tigpair_checkpoint.tsv
-	LINKS -k20 -l$l -t2 -a$a -x1 -s /dev/null -f $*.sorth.fa -b $*.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links
+	LINKS -k20 -l$l -t2 -a$a -x1 -s /dev/null -f $*.fa -b $*.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links
 
 # Rename the scaffolds.
 %.links.fa: %.links.scaffolds.fa
