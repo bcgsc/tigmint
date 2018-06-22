@@ -173,7 +173,7 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Create molecule extents TSV
 %.as$(as).nm$(nm).molecule.size$(minsize).tsv: %.sortbx.bam
-	$(gtime) $(bin)/tigmint-molecule --tsv -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) -o $@ $<
+	$(gtime) $(bin)/tigmint-molecule --tsv -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) $< | sort -k1,1 -k2,2n -k3,3n >$@
 
 # Report summary statistics of a Chromium library
 %.molecule.summary.html: %.molecule.tsv
@@ -237,7 +237,7 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Rename the scaffolds.
 %.links.fa: %.links.scaffolds.fa
-	sed -r 's/^>scaffold([^,]*),(.*)/>\1 scaffold\1,\2/' $< >$@
+	gsed -r 's/^>scaffold([^,]*),(.*)/>\1 scaffold\1,\2/' $< >$@
 
 # ABySS
 

@@ -21,7 +21,7 @@ Each window of a specified fixed size is checked for a minimum number of spannin
 Install [Linuxbrew](http://linuxbrew.sh/) on Linux or Windows Subsystem for Linux (WSL), or 
 install [Homebrew](https://brew.sh/) on macOS, and then run the command
 
-	brew install brewsci/bio/abyss
+	brew install tigmint
 
 ## Install Tigmint from the source code
 
@@ -51,6 +51,7 @@ brew install bedtools bwa samtools
 
 ## Install the dependencies of ARCS (optional)
 ```sh
+brew tap brewsci/bio
 brew install arcs links-scaffolder
 ```
 
@@ -61,31 +62,43 @@ brew install abyss seqtk
 
 # Usage
 
-
-To run Tigmint on the draft assembly `myassembly.fa` with the reads `myreads.fq.gz`, which have been run through `longranger basic`:
+To run Tigmint on the draft assembly `draft.fa` with the reads `reads.fq.gz`, which have been run through `longranger basic`:
 
 ```sh
-tigmint tigmint draft=myassembly reads=myreads
+samtools faidx draft.fa
+bwa index draft.fa
+bwa mem -t8 -p -C draft.fa reads.fq.gz | samtools sort -@8 -tBX -o draft.reads.sortbx.bam
+tigmint-molecule draft.reads.sortbx.bam | sort -k1,1 -k2,2n -k3,3n >draft.reads.molecule.bed
+tigmint-cut -p8 -o draft.tigmint.fa draft.fa draft.reads.molecule.bed
+```
+
+- `bwa mem -C` is used to copy the BX tag from the FASTQ header to the SAM tags.
+- `samtools sort -tBX` is used to sort first by barcode and then position.
+
+Alternatively, you can run the Tigmint pipeline using the Makefile driver script `tigmint-make`. To run Tigmint on the draft assembly `myassembly.fa` with the reads `myreads.fq.gz`, which have been run through `longranger basic`:
+
+```sh
+tigmint-make tigmint draft=myassembly reads=myreads
 ```
 
 To run both Tigmint and scaffold the corrected assembly with [ARCS](https://github.com/bcgsc/arcs):
 
 ```sh
-tigmint arcs draft=myassembly reads=myreads
+tigmint-make arcs draft=myassembly reads=myreads
 ```
 
 To run Tigmint, ARCS, and calculate assembly metrics using the reference genome `GRCh38.fa`:
 
 ```sh
-tigmint metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
+tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 ```
 
 # Note
 
-+ `tigmint` runs `tigmint-make`, which is a Makefile script, and so any `make` options may also be used with `tigmint-make`, such as `-n` (`--dry-run`).
++ `tigmint-make` is a Makefile script, and so any `make` options may also be used with `tigmint-make`, such as `-n` (`--dry-run`).
 + The file extension of the assembly must be `.fa` and the reads `.fq.gz`, and the extension is not included in the parameters `draft` and `reads`. These specific file name requirements result from implementing the pipeline in GNU Make.
 
-# Commands
+# tigmint-make commands
 
 + `tigmint`: Run Tigmint, and produce a file named `$draft.tigmint.fa`
 + `arcs`: Run Tigmint and ARCS, and produce a file name `$draft.tigmint.arcs.fa`
@@ -120,11 +133,15 @@ tigmint metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 + `G`: Size of the reference genome, for calculating NG50 and NGA50
 
 # Tips
-+ If your barcoded reads are split up into multiple partitions, the initial alignments of the barcoded reads to the draft assembly can be done in parallel and merged prior to running Tigmint. When aligning with BWA mem, use the "-C" option to include the barcode in the BX tag of the alignments, and sort by BX tag (samtools sort -tBX). Once merged (samtools merge -tBX), the filename should be draft.reads.bam (where draft and reads are the supplied as parameters), then tigmint will use this file to assess molecule extents, and continue through the pipeline.
+
+- If your barcoded reads are in multiple FASTQ files, the initial alignments of the barcoded reads to the draft assembly can be done in parallel and merged prior to running Tigmint.
+- When aligning with BWA-MEM, use the `-C` option to include the barcode in the BX tag of the alignments.
+- Sort by BX tag using `samtools sort -tBX`.
+- Merge multiple BAM files using `samtools merge -tBX`.
 
 # Support
 
-After first looking for existing issue at <https://github.com/bcgsc/tigmint/issues>, please report a new issue at <https://github.com/bcgsc/tigmint/issues/new>. Please report the names of your input files, the exact command line that you are using, and the entire output of `tigmint`.
+After first looking for existing issue at <https://github.com/bcgsc/tigmint/issues>, please report a new issue at <https://github.com/bcgsc/tigmint/issues/new>. Please report the names of your input files, the exact command line that you are using, and the entire output of Tigmint.
 
 # Pipeline
 
