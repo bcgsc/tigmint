@@ -178,9 +178,10 @@ def printBreakpoints(breakpoints, partitioned_contigLengths, bedout, len_trim, f
         for i in range(0, numlines): 
             line = lines[i].split(" ", 1)[0]
             if line[0] == ">": #Header line
-                contigname = line[1:]
+                contigname = line[1:].strip()
                 i += 1
                 contigsequence = lines[i].strip()
+                print(contigname)
                 contiglength = contigList[contigname]
                 if contigname in breakpoints: 
                     contig_breakpoints = sorted(breakpoints[contigname])
