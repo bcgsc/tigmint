@@ -10,4 +10,4 @@ case $1 in
 	--version) set version ;;
 esac
 
-exec `dirname $0`/tigmint-make "$@"
+exec `dirname $0`/tigmint-liftover-arcs-make "$@"
