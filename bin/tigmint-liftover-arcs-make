@@ -213,13 +213,13 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Liftover BAM file coordinates
 %.bam_cliftover.bam.sortn.bam: 
-	/projects/btl_scratch/jzhang/liftover/src/liftover -t 1 -b $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa.bed -a $*.bam | samtools view -@4 -Sb | samtools sort -@4 -n -o $*.bam_cliftover.bam.sortn.bam 
+	$(bin)/liftover -t 1 -b $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa.bed -a $*.bam | samtools view -@4 -Sb | samtools sort -@4 -n -o $*.bam_cliftover.bam.sortn.bam 
 
 # ARCS
 
 # Create a graph of linked contigs using ARCS.
 %.$(reads).c$c_e$e_r$r.arcs_original.gv %.$(reads).c$c_e$e_r$r.arcs.dist.gv %.$(reads).c$c_e$e_r$r.arcs.dist.tsv: %.fa 
-	/projects/btl_scratch/jzhang/arcs/Arcs/arcs -s98 -c$c -l0 -z500 -m4-20000 -d0 -e$e -r$r -v \
+	arcs -s98 -c$c -l0 -z500 -m4-20000 -d0 -e$e -r$r -v \
 		-f $*.fa \
 		-b $*.$(reads).c$c_e$e_r$r.arcs \
 		-g $*.$(reads).c$c_e$e_r$r.arcs.dist.gv \

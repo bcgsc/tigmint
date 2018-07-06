@@ -17,6 +17,7 @@ Prior to running pipeline:
 	export PATH=<path-to-liftover+tigmint>:$PATH
 		(aka the path to wherever this README is)
 	export PATH=<path-to-correct-ARCS-version>:$PATH
+		--> best to use the development branch of ARCS
 
 Main pipeline steps: 
 	1. Run Tigmint
