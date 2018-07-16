@@ -33,6 +33,9 @@ nm=5
 # Maximum distance between reads to be considered the same molecule
 dist=50000
 
+# Minimum number of reads per molecule (duplicates are filtered out)
+reads_per_molecule=4
+
 # Mapping quality threshold
 mapq=0
 
@@ -169,11 +172,11 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Create molecule extents BED
 %.as$(as).nm$(nm).molecule.size$(minsize).bed: %.sortbx.bam
-	$(gtime) $(bin)/tigmint-molecule -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) $< | sort -k1,1 -k2,2n -k3,3n >$@
+	$(gtime) $(bin)/tigmint-molecule -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) -m $(reads_per_molecule) $< | sort -k1,1 -k2,2n -k3,3n >$@
 
 # Create molecule extents TSV
 %.as$(as).nm$(nm).molecule.size$(minsize).tsv: %.sortbx.bam
-	$(gtime) $(bin)/tigmint-molecule --tsv -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) -o $@ $<
+	$(gtime) $(bin)/tigmint-molecule --tsv -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) -m $(reads_per_molecule) -o $@ $<
 
 # Report summary statistics of a Chromium library
 %.molecule.summary.html: %.molecule.tsv
