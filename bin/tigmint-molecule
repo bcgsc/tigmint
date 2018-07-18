@@ -116,95 +116,45 @@ class MolecIdentifier:
                 prev_barcode = barcode
                 prev_chr = read.reference_id
             if prev_barcode != barcode or read.reference_id != prev_chr:
-                prev_val = 0
-                prev_read = cur_reads[0]
-                prev_val1 = 0
-                prev_val2 = 0
-                start = cur_reads[0].pos
-                rname = cur_reads[0].reference_name
-                inter_arrivals = []
-                mapqs = []
-                scores = []
-                nms = []
-                count = 0
+                cur_reads = self.find_molecules(cur_reads, new_molec_id, out_bam_file, out_molecules_file, prev_barcode)
+            cur_reads.append(read)
+            prev_barcode = barcode
+            prev_chr = read.reference_id
 
-                for cur_read in cur_reads:
-                    value = cur_read.pos
-                    abs_dist = value - prev_val
-                    mapqs.append(cur_read.mapping_quality)
-                    if cur_read.has_tag("AS"):
-                        scores.append(cur_read.get_tag("AS"))
-                    if cur_read.has_tag("NM"):
-                        nms.append(cur_read.get_tag("NM"))
+        cur_reads = self.find_molecules(cur_reads, new_molec_id, out_bam_file, out_molecules_file, prev_barcode)
+        # Clean up
+        samfile.close()
+        if out_molecules_file != sys.stdout:
+            out_molecules_file.close()
+        if out_bam_file != None:
+            out_bam_file.close()
 
-                    #check if molecules should be terminated
-                    if abs_dist > self.opt.max_dist and prev_val > 0:
-                        end = prev_read.reference_end
+    def find_molecules(self, cur_reads, new_molec_id, out_bam_file, out_molecules_file, prev_barcode):
+        prev_val = 0
+        prev_read = cur_reads[0]
+        prev_val1 = 0
+        prev_val2 = 0
+        start = cur_reads[0].pos
+        rname = cur_reads[0].reference_name
+        inter_arrivals = []
+        mapqs = []
+        scores = []
+        nms = []
+        count = 0
+        for cur_read in cur_reads:
+            value = cur_read.pos
+            abs_dist = value - prev_val
+            mapqs.append(cur_read.mapping_quality)
+            if cur_read.has_tag("AS"):
+                scores.append(cur_read.get_tag("AS"))
+            if cur_read.has_tag("NM"):
+                nms.append(cur_read.get_tag("NM"))
 
-                        #find distance from nearest read
-                        molec = Molecule(rname, start, end, \
-                                 new_molec_id, prev_barcode, \
-                                 inter_arrivals, count, \
-                                 statistics.median(mapqs), \
-                                 statistics.median(scores) if scores else "NA", \
-                                 statistics.median(nms) if nms else "NA")
-
-                        if prev_read.is_reverse:
-                            prev_val2 = value
-                            prev_val1 = 0
-                        else:
-                            prev_val1 = value
-                            prev_val2 = 0
-                        start = value
-                        if count >= self.opt.min_reads and molec.end - molec.start >= self.opt.min_size:
-                            molec.print_molecule(out_molecules_file, self.opt.output_format)
-                            new_molec_id += 1
-                        if self.opt.out_bam_filename:
-                            cur_read.set_tag("MI", new_molec_id)
-                            out_bam_file.write(cur_read)
-                        inter_arrivals = []
-                        mapqs = []
-                        scores = []
-                        nms = []
-                        mapqs.append(cur_read.mapping_quality)
-                        if cur_read.has_tag("AS"):
-                            scores.append(cur_read.get_tag("AS"))
-                        if cur_read.has_tag("NM"):
-                            nms.append(cur_read.get_tag("NM"))
-                        prev_val = value
-                        count = 0
-                        continue
-                    else:
-                        if self.opt.out_bam_filename:
-                            cur_read.set_tag("MI", new_molec_id)
-                            out_bam_file.write(cur_read)
-
-                    #inter arrival time is distance between read of the same direction
-                    inter_arrival = 0
-                    if cur_read.is_reverse:
-                        if prev_val2 == 0:
-                            prev_val2 = value
-                            prev_val = value
-                            count += 1
-                            continue
-                        else:
-                            inter_arrival = value - prev_val2
-                            prev_val2 = value
-                    else:
-                        if prev_val1 == 0:
-                            prev_val1 = value
-                            prev_val = value
-                            count += 1
-                            continue
-                        else:
-                            inter_arrival = value - prev_val1
-                            prev_val1 = value
-                    if inter_arrival > 0:
-                        count += 1
-                        inter_arrivals.append(inter_arrival)
-                    prev_val = value
-                    prev_read = cur_read
+            # check if molecules should be terminated
+            if abs_dist > self.opt.max_dist and prev_val > 0:
                 end = prev_read.reference_end
+
+                # find distance from nearest read
                 molec = Molecule(rname, start, end, \
                                  new_molec_id, prev_barcode, \
                                  inter_arrivals, count, \
@@ -212,20 +162,73 @@ class MolecIdentifier:
                                  statistics.median(scores) if scores else "NA", \
                                  statistics.median(nms) if nms else "NA")
 
+                if prev_read.is_reverse:
+                    prev_val2 = value
+                    prev_val1 = 0
+                else:
+                    prev_val1 = value
+                    prev_val2 = 0
+                start = value
                 if count >= self.opt.min_reads and molec.end - molec.start >= self.opt.min_size:
                     molec.print_molecule(out_molecules_file, self.opt.output_format)
                     new_molec_id += 1
-                cur_reads = []
-            cur_reads.append(read)
-            prev_barcode = barcode
-            prev_chr = read.reference_id
+                if self.opt.out_bam_filename:
+                    cur_read.set_tag("MI", new_molec_id)
+                    out_bam_file.write(cur_read)
+                inter_arrivals = []
+                mapqs = []
+                scores = []
+                nms = []
+                mapqs.append(cur_read.mapping_quality)
+                if cur_read.has_tag("AS"):
+                    scores.append(cur_read.get_tag("AS"))
+                if cur_read.has_tag("NM"):
+                    nms.append(cur_read.get_tag("NM"))
+                prev_val = value
+                count = 0
+                continue
+            else:
+                if self.opt.out_bam_filename:
+                    cur_read.set_tag("MI", new_molec_id)
+                    out_bam_file.write(cur_read)
 
-        # Clean up
-        samfile.close()
-        if out_molecules_file != sys.stdout:
-            out_molecules_file.close()
-        if out_bam_file != None:
-            out_bam_file.close()
+            # inter arrival time is distance between read of the same direction
+            inter_arrival = 0
+            if cur_read.is_reverse:
+                if prev_val2 == 0:
+                    prev_val2 = value
+                    prev_val = value
+                    count += 1
+                    continue
+                else:
+                    inter_arrival = value - prev_val2
+                    prev_val2 = value
+            else:
+                if prev_val1 == 0:
+                    prev_val1 = value
+                    prev_val = value
+                    count += 1
+                    continue
+                else:
+                    inter_arrival = value - prev_val1
+                    prev_val1 = value
+            if inter_arrival > 0:
+                count += 1
+                inter_arrivals.append(inter_arrival)
+            prev_val = value
+            prev_read = cur_read
+        end = prev_read.reference_end
+        molec = Molecule(rname, start, end, \
+                         new_molec_id, prev_barcode, \
+                         inter_arrivals, count, \
+                         statistics.median(mapqs), \
+                         statistics.median(scores) if scores else "NA", \
+                         statistics.median(nms) if nms else "NA")
+        if count >= self.opt.min_reads and molec.end - molec.start >= self.opt.min_size:
+            molec.print_molecule(out_molecules_file, self.opt.output_format)
+            new_molec_id += 1
+        cur_reads = []
+        return cur_reads
 
     def parse_arguments(self):
         "Parse the command line arguments."
