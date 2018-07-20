@@ -130,6 +130,8 @@ class MolecIdentifier:
             out_bam_file.close()
 
     def find_molecules(self, cur_reads, new_molec_id, out_bam_file, out_molecules_file, prev_barcode):
+        if len(cur_reads) == 0:
+            return
         prev_val = 0
         prev_read = cur_reads[0]
         prev_val1 = 0
