@@ -22,10 +22,30 @@ Each window of a specified fixed size is checked for a minimum number of spannin
 
 ## Install Tigmint using Brew
 
-Install [Linuxbrew](http://linuxbrew.sh/) on Linux or Windows Subsystem for Linux (WSL), or 
+Install [Linuxbrew](http://linuxbrew.sh/) on Linux or Windows Subsystem for Linux (WSL), or
 install [Homebrew](https://brew.sh/) on macOS, and then run the command
 
-	brew install tigmint
+```sh
+brew install tigmint
+```
+
+## Install Tigmint using Conda
+
+```sh
+conda install -c bioconda tigmint
+```
+
+## Install Tigmint using PyPI
+
+```sh
+pip3 install tigmint
+```
+
+## Run Tigmint using Docker
+
+```sh
+docker run -it bcgsc/tigmint
+```
 
 ## Install Tigmint from the source code
 
