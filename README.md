@@ -6,7 +6,7 @@ Cut sequences at positions with few spanning molecules.
 
 Written by [Shaun Jackman](http://sjackman.ca), Lauren Coombe, and Justin Chu.
 
-[bioRxiv doi:10.1101/304253](https://www.biorxiv.org/content/early/2018/04/20/304253) &middot; [Slides](http://sjackman.ca/tigmint-recomb-slides) &middot; [Poster](https://f1000research.com/posters/7-481)
+[bioRxiv doi:10.1101/304253](https://doi.org/10.1101/304253) &middot; [Slides](http://sjackman.ca/tigmint-recomb-slides) &middot; [Poster](https://f1000research.com/posters/7-481)
 
 # Description
 
