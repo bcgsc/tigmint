@@ -121,7 +121,7 @@ class MolecIdentifier:
                 prev_val1 = 0
                 prev_val2 = 0
                 start = cur_reads[0].pos
-                rname = cur_reads[0].reference_name
+                rname = samfile.references[cur_reads[0].reference_id]
                 inter_arrivals = []
                 mapqs = []
                 scores = []
