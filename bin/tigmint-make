@@ -15,9 +15,6 @@ draft=draft
 # Name of the reads, reads.fq.gz, after running longranger basic
 reads=reads
 
-# Name of the long reads, long.fq.gz.
-long=long
-
 # Reference genome, ref.fa, for calculating assembly contiguity metrics
 #ref=ref
 
@@ -115,8 +112,6 @@ ifdef G
 all: metrics
 endif
 endif
-
-all-long: tigmint-long links
 
 metrics: draft_metrics tigmint_metrics arcs_metrics
 
