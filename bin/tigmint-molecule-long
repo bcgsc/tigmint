@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+import argparse
+import fileinput
+import gzip
+import sys
+'''
+Create a molecule extents file in BED format from long reads
+
+@author: Yaman Malkoc
+'''
+
+
+
+class Molecule:
+    "A long-reads molecule representation"
+
+    def __init__(
+            self, rname, start,\
+            end, unique_id, count):
+        self.rname = rname
+        self.start = start
+        self.end = end
+        self.unique_id = unique_id
+        self.count = count
+
+    def print_bed(self, file):
+        "Print this molecule to a BED file"
+        print(
+            self.rname, self.start, self.end,
+            self.unique_id,
+            self.count,
+            sep="\t", file=file)
+
+def parse_arguments():
+    "Parsing the arguments given to the command"
+    parser = argparse.ArgumentParser( \
+            description="Convert a PAF representation of molecule extents to a BED format. ")
+    parser.add_argument( \
+            metavar="PAF", dest="input_paf_file", \
+            help="Input PAF file to be converted")
+    parser.add_argument( \
+            metavar="BED", dest="output_bed_file", nargs='?', \
+            help="Output file in BED format that is to be generated after running this command. ")
+    return parser.parse_args()
+
+def convert_file(input_file, output_file):
+    "Splitting columns of the paf file and filtering out the unnecessary data(for bed file) and rearrange columns."
+    with open(input_file, 'r') as paffile:
+        bedfile = open(output_file, "w+") if output_file is not None else sys.stdout
+        line_count = 1
+        for line in paffile:
+            if line is not None:
+                columns = line.split("\t")
+                newMolecule = Molecule(columns[5], columns[7], columns[8], str(line_count), "14")
+                newMolecule.print_bed(bedfile)
+                line_count = line_count + 1
+        if bedfile is not sys.stdout:
+            bedfile.close()
+
+if __name__ == '__main__':
+    arguments = parse_arguments()
+    input_paf = "/dev/stdin" if arguments.input_paf_file == "-" else arguments.input_paf_file
+    convert_file(input_paf, arguments.output_bed_file)
+    

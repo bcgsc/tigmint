@@ -15,6 +15,9 @@ draft=draft
 # Name of the reads, reads.fq.gz, after running longranger basic
 reads=reads
 
+# Name of the long reads, long.fq.gz.
+long=long
+
 # Reference genome, ref.fa, for calculating assembly contiguity metrics
 #ref=ref
 
@@ -97,7 +100,7 @@ endif
 .PHONY: help version all tigmint arcs metrics draft_metrics tigmint_metrics arcs_metrics
 
 help:
-	@echo 'Tigmint: Correct misassemblies using linked reads'
+	@echo 'Tigmint: Correct misassemblies using linked or long reads'
 	@echo 'Usage: tigmint-make [COMMAND]... [PARAMETER=VALUE]...'
 	@echo 'Example: tigmint-make tigmint draft=myassembly reads=myreads'
 	@echo 'For more information see https://bcgsc.github.io/tigmint/'
@@ -113,6 +116,8 @@ all: metrics
 endif
 endif
 
+all-long: tigmint-long links
+
 metrics: draft_metrics tigmint_metrics arcs_metrics
 
 # Calculate assembly metrics of the draft assembly using abyss-fac and abyss-samtobreak
@@ -121,10 +126,16 @@ draft_metrics: \
 	$(draft).scaftigs.abyss-fac.tsv \
 	$(draft).scaftigs.$(ref).samtobreak.tsv
 
-# Correct misassemblies using Tigmint
+# Correct misassemblies for linked reads using Tigmint
 tigmint: \
 	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa \
 	$(draft).tigmint.fa
+
+# Correct misassemblies for long read assemblies using Tigmint
+tigmint-long: \
+	$(draft).$(reads).paf.gz \
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).longread.trim$(trim).window$(window).span$(span).breaktigs.fa \
+	$(draft).longread.tigmint.fa
 
 # Calculate assembly metrics after Tigmint
 tigmint_metrics: \
@@ -143,8 +154,12 @@ arcs_metrics: \
 	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.scaftigs.abyss-fac.tsv \
 	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.scaftigs.$(ref).samtobreak.tsv
 
-# Symlink the Tigmint results
+# Symlink the linked read Tigmint results
 $(draft).tigmint.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa
+	ln -sf $< $@
+
+# Symlink the long read Tigmint results
+$(draft).longread.tigmint.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).longread.trim$(trim).window$(window).span$(span).breaktigs.fa
 	ln -sf $< $@
 
 # Symlink the ARCS results
@@ -167,9 +182,19 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 %.fa.fai: %.fa
 	samtools faidx $<
 
+
+# Align Nanopore long reads as .fq.gz file to the draft genome and produce PAF 
+$(draft).$(reads).paf.gz: $(reads).fq.gz $(draft).fa
+	minimap2 -r50000 -t$t -cx map-ont $(draft).fa $< | $(gzip) >$@
+
+
 # Create molecule extents BED
 %.as$(as).nm$(nm).molecule.size$(minsize).bed: %.sortbx.bam
 	$(gtime) $(bin)/tigmint-molecule -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) $< | sort -k1,1 -k2,2n -k3,3n >$@
+
+# Create molecule extents BED using long read alignments
+%.as$(as).nm$(nm).molecule.size$(minsize).longread.bed: $(draft).$(reads).paf.gz
+	$(gtime) gunzip -c $< | $(bin)/tigmint-molecule-long - | sort -k1,1 -k2,2n -k3,3n >$@ &> tigmint_molecule_long.log
 
 # Create molecule extents TSV
 %.as$(as).nm$(nm).molecule.size$(minsize).tsv: %.sortbx.bam
