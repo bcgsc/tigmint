@@ -163,6 +163,24 @@ tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 - Sort by BX tag using `samtools sort -tBX`.
 - Merge multiple BAM files using `samtools merge -tBX`.
 
+# Using stLFR linked reads
+
+To use stLFR linked reads with Tigmint, you will need to re-format the reads to have the barcode in a `BX:Z:` tag in the read header.
+For example, this format
+```
+@V100002302L1C001R017000000#0_0_0/1 0	1
+TGTCTTCCTGGACAGCTGACATCCCTTTTGTTTTTCTGTTTGCTCAGATGCTGTCTCTTATACACATCTTAGGAAGACAAGCACTGACGACATGATCACC
++
+FFFFFFFGFGFFGFDFGFFFFFFFFFFFGFFF@FFFFFFFFFFFF@FFFFFFFFFGGFFEFEFFFF?FFFFGFFFGFFFFFFFGFFEFGFGGFGFFFGFF
+```
+should be changed to:
+```
+@V100002302L1C001R017000000 BX:Z:0_0_0
+TGTCTTCCTGGACAGCTGACATCCCTTTTGTTTTTCTGTTTGCTCAGATGCTGTCTCTTATACACATCTTAGGAAGACAAGCACTGACGACATGATCACC
++
+FFFFFFFGFGFFGFDFGFFFFFFFFFFFGFFF@FFFFFFFFFFFF@FFFFFFFFFGGFFEFEFFFF?FFFFGFFFGFFFFFFFGFFEFGFGGFGFFFGFF
+```
+
 # Support
 
 After first looking for existing issue at <https://github.com/bcgsc/tigmint/issues>, please report a new issue at <https://github.com/bcgsc/tigmint/issues/new>. Please report the names of your input files, the exact command line that you are using, and the entire output of Tigmint.
