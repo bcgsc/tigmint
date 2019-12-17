@@ -103,8 +103,8 @@ class MolecIdentifier:
             or read.has_tag("NM") and read.get_tag("NM") >= self.opt.max_nm:
                 continue
             if read.has_tag("AS") \
-            and read.get_tag("AS") < self.opt.min_as_ratio * len(read.query_sequence):
-                continue
+                    and read.get_tag("AS") < self.opt.min_as_ratio * read.query_length:
+                continue            
 
             if not read.has_tag("BX"):
                 if out_bam_file:
