@@ -180,10 +180,10 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 $(reads).linked.fa.gz: $(reads).fa
 	python3 $(bin)/long-to-linked.py $< | $(gzip) >$@
 
-# Align pseudo-linked reads to the draft genome and sort by BX tag.
+# Align pseudo-linked reads to the draft genome and output primary alignments sorted by BX tag.
 $(draft).%.linked.bam: %.linked.fa.gz $(draft).fa
-	minimap2 -y -t$t -ax map-ont $(draft).fa $< | samtools view -b -u -F4 |samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
-
+#	minimap2 -y -t$t -ax map-ont $(draft).fa $< | samtools view -u -F256 | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
+	minimap2 -y -t$t -ax map-ont --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
 	
 # samtools
 
