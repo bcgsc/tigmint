@@ -176,15 +176,21 @@ $(draft).tigmint.arcs.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsi
 $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 	$(gtime) bwa mem -t$t -pC $(draft).fa $< | samtools view -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
 
-# Convert Nanopore long reads into pseudo-linked reads.
+# Convert Nanopore long reads into pseudo-linked reads from fasta file.
 $(reads).linked.fa.gz: $(reads).fa
 	python3 $(bin)/long-to-linked.py $< | $(gzip) >$@
+
+# Convert Nanopore long reads into pseudo-linked reads from gzipped fastq file.
+$(reads).linked.fq.gz: $(reads).fq.gz
+	### gunzip -c $(reads).fq.gz | python3 ...
+
+# Minimap2
 
 # Align pseudo-linked reads to the draft genome and output primary alignments sorted by BX tag.
 $(draft).%.linked.bam: %.linked.fa.gz $(draft).fa
 #	minimap2 -y -t$t -ax map-ont $(draft).fa $< | samtools view -u -F256 | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
 	minimap2 -y -t$t -ax map-ont --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
-	
+
 # samtools
 
 # Index a FASTA file.
