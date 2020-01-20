@@ -1,3 +1,8 @@
+[![Release](https://img.shields.io/github/release/bcgsc/tigmint.svg)](https://github.com/bcgsc/tigmint/releases)
+[![Downloads](https://img.shields.io/github/downloads/bcgsc/tigmint/total?logo=github)](https://github.com/bcgsc/tigmint/archive/1.1.2.tar.gz)
+[![Conda](https://img.shields.io/conda/dn/bioconda/tigmint?label=Conda)](https://anaconda.org/bioconda/tigmint)
+[![Issues](https://img.shields.io/github/issues/bcgsc/tigmint.svg)](https://github.com/bcgsc/tigmint/issues)
+
 <img src="http://sjackman.ca/img/tigmint.png" style="width:4in">
 
 # Correct misassemblies using linked reads
