@@ -134,8 +134,8 @@ tigmint: \
 
 # Correct misassemblies for cut linked reads using Tigmint
 tigmint-long-cut: \
-	$(draft).$(reads).linked.as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa \
-	$(draft).linked.tigmint.fa
+	$(draft).$(reads).cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa \
+	$(draft).cut$(cut).tigmint.fa
 
 # Calculate assembly metrics after Tigmint
 tigmint_metrics: \
@@ -159,7 +159,7 @@ $(draft).tigmint.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).t
 	ln -sf $< $@
 
 # Symlink the long read Tigmint results
-$(draft).linked.tigmint.fa: $(draft).$(reads).linked.as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa
+$(draft).cut$(cut).tigmint.fa: $(draft).$(reads).cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa
 	ln -sf $< $@
 
 # Symlink the ARCS results
@@ -181,13 +181,13 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 #	gunzip -c $< | python3 $(bin)/long-to-linked.py -l$(cut) | $(gzip) > $@
 
 # Convert Nanopore long reads into pseudo-linked reads from gzipped fastq file.
-$(reads).linked.fa.gz: $(reads).fq.gz
+$(reads).cut$(cut).fa.gz: $(reads).*.gz
 	gunzip -c $< | python3 $(bin)/long-to-linked.py -l$(cut) | $(gzip) > $@
 
 # Minimap2
 
 # Align pseudo-linked reads in fasta file to the draft genome and output primary alignments sorted by BX tag.
-$(draft).%.linked.bam: %.linked.fa.gz $(draft).fa
+$(draft).%.cut$(cut).sortbx.bam: %.cut$(cut).fa.gz $(draft).fa
 	minimap2 -y -t$t -ax map-ont --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
 
 # samtools
@@ -205,7 +205,7 @@ $(draft).%.linked.bam: %.linked.fa.gz $(draft).fa
 	$(gtime) $(bin)/tigmint-molecule -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) $< | sort -k1,1 -k2,2n -k3,3n >$@
 
 # Create molecule extents BED using pseudo-linked reads.
-%.linked.as$(as).nm$(nm).molecule.size$(minsize).bed: %.linked.bam
+%.cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).bed: %.cut$(cut).sortbx.bam
 	$(gtime) $(bin)/tigmint-molecule -a$(as) -n$(cut) -q$(mapq) -d$(dist) -s$(minsize) $< | sort -k1,1 -k2,2n -k3,3n >$@
 
 # Create molecule extents TSV
@@ -213,8 +213,8 @@ $(draft).%.linked.bam: %.linked.fa.gz $(draft).fa
 	$(gtime) $(bin)/tigmint-molecule --tsv -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) -o $@ $<
 
 # Create molecule extents TSV using pseudo-linked reads.
-%.linked.as$(as).nm$(nm).molecule.size$(minsize).tsv: %.linked.bam
-	$(gtime) $(bin)/tigmint-molecule --tsv -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) -o $@ $<
+%.cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).tsv: %.cut$(cut).bam
+	$(gtime) $(bin)/tigmint-molecule --tsv -a$(as) -n$(cut) -q$(mapq) -d$(dist) -s$(minsize) -o $@ $<
 
 # Report summary statistics of a Chromium library
 %.molecule.summary.html: %.molecule.tsv
