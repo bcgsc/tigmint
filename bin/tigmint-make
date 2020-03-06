@@ -45,6 +45,9 @@ span=20
 #Window size for checking for spanning molecules
 window=1000
 
+#Length for tigmint-long-cut reads
+cut=500
+
 # Parameters of ARCS
 c=5
 e=30000
@@ -171,22 +174,18 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 	$(gtime) bwa mem -t$t -pC $(draft).fa $< | samtools view -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
 
 # Convert Nanopore long reads into pseudo-linked reads from fasta file.
-$(reads).linked.fa.gz: $(reads).fa
-	python3 $(bin)/long-to-linked.py $< | $(gzip) > $@
+#$(reads).linked.fa.gz: $(reads).fa.gz
+#	gunzip -c $< | python3 $(bin)/long-to-linked.py -l$(cut) | $(gzip) > $@
 
 # Convert Nanopore long reads into pseudo-linked reads from gzipped fastq file.
 $(reads).linked.fa.gz: $(reads).fq.gz
-	gunzip -c $(reads).fq.gz | python3 $(bin)/long-to-linked.py | $(gzip) > $@
+	gunzip -c $< | python3 $(bin)/long-to-linked.py -l$(cut) | $(gzip) > $@
 
 # Minimap2
 
 # Align pseudo-linked reads in fasta file to the draft genome and output primary alignments sorted by BX tag.
 $(draft).%.linked.bam: %.linked.fa.gz $(draft).fa
 	minimap2 -y -t$t -ax map-ont --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
-
-# Align pseudo-linked reads in fastq file to the draft genome and output primary alignments sorted by BX tag.
-#$(draft).%.linked.bam: %.linked.fq.gz $(draft).fa
-#	minimap2 -y -t$t -ax map-ont --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
 
 # samtools
 
@@ -204,7 +203,7 @@ $(draft).%.linked.bam: %.linked.fa.gz $(draft).fa
 
 # Create molecule extents BED using pseudo-linked reads.
 %.linked.as$(as).nm$(nm).molecule.size$(minsize).bed: %.linked.bam
-	$(gtime) $(bin)/tigmint-molecule -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) $< | sort -k1,1 -k2,2n -k3,3n >$@
+	$(gtime) $(bin)/tigmint-molecule -a$(as) -n$(cut) -q$(mapq) -d$(dist) -s$(minsize) $< | sort -k1,1 -k2,2n -k3,3n >$@
 
 # Create molecule extents TSV
 %.as$(as).nm$(nm).molecule.size$(minsize).tsv: %.sortbx.bam
