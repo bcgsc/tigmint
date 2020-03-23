@@ -1,10 +1,8 @@
 #!/usr/bin/env python3 
-
-'''
+"""
 Simulate linked reads from long ONT reads
-usage: gunzip -c [long_read_file.fq.gz] | python3 long-to-linked.py -l [cut length] | gzip > file_name.fq.gz
-
-'''
+Usage: gunzip -c [long_read_file.fa.gz] | python3 long-to-linked.py -l [cut length] | gzip > file_name.fa.gz
+"""
 
 import sys
 import gzip
@@ -25,14 +23,16 @@ def parse_arguments():
 
 # Split long reads and output a list containing these reads
 def split_long_read(read_string, length):
+    """
+    Take an input read string and length l. Output a list containing substrings of read of length l.
+    """
     return [read_string.strip()[0+i:l+i] for i in range(0, len(read_string), l)]
 
-def cut_reads(length):
+def cut_reads(length, long_reads):
     """ 
-    Open long read file and print cut reads to stdout
+    Open gzipped long read file. Print cut reads to stdout.
     """
-
-    with gzip.open(ont, 'rt') as long_reads:
+    with gzip.open(long_reads, 'rt') as long_reads:
         i = 0
         for header, seq, _, _ in read_fasta(long_reads):
             i += 1
@@ -45,5 +45,5 @@ if __name__ == "__main__":
     arguments = parse_arguments()
     l = arguments.cut_length
     ont = arguments.long_reads
-    cut_reads(l)
+    cut_reads(l, ont)
 
