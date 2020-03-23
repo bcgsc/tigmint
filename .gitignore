@@ -24,7 +24,10 @@ xml-patch-make/
 !pipeline.gv.png.svg
 !tigmint-make.gv.png
 __pycache__
+<<<<<<< HEAD
 .pytest_cache
+=======
+>>>>>>> Add __pycache__
 
 # BWA
 *.fa.amb
