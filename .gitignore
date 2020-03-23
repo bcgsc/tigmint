@@ -23,6 +23,7 @@ xml-patch-make/
 !pipeline.gv.png
 !pipeline.gv.png.svg
 !tigmint-make.gv.png
+__pycache__
 
 # BWA
 *.fa.amb
