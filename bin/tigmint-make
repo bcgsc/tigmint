@@ -176,13 +176,13 @@ $(draft).tigmint.arcs.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsi
 $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 	$(gtime) bwa mem -t$t -pC $(draft).fa $< | samtools view -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
 
-# Convert Nanopore long reads into pseudo-linked reads from fasta file.
-#$(reads).linked.fa.gz: $(reads).fa.gz
-#	gunzip -c $< | python3 $(bin)/long-to-linked.py -l$(cut) | $(gzip) > $@
+# Convert Nanopore long reads into pseudo-linked reads from gzipped fasta file.
+$(reads).cut$(cut).fa.gz: $(reads).fa.gz
+	python3 $(bin)/long-to-linked.py -l$(cut) -r $< | $(gzip) > $@
 
-# Convert Nanopore long reads into pseudo-linked reads from gzipped fastq file.
-$(reads).cut$(cut).fa.gz: $(reads).*.gz
-	gunzip -c $< | python3 $(bin)/long-to-linked.py -l$(cut) | $(gzip) > $@
+# Convert Nanopore long reads in fastq file format to fasta
+$(reads).fa.gz: $(reads).fq.gz
+	python3 $(bin)/convert-fastq.py $< | $(gzip) > $@	
 
 # Minimap2
 
@@ -213,7 +213,7 @@ $(draft).%.cut$(cut).sortbx.bam: %.cut$(cut).fa.gz $(draft).fa
 	$(gtime) $(bin)/tigmint-molecule --tsv -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) -o $@ $<
 
 # Create molecule extents TSV using pseudo-linked reads.
-%.cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).tsv: %.cut$(cut).bam
+%.cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).tsv: %.cut$(cut).sortbx.bam
 	$(gtime) $(bin)/tigmint-molecule --tsv -a$(as) -n$(cut) -q$(mapq) -d$(dist) -s$(minsize) -o $@ $<
 
 # Report summary statistics of a Chromium library
