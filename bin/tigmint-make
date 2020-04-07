@@ -21,6 +21,9 @@ reads=reads
 # Size of the reference genome, for calculating NG50 and NGA50
 #G=0
 
+# Minimap2 long read map parameter
+longmap=ont
+
 # Minimum molecule size
 minsize=2000
 
@@ -185,7 +188,7 @@ $(reads).fa.gz: $(reads).fq.gz
 
 # Align pseudo-linked reads in fasta file to the draft genome and output primary alignments sorted by BX tag.
 $(draft).%.cut$(cut).sortbx.bam: %.cut$(cut).fa.gz $(draft).fa
-	minimap2 -y -t$t -ax map-ont --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
+	minimap2 -y -t$t -ax map-$(longmap) --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
 
 # samtools
 
