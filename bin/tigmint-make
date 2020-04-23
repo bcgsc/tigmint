@@ -178,7 +178,7 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Convert Nanopore long reads into pseudo-linked reads from gzipped fasta file.
 $(reads).cut$(cut).fa.gz: $(reads).fa.gz
-	python3 $(bin)/long-to-linked.py -l$(cut) -r $< | $(gzip) > $@
+	python3 $(bin)/long-to-linked.py -l$(cut) -r$< -m$(minsize) | $(gzip) > $@
 
 # Convert Nanopore long reads in fastq file format to fasta
 $(reads).fa.gz: $(reads).fq.gz
