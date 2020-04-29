@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Convert long reads in fastq to fasta.
-Usage: python3 convert-fastq.py infile.fq | gzip > outfile.fa
+Usage: python3 convert-fastq.py infile.fq.gz | gzip > outfile.fa.gz
 """
 
 import sys
