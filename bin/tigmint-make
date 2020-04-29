@@ -12,7 +12,7 @@
 # Name of the draft assembly, draft.fa
 draft=draft
 
-# Name of the reads, reads.fq.gz, after running longranger basic
+# Name of the reads, reads.fq.gz, after running longranger basic (for linked reads). Can be reads.fq.gz or reads.fa.gz for long reads
 reads=reads
 
 # Reference genome, ref.fa, for calculating assembly contiguity metrics
@@ -100,7 +100,7 @@ endif
 
 .DELETE_ON_ERROR:
 .SECONDARY:
-.PHONY: help version all tigmint arcs metrics draft_metrics tigmint_metrics arcs_metrics
+.PHONY: help version all tigmint tigmint-long-cut arcs metrics draft_metrics tigmint_metrics arcs_metrics
 
 help:
 	@echo 'Tigmint: Correct misassemblies using linked reads'
@@ -176,11 +176,11 @@ $(draft).tigmint.arcs.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsi
 $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 	$(gtime) bwa mem -t$t -pC $(draft).fa $< | samtools view -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
 
-# Convert Nanopore long reads into pseudo-linked reads from gzipped fasta file.
+# Convert long reads into pseudo-linked reads from gzipped fasta file.
 $(reads).cut$(cut).fa.gz: $(reads).fa.gz
 	python3 $(bin)/long-to-linked.py -l$(cut) -r$< -m$(minsize) | $(gzip) > $@
 
-# Convert Nanopore long reads in fastq file format to fasta
+# Convert long reads in fastq file format to fasta
 $(reads).fa.gz: $(reads).fq.gz
 	python3 $(bin)/convert-fastq.py $< | $(gzip) > $@	
 
