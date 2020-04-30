@@ -133,7 +133,7 @@ tigmint-molecule draft.reads.cutlength.sortbx.bam | sort -k1,1 -k2,2n -k3,3n > d
 tigmint-cut -p8 -o draft.cutlength.tigmint.fa draft.fa draft.reads.cutlength.molecule.bed
 ```
 
-- `minimap2 -y` is used to copy the BX tag from the **pseudo-linked** read to the SAM tags.
+- `minimap2 -y` is used to copy the BX tag from the cut long reads to the SAM tags.
 - `minimap2 map-ont` is used to align long reads from the Oxford Nanopore Technologies (ONT) platform, which is the default input for Tigmint. To use PacBio long reads, use specify the parameter `longmap=pb`
 
 Alternatively, you can run the Tigmint pipeline for long reads using the Makefile driver script `tigmint-make`. To run Tigmint on the draft assembly `myassembly.fa` with the reads `reads.fq.gz` or `reads.fa.gz`:
@@ -159,7 +159,7 @@ tigmint-make tigmint-long-cut draft=myassembly reads=myreads
 + `draft`: Name of the draft assembly, `draft.fa`
 + `reads`: Name of the reads, `reads.fq.gz`
 + `span=20`: Number of spanning molecules threshold
-+ `cut=500`: Length of *
++ `cut=500`: Length to cut long reads to
 + `longmap=ont`: Long read platform; `ont` for Oxford Nanopore long reads, `pb` for PacBio long reads
 + `window=1000`: Window size (bp) for checking spanning molecules
 + `minsize=2000`: Minimum molecule size
