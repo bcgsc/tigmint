@@ -6,7 +6,7 @@ The script expects Tigmint to be in your PATH, and that all of the dependencies 
 
 Once you have all of the software in your path, execute:
 
-```bash
+```sh
 ./run_tigmint-long-cut_demo.sh
 ```
 
