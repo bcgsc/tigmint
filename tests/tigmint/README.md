@@ -12,4 +12,4 @@ Once you have all of the software in your path, execute:
 
 Once the demo is complete, compare your output files to those in the "expected_outputs" directory to ensure that the run was successful. 
 
-See ../tigmint-long-cut to test your Tigmint installation with long reads.
+See ../tigmint-long to test your Tigmint installation with long reads.
