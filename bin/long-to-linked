@@ -1,11 +1,9 @@
 #!/usr/bin/env python3 
 """
 Cut long reads and assign barcodes to the subreads.
-Usage: python3 long-to-linked.py -r reads.fa.gz | gzip > reads.cutlength.fa.gz
+Usage: gunzip -c reads.fa.gz | python3 long-to-linked -r - | gzip > reads.cutlength.fa.gz
 """
-
 import sys
-import gzip
 import argparse
 from read_fasta import read_fasta
 
@@ -17,9 +15,10 @@ def split_long_read(read_string, length):
 
 def cut_reads(length, long_reads, min_size):
     """ 
-    Open gzipped long read file. Print cut reads to stdout.
+    Print cut reads to stdout.
     """
-    with gzip.open(long_reads, 'rt') as long_reads:
+    file_name = "/dev/stdin" if long_reads == "-" else long_reads
+    with open(file_name, 'rt') as long_reads:
         i = 0
         for header, seq, _, _ in read_fasta(long_reads):
             i += 1
