@@ -19,16 +19,21 @@ jobs:
       HOMEBREW_NO_AUTOUPDATE: 1
   - script: |
       cd bin
-      pylint long-to-linked read_fasta.py tigmint-molecule \
-      tigmint-cut tigmint-arcs-tsv
-    displayName: Run pylint
+      pylint long-to-linked read_fasta.py tigmint-molecule tigmint-cut tigmint-arcs-tsv   
+    displayName: Run pylint 
   - script: |
       sudo /home/linuxbrew/.linuxbrew/bin/pip3 install pytest
       sudo HOMEBREW_NO_AUTOUPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew install bwa-mem samtools minimap2
       export PATH=/home/linuxbrew/.linuxbrew/bin:$PATH
       echo $PATH
-      cd tests/tigmint/pytest
+      cd ../tests/tigmint/pytest
       pytest -rv tigmint_test.py
     env:
       HOMEBREW_NO_AUTO_UPDATE: 1
-    displayName: TestING TIGMINT
+    displayName: Testing tigmint
+  - script: |
+      cd ../../tigmint-long/pytest
+      pytest -rv tigmint-long_test.py
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    displayName: Testing tigmint-long
