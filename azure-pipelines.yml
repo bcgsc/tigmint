@@ -1,19 +1,32 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# See https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
-trigger:
-- master
+jobs:
+- job: RunsInContainer
+  container:
+    image: "linuxbrew/brew"
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: "3.7"
+      architecture: x64
+  - script: |
+      sudo HOMEBREW_NO_AUTO_UPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew install python
+      sudo /home/linuxbrew/.linuxbrew/bin/pip3  install --upgrade setuptools \
+      - U pip --no-cache-dir \
+      pylint .
+    displayName: Install Python Packages
+    env:
+      HOMEBREW_NO_AUTOUPDATE: 1
+  - script: |
+      cd bin
+      pylint long-to-linked read_fasta.py tigmint-molecule \
+      tigmint-cut tigmint-arcs-tsv
+    displayName: Run pylint
 
-pool:
-  vmImage: 'ubuntu-latest'
+# Scripts for tests -- pytest
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+    
+
+    
+  
