@@ -182,7 +182,7 @@ $(reads).fa.gz: $(reads).fq.gz
 
 # Segment long reads from gzipped fasta file.
 $(reads).cut$(cut).fa.gz: $(reads).fa.gz
-	$(bin)/long-to-linked -l$(cut) -r$< -m$(minsize) | $(gzip) > $@
+	gunzip -c $< |$(bin)/long-to-linked -l$(cut) -r - -m$(minsize) | $(gzip) > $@
 
 # Minimap2
 
