@@ -1,11 +1,5 @@
 # See https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
-trigger:
-  branches:
-  - master
-  - azure-pipelines
-  - long-to-linked
-
 jobs:
 - job: RunsInContainer
   container:
@@ -18,7 +12,7 @@ jobs:
   - script: |
       sudo HOMEBREW_NO_AUTO_UPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew install python
       sudo /home/linuxbrew/.linuxbrew/bin/pip3 install --upgrade setuptools \
-      - U pip --no-cache-dir \
+      -U pip --no-cache-dir \
       pylint .
     displayName: Install Python packages
     env:
@@ -33,8 +27,8 @@ jobs:
       sudo HOMEBREW_NO_AUTOUPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew install bwa-mem samtools minimap2
       export PATH=/home/linuxbrew/.linuxbrew/bin:$PATH
       echo $PATH
-    displayName: Setup tests
-  - script: |
       cd tests/tigmint/pytest
       pytest -rv tigmint_test.py
-    displayName: Test Tigmint
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    displayName: TestING TIGMINT
