@@ -1,5 +1,11 @@
 # See https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
+trigger:
+  branches:
+  - master
+  - azure-pipelines
+  - long-to-linked
+
 jobs:
 - job: RunsInContainer
   container:
@@ -32,10 +38,3 @@ jobs:
       cd tests/tigmint/pytest
       pytest -rv tigmint_test.py
     displayName: Test Tigmint
-
-
-
-    
-
-    
-  
