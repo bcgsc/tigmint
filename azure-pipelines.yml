@@ -11,10 +11,10 @@ jobs:
       architecture: x64
   - script: |
       sudo HOMEBREW_NO_AUTO_UPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew install python
-      sudo /home/linuxbrew/.linuxbrew/bin/pip3  install --upgrade setuptools \
+      sudo /home/linuxbrew/.linuxbrew/bin/pip3 install --upgrade setuptools \
       - U pip --no-cache-dir \
       pylint .
-    displayName: Install Python Packages
+    displayName: Install Python packages
     env:
       HOMEBREW_NO_AUTOUPDATE: 1
   - script: |
@@ -22,8 +22,17 @@ jobs:
       pylint long-to-linked read_fasta.py tigmint-molecule \
       tigmint-cut tigmint-arcs-tsv
     displayName: Run pylint
+  - script: |
+      sudo /home/linuxbrew/.linuxbrew/bin/pip3 install pytest
+      sudo HOMEBREW_NO_AUTOUPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew install bwa-mem samtools minimap2
+      export PATH=/home/linuxbrew/.linuxbrew/bin:$PATH
+      echo $PATH
+    displayName: Setup tests
+  - script: |
+      cd tests/tigmint/pytest
+      pytest -rv tigmint_test.py
+    displayName: Test Tigmint
 
-# Scripts for tests -- pytest
 
 
     
