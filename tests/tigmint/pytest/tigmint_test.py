@@ -38,8 +38,7 @@ def run_tigmint_cut(draft, reads):
         with open("./{0}.{1}.as0.65.nm5.molecule.size2000.trim0.window1000.span20.breaktigs.fa".format(draft, reads), "r") as outfile:
             output_breaktigs = outfile.readlines()
             for i, actual in enumerate(expected_breaktigs):
-                if i % 2 == 1:
-                    assert output_breaktigs[i] == actual
+                assert output_breaktigs[i] == actual
     
     created_files = [".fa.fai", ".{0}.as0.65.nm5.molecule.size2000.bed".format(reads), 
                     ".{0}.as0.65.nm5.molecule.size2000.trim0.window1000.span20.breaktigs.fa".format(reads), 
