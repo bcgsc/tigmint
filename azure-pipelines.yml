@@ -30,11 +30,6 @@ jobs:
       HOMEBREW_NO_AUTO_UPDATE: 1
     displayName: Testing tigmint
   - script: |
-      export PATH=/home/linuxbrew/.linuxbrew/bin:$PATH
-      echo path:
-      echo $PATH
-      sudo /home/linuxbrew/.linuxbrew/bin/pip3 install pytest
-      sudo HOMEBREW_NO_AUTOUPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew install bedtools samtools gnu-time
       sudo HOMEBREW_NO_AUTOUPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew tap brewsci/bio
       sudo HOMEBREW_NO_AUTOUPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew install minimap2
       cd tests/tigmint-long/pytest
