@@ -1,24 +1,22 @@
 #!/usr/bin/env python3
-'''
+"""
 Group linked reads into molecules.
-
 @author: Justin Chu and Shaun Jackman
-'''
+"""
 
-from enum import Enum
 import argparse
 import statistics
 import sys
-
 import pysam
+from enum import Enum
 
 class FileFormat(Enum):
-    "File format"
+    """File format"""
     BED = 1
     TSV = 2
 
 class Molecule:
-    "A molecule of linked reads"
+    """A molecule of linked reads"""
 
     def __init__(
             self, rname, start, end, \
@@ -37,7 +35,7 @@ class Molecule:
         self.nm_median = nm_median
 
     def print_bed(self, file):
-        "Print this molecule to a BED file"
+        """Print this molecule to a BED file"""
         print(
             self.rname, self.start, self.end,
             self.barcode,
@@ -45,7 +43,7 @@ class Molecule:
             sep="\t", file=file)
 
     def print_tsv(self, file):
-        "Print this molecule to a TSV file"
+        """Print this molecule to a TSV file"""
         print(
             self.rname, self.start, self.end, self.end - self.start,
             self.barcode, self.new_molec_id,
@@ -54,23 +52,21 @@ class Molecule:
             sep="\t", file=file)
 
     def print_molecule(self, file, output_format):
-        "Print this molecule to a file"
+        """Print this molecule to a file"""
         if output_format == FileFormat.BED:
             self.print_bed(file)
         if output_format == FileFormat.TSV:
             self.print_tsv(file)
 
 class MolecIdentifier:
-    "Group molecules into barcodes"
+    """Group molecules into barcodes"""
 
     def __init__(self):
-        """
-        Constructor, identifies molecules based on inter-arrival time threshold
-        """
+        """Constructor, identifies molecules based on inter-arrival time threshold."""
         self.opt = None
 
     def run(self):
-        "Group molecules into barcodes"
+        """Group molecules into barcodes"""
 
         self.parse_arguments()
         samfile = pysam.AlignmentFile(self.opt.in_bam_filename, "rb")
@@ -137,11 +133,11 @@ class MolecIdentifier:
                     if cur_read.has_tag("NM"):
                         nms.append(cur_read.get_tag("NM"))
 
-                    #check if molecules should be terminated
+                    # Check if molecules should be terminated
                     if abs_dist > self.opt.max_dist and prev_val > 0:
                         end = prev_read.reference_end
 
-                        #find distance from nearest read
+                        # Find distance from nearest read
                         molec = Molecule(rname, start, end, \
                                  new_molec_id, prev_barcode, \
                                  inter_arrivals, count, \
@@ -179,7 +175,7 @@ class MolecIdentifier:
                             cur_read.set_tag("MI", new_molec_id)
                             out_bam_file.write(cur_read)
 
-                    #inter arrival time is distance between read of the same direction
+                    # Inter arrival time is distance between read of the same direction
                     inter_arrival = 0
                     if cur_read.is_reverse:
                         if prev_val2 == 0:

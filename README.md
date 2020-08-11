@@ -126,21 +126,16 @@ tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 ```
 ***
 
-To run Tigmint with long ONT reads in a fastq file `reads.fq.gz`, first convert the reads to fasta format:
+To run Tigmint with long reads in fasta or fastq format (`reads.fa.gz` or `reads.fq.gz`) on the draft assembly `draft.fa`:
 ```sh
-convert-fastq reads.fq.gz | gzip > reads.fa.gz
-```
-
-Then (or when starting with long reads in fasta format `reads.fa.gz`), to run Tigmint on the draft assembly `draft.fa`:
-```sh
-long-to-linked -r reads.fa.gz | gzip > reads.cutlength.fa.gz
+gunzip -c reads.fa.gz/reads.fq.gz | long-to-linked -r - | gzip > reads.cutlength.fa.gz
 minimap2 -y -t8 -ax map-ont --secondary=no draft.fa reads.cutlength.fa.gz | samtools view -b -u -F4 | samtools sort -@8 -tBX -o draft.reads.cutlength.sortbx.bam
 tigmint-molecule draft.reads.cutlength.sortbx.bam | sort -k1,1 -k2,2n -k3,3n > draft.reads.cutlength.molecule.bed
 tigmint-cut -p8 -o draft.cutlength.tigmint.fa draft.fa draft.reads.cutlength.molecule.bed
 ```
 
 - `minimap2 -y` is used to copy the BX tag from the cut long reads to the SAM tags.
-- `minimap2 map-ont` is used to align long reads from the Oxford Nanopore Technologies (ONT) platform, which is the default input for Tigmint. To use PacBio long reads, use specify the parameter `longmap=pb`
+- `minimap2 map-ont` is used to align long reads from the Oxford Nanopore Technologies (ONT) platform, which is the default input for Tigmint. To use PacBio long reads specify the parameter `longmap=pb`
 
 Alternatively, you can run the Tigmint pipeline for long reads using the Makefile driver script `tigmint-make`. To run Tigmint on the draft assembly `myassembly.fa` with the reads `reads.fq.gz` or `reads.fa.gz`:
 
@@ -151,7 +146,7 @@ tigmint-make tigmint-long draft=myassembly reads=myreads
 # Note
 
 + `tigmint-make` is a Makefile script, and so any `make` options may also be used with `tigmint-make`, such as `-n` (`--dry-run`).
-+ The file extension of the assembly must be `.fa` and the reads `.fq.gz`, and the extension is not included in the parameters `draft` and `reads`. These specific file name requirements result from implementing the pipeline in GNU Make.
++ The file extension of the assembly must be `.fa` and the reads `.fq.gz` (or `.fa.gz` for long reads), and the extension is not included in the parameters `draft` and `reads`. These specific file name requirements result from implementing the pipeline in GNU Make.
 
 # tigmint-make commands
 
@@ -165,8 +160,8 @@ tigmint-make tigmint-long draft=myassembly reads=myreads
 + `draft`: Name of the draft assembly, `draft.fa`
 + `reads`: Name of the reads, `reads.fq.gz`
 + `span=20`: Number of spanning molecules threshold
-+ `cut=500`: Length to cut long reads to
-+ `longmap=ont`: Long read platform; `ont` for Oxford Nanopore Technologies (ONT) long reads, `pb` for PacBio long reads
++ `cut=500`: Length to cut long reads to (`tigmint-long`)
++ `longmap=ont`: Long read platform; `ont` for Oxford Nanopore Technologies (ONT) long reads, `pb` for PacBio long reads (`tigmint-long`)
 + `window=1000`: Window size (bp) for checking spanning molecules
 + `minsize=2000`: Minimum molecule size
 + `as=0.65`: Minimum AS/read length ratio
