@@ -18,6 +18,11 @@ jobs:
     env:
       HOMEBREW_NO_AUTOUPDATE: 1
   - script: |
+      cd bin
+      pylint long-to-linked tigmint-cut tigmint-molecule
+      cd ../
+    displayName: Run pylint
+  - script: |
       export PATH=/home/linuxbrew/.linuxbrew/bin:$PATH
       echo path:
       echo $PATH
