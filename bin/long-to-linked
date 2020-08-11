@@ -29,8 +29,6 @@ def cut_reads(length, long_reads, min_size):
                     print(read, file=sys.stdout)
 
 def main():
-
-    # Parse arguments
     parser = argparse.ArgumentParser( \
             description="Split long reads into pseudo-linked reads with a length of l.")
     parser.add_argument( "-l", "--length", \
@@ -44,7 +42,6 @@ def main():
             help="Minimum read length to be considered a molecule")
 
     arguments = parser.parse_args()
-
     l = arguments.cut_length
     ont = arguments.long_reads
     min_size = arguments.min_size
