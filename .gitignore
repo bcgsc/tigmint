@@ -25,6 +25,7 @@ xml-patch-make/
 !tigmint-make.gv.png
 __pycache__
 .pytest_cache
+.vscode
 
 # BWA
 *.fa.amb
