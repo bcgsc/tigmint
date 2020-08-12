@@ -15,8 +15,18 @@ draft=draft
 # Name of the reads, reads.fq.gz, after running longranger basic (for linked reads). Can be reads.fq.gz or reads.fa.gz for long reads
 reads=reads
 
+# Find the complete read file name
+fastq=$(shell test -f $(reads).fq.gz && echo "true")
+fasta=$(shell test -f $(reads).fa.gz && echo "true")
+ifeq ($(fastq), true)
+lr_filename=$(reads).fq.gz
+endif
+ifeq ($(fasta), true)
+lr_filename=$(reads).fa.gz
+endif
+
 # Genome size
-# gsize=gsize
+gsize=gsize
 
 # Reference genome, ref.fa, for calculating assembly contiguity metrics
 #ref=ref
@@ -101,6 +111,11 @@ gtime=command time -v -o $@.time
 endif
 endif
 
+# Automatically set span value if span is set to "auto"
+ifeq ($(span), auto)
+override span:=$(shell gunzip -c $(lr_filename) | python3 $(bin)/calculate-span -g $(gsize))
+endif
+
 .DELETE_ON_ERROR:
 .SECONDARY:
 .PHONY: help version all tigmint tigmint-long arcs metrics draft_metrics tigmint_metrics arcs_metrics
@@ -178,20 +193,6 @@ $(draft).tigmint.arcs.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsi
 # Align paired-end reads to the draft genome and sort by BX tag.
 $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 	$(gtime) bwa mem -t$t -pC $(draft).fa $< | samtools view -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
-
-# # Convert long reads in fastq file format to fasta
-# $(reads).fa.gz: $(reads).fq.gz
-# 	$(bin)/convert-fastq $< | $(gzip) > $@
-
-# Find the complete read file name
-fastq=$(shell test -f $(reads).fq.gz && echo "true")
-fasta=$(shell test -f $(reads).fa.gz && echo "true")
-ifeq ($(fastq), true)
-lr_filename=$(reads).fq.gz
-endif
-ifeq ($(fasta), true)
-lr_filename=$(reads).fa.gz
-endif
 
 # Segment long reads from gzipped fasta file.
 $(reads).cut$(cut).fa.gz: $(lr_filename)
