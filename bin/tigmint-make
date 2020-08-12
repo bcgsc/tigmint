@@ -210,6 +210,10 @@ $(draft).%.cut$(cut).sortbx.bam: %.cut$(cut).fa.gz $(draft).fa
 %.fa.fai: %.fa
 	samtools faidx $<
 
+# Index the draft FASTA file.
+#$(draft).fa.fai: $(draft).fa
+#	samtools faidx $<
+
 # Create molecule extents BED
 %.as$(as).nm$(nm).molecule.size$(minsize).bed: %.sortbx.bam
 	$(gtime) $(bin)/tigmint-molecule -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) $< | sort -k1,1 -k2,2n -k3,3n >$@
