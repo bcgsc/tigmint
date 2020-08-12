@@ -34,15 +34,3 @@ jobs:
     env:
       HOMEBREW_NO_AUTO_UPDATE: 1
     displayName: Testing tigmint
-  - script: |
-      export PATH=/home/linuxbrew/.linuxbrew/bin:$PATH
-      echo path:
-      echo $PATH
-      sudo HOMEBREW_NO_AUTOUPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew tap brewsci/bio
-      sudo HOMEBREW_NO_AUTOUPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew install minimap2
-      cd tests/tigmint-long/pytest
-      pytest -vs tigmint-long_test.py
-      cd ../../../
-    env:
-      HOMEBREW_NO_AUTO_UPDATE: 1
-    displayName: Testing tigmint-long

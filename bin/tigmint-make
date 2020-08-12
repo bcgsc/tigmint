@@ -12,7 +12,7 @@
 # Name of the draft assembly, draft.fa
 draft=draft
 
-# Name of the reads, reads.fq.gz, after running longranger basic (for linked reads). Can be reads.fq.gz or reads.fa.gz for long reads
+# Name of the reads, reads.fq.gz, after running longranger basic
 reads=reads
 
 # Reference genome, ref.fa, for calculating assembly contiguity metrics
@@ -20,9 +20,6 @@ reads=reads
 
 # Size of the reference genome, for calculating NG50 and NGA50
 #G=0
-
-# Minimap2 long read map parameter
-longmap=ont
 
 # Minimum molecule size
 minsize=2000
@@ -47,9 +44,6 @@ span=20
 
 #Window size for checking for spanning molecules
 window=1000
-
-#Length for tigmint-long-cut reads
-cut=500
 
 # Parameters of ARCS
 c=5
@@ -100,7 +94,7 @@ endif
 
 .DELETE_ON_ERROR:
 .SECONDARY:
-.PHONY: help version all tigmint tigmint-long arcs metrics draft_metrics tigmint_metrics arcs_metrics
+.PHONY: help version all tigmint arcs metrics draft_metrics tigmint_metrics arcs_metrics
 
 help:
 	@echo 'Tigmint: Correct misassemblies using linked reads'
@@ -132,11 +126,6 @@ tigmint: \
 	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa \
 	$(draft).tigmint.fa
 
-# Correct misassemblies for long reads using Tigmint
-tigmint-long: \
-	$(draft).$(reads).cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa \
-	$(draft).cut$(cut).tigmint.fa
-
 # Calculate assembly metrics after Tigmint
 tigmint_metrics: \
 	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.abyss-fac.tsv \
@@ -158,10 +147,6 @@ arcs_metrics: \
 $(draft).tigmint.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa
 	ln -sf $< $@
 
-# Symlink the long read Tigmint results
-$(draft).cut$(cut).tigmint.fa: $(draft).$(reads).cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa
-	ln -sf $< $@
-
 # Symlink the ARCS results
 $(draft).tigmint.arcs.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.fa
 	ln -sf $< $@
@@ -176,55 +161,19 @@ $(draft).tigmint.arcs.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsi
 $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 	$(gtime) bwa mem -t$t -pC $(draft).fa $< | samtools view -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
 
-# # Convert long reads in fastq file format to fasta
-# $(reads).fa.gz: $(reads).fq.gz
-# 	$(bin)/convert-fastq $< | $(gzip) > $@
-
-# Find the complete read file name
-fastq=$(shell test -f $(reads).fq.gz && echo "true")
-fasta=$(shell test -f $(reads).fa.gz && echo "true")
-ifeq ($(fastq), true)
-lr_filename=$(reads).fq.gz
-endif
-ifeq ($(fasta), true)
-lr_filename=$(reads).fa.gz
-endif
-
-# Segment long reads from gzipped fasta file.
-$(reads).cut$(cut).fa.gz: $(lr_filename)
-	gunzip -c $< | $(bin)/long-to-linked -l$(cut) -r - -m$(minsize) | $(gzip) > $@
-
-# Minimap2
-
-# Align cut long reads to the draft genome and output primary alignments sorted by BX tag.
-$(draft).%.cut$(cut).sortbx.bam: %.cut$(cut).fa.gz $(draft).fa
-	minimap2 -y -t$t -ax map-$(longmap) --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
-
 # samtools
 
 # Index a FASTA file.
 %.fa.fai: %.fa
 	samtools faidx $<
 
-# Index the draft FASTA file.
-#$(draft).fa.fai: $(draft).fa
-#	samtools faidx $<
-
 # Create molecule extents BED
 %.as$(as).nm$(nm).molecule.size$(minsize).bed: %.sortbx.bam
 	$(gtime) $(bin)/tigmint-molecule -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) $< | sort -k1,1 -k2,2n -k3,3n >$@
 
-# Create molecule extents BED using cut long reads
-%.cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).bed: %.cut$(cut).sortbx.bam
-	$(gtime) $(bin)/tigmint-molecule -a$(as) -n$(cut) -q$(mapq) -d$(dist) -s$(minsize) $< | sort -k1,1 -k2,2n -k3,3n >$@
-
 # Create molecule extents TSV
 %.as$(as).nm$(nm).molecule.size$(minsize).tsv: %.sortbx.bam
 	$(gtime) $(bin)/tigmint-molecule --tsv -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) -o $@ $<
-
-# Create molecule extents TSV using cut long reads
-%.cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).tsv: %.cut$(cut).sortbx.bam
-	$(gtime) $(bin)/tigmint-molecule --tsv -a$(as) -n$(cut) -q$(mapq) -d$(dist) -s$(minsize) -o $@ $<
 
 # Report summary statistics of a Chromium library
 %.molecule.summary.html: %.molecule.tsv
