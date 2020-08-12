@@ -15,6 +15,9 @@ draft=draft
 # Name of the reads, reads.fq.gz, after running longranger basic (for linked reads). Can be reads.fq.gz or reads.fa.gz for long reads
 reads=reads
 
+# Genome size
+# gsize=gsize
+
 # Reference genome, ref.fa, for calculating assembly contiguity metrics
 #ref=ref
 
