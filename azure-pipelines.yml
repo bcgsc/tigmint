@@ -1,0 +1,36 @@
+# See https://docs.microsoft.com/azure/devops/pipelines/languages/python
+
+jobs:
+- job: RunsInContainer
+  container:
+    image: "linuxbrew/brew"
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: "3.8"
+      architecture: x64
+  - script: |
+      sudo HOMEBREW_NO_AUTO_UPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew install python
+      sudo /home/linuxbrew/.linuxbrew/bin/pip3 install --upgrade setuptools \
+      -U pip --no-cache-dir \
+      pylint .
+    displayName: Install Python packages
+    env:
+      HOMEBREW_NO_AUTOUPDATE: 1
+  - script: |
+      cd bin
+      pylint long-to-linked tigmint-cut tigmint-molecule
+      cd ../
+    displayName: Run pylint
+  - script: |
+      export PATH=/home/linuxbrew/.linuxbrew/bin:$PATH
+      echo path:
+      echo $PATH
+      sudo /home/linuxbrew/.linuxbrew/bin/pip3 install pytest
+      sudo HOMEBREW_NO_AUTOUPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew install bedtools bwa samtools gnu-time
+      cd tests/tigmint/pytest
+      pytest -vs tigmint_test.py
+      cd ../../../
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    displayName: Testing tigmint
