@@ -140,13 +140,14 @@ tigmint-cut -p8 -o draft.cutlength.tigmint.fa draft.fa draft.reads.cutlength.mol
 Alternatively, you can run the Tigmint pipeline for long reads using the Makefile driver script `tigmint-make`. To run Tigmint on the draft assembly `myassembly.fa` with the reads `reads.fq.gz` or `reads.fa.gz`:
 
 ```sh
-tigmint-make tigmint-long draft=myassembly reads=myreads
+tigmint-make tigmint-long draft=myassembly reads=myreads span=auto gsize=3000000000
 ```
 
 # Note
 
 + `tigmint-make` is a Makefile script, and so any `make` options may also be used with `tigmint-make`, such as `-n` (`--dry-run`).
 + The file extension of the assembly must be `.fa` and the reads `.fq.gz` (or `.fa.gz` for long reads), and the extension is not included in the parameters `draft` and `reads`. These specific file name requirements result from implementing the pipeline in GNU Make.
++ The minimum spanning molecules parameter (`span`) for `tigmint-cut` is heavily dependent on the sequence coverage of the long reads provided. Use `span=auto` and set `gsize` to your assembly organism's haploid genome size for this parameter to be calculated automatically, or explicitly set `span` to a specific number if you are interested in adjusting it. See [Tips](https://github.com/bcgsc/tigmint/tree/long-to-linked/#Note) for more details. 
 
 # tigmint-make commands
 
@@ -159,7 +160,8 @@ tigmint-make tigmint-long draft=myassembly reads=myreads
 
 + `draft`: Name of the draft assembly, `draft.fa`
 + `reads`: Name of the reads, `reads.fq.gz`
-+ `span=20`: Number of spanning molecules threshold
++ `gsize`: Haploid genome size of the draft assembly organism. Used to calculate `span` parameter automatically
++ `span=20`: Number of spanning molecules threshold. Set `span=auto` to automatically select ideal span parameter (only available for `tigmint-long` at the moment.)
 + `cut=500`: Length to cut long reads to (`tigmint-long`)
 + `longmap=ont`: Long read platform; `ont` for Oxford Nanopore Technologies (ONT) long reads, `pb` for PacBio long reads (`tigmint-long`)
 + `window=1000`: Window size (bp) for checking spanning molecules
@@ -192,7 +194,7 @@ tigmint-make tigmint-long draft=myassembly reads=myreads
 - Sort by BX tag using `samtools sort -tBX`.
 - Merge multiple BAM files using `samtools merge -tBX`.
 - When aligning long reads with Minimap2, use the `-y` option to include the barcode in the BX tag of the alignments.
-- When using long reads, the minimum spanning molecule thresholds (`span`) should be no greater than 1/4 of the sequence coverage.
+- When using long reads, the minimum spanning molecule thresholds (`span`) should be no greater than 1/4 of the sequence coverage. Setting the parameter `span=auto` allows the appropriate parameter to be selected automatically.
 - When using long reads, the edit distance threshold (`nm`) is automatically set to the cut length (`cut`) to compensate for the higher error rate and length. This parameter should be kept relatively high to include as many alignments as possible.
 
 # Using stLFR linked reads
