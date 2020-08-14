@@ -12,12 +12,22 @@ def run_calculate_span(reads, gsize):
     input_reads = open_reads.stdout
     calculate = subprocess.Popen(shlex.split("../../../bin/calculate-span -g {0}".format(gsize)), stdin=input_reads,
         stdout=subprocess.PIPE, universal_newlines=False)
-    calculate.wait()
     open_reads.stdout.close()
+    span = calculate.communicate()[0].strip()
     return_code = calculate.returncode
     assert return_code == 0
-    calculate_output = calculate.stdout.read().strip()
-    return calculate_output
+    return span
+
+def run_long_to_linked(reads, cut, minsize):
+    """Cut long reads to shorter reads of size cut."""
+    open_reads = subprocess.Popen(shlex.split("gunzip -c {0}.fa.gz".format(reads)), stdout=subprocess.PIPE)
+    input_reads = open_reads.stdout
+    cut = subprocess.Popen(shlex.split("../../../bin/long-to-linked -r - -l {0} -m {1}".format(cut, minsize)), stdin=input_reads,
+        stdout=subprocess.PIPE, universal_newlines=False)
+    outs = cut.communicate()[0].splitlines()
+    return_code = cut.returncode
+    assert return_code == 0
+    return outs
 
 def run_tigmint_molecule(draft, reads):
     """Test tigmint-molecule with a sample of linked reads and draft assembly."""
@@ -65,12 +75,27 @@ def run_tigmint_cut(draft, reads):
 def test_calculate_span_g100000():
     """Test calculate-span output with gsize = 100000."""
     output = run_calculate_span("pytest_longreads", 100000)
-    assert output == b'20'
+    assert output == b"20"
 
 def test_calculate_span_g8072592():
     """Test calculate-span output with gsize = 8072592."""
     output = run_calculate_span("pytest_longreads", 8072592)
-    assert output == b'0'
+    assert output == b"0"
+
+def test_long_to_linked_default():
+    """Test long-to-linked output with cut length = 500, minimum molecule size = 2000."""
+    cut_reads = run_long_to_linked("pytest_longreads", 500, 2000)
+    assert len(cut_reads) == 32528
+    cut_reads.pop()
+    assert cut_reads.pop() == b">66928_ch187_17 BX:Z:489"
+
+def test_long_to_linked_all_filtered():
+    """
+    Test long-to-linked output with cut length = 500, minimum molecule size = 47000.
+    This should result in all reads being filtered, and no resulting cut reads.
+    """
+    cut_reads = run_long_to_linked("pytest_longreads", 500, 47000)
+    assert len(cut_reads) == 0
 
 def test_tigmint_molecule():
     run_tigmint_molecule("pytest_contig", "pytest_longreads")
