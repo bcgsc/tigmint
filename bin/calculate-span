@@ -26,9 +26,9 @@ def find_span(genome_size):
 
 def main():
     parser = argparse.ArgumentParser(description="Calculate the sequence coverage of a genome \
-            sequencing read file from stdin.")
-    parser.add_argument("-g", dest="genome_size", required=True, type=int, \
-            help="Haploid genome size (in base pairs)", metavar="genome size (bp)")
+        sequencing read file from stdin.")
+    parser.add_argument("-g", dest="genome_size", required=True, type=int,
+        help="Haploid genome size (in base pairs)", metavar="genome size (bp)")
     
     arguments = parser.parse_args()
     genome_size = arguments.genome_size

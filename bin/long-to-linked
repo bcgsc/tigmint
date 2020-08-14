@@ -26,17 +26,14 @@ def cut_reads(length, long_reads, min_size):
 
 def main():
     """Parse arguments and cut long reads."""
-    parser = argparse.ArgumentParser( \
-            description="Split long reads into pseudo-linked reads with a length of l.")
-    parser.add_argument("-l", "--length", \
-            metavar="cut length", dest="cut_length", default=500, type=int, \
-            help="Length for pseudo-linked reads to be cut")
-    parser.add_argument("-r", "--reads", \
-            metavar="long read file", dest="long_reads", required=True, \
-            help="Long read file")
-    parser.add_argument("-m", "--min_size",\
-            metavar="minimum read size", dest="min_size", default=2000, type=int, \
-            help="Minimum read length to be considered a molecule")
+    parser = argparse.ArgumentParser(description="Split long reads into pseudo-linked reads with a length of l.")
+    parser.add_argument("-l", "--length", metavar="cut length for long reads",
+        dest="cut_length", default=500, type=int, 
+        help="Length for pseudo-linked reads to be cut")
+    parser.add_argument("-r", "--reads", metavar="input long read file", 
+        dest="long_reads", required=True, help="Long read file")
+    parser.add_argument("-m", "--min_size", metavar="minimum read size", dest="min_size", 
+        default=2000, type=int, help="Minimum read length to be considered a molecule")
 
     arguments = parser.parse_args()
     l = arguments.cut_length
