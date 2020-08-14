@@ -6,6 +6,19 @@ import subprocess
 import os
 import gzip
 
+def run_calculate_span(reads, gsize):
+    """Calculate the sequence coverage and recommended span value for long reads."""
+    open_reads = subprocess.Popen(shlex.split("gunzip -c {0}.fa.gz".format(reads)), stdout=subprocess.PIPE)
+    input_reads = open_reads.stdout
+    calculate = subprocess.Popen(shlex.split("../../../bin/calculate-span -g {0}".format(gsize)), stdin=input_reads,
+        stdout=subprocess.PIPE, universal_newlines=False)
+    calculate.wait()
+    open_reads.stdout.close()
+    return_code = calculate.returncode
+    assert return_code == 0
+    calculate_output = calculate.stdout.read().strip()
+    return calculate_output
+
 def run_tigmint_molecule(draft, reads):
     """Test tigmint-molecule with a sample of linked reads and draft assembly."""
     command = "../../../bin/tigmint-make {0}.{1}.cut500.as0.65.nm500.molecule.size2000.bed draft={0} reads={1}".format(draft, reads)
@@ -48,7 +61,17 @@ def run_tigmint_cut(draft, reads):
         output_file = draft + suffix
         if output_file in dir_files:
             os.remove(output_file)
-            
+
+def test_calculate_span_g100000():
+    """Test calculate-span output with gsize = 100000."""
+    output = run_calculate_span("pytest_longreads", 100000)
+    assert output == b'20'
+
+def test_calculate_span_g8072592():
+    """Test calculate-span output with gsize = 8072592."""
+    output = run_calculate_span("pytest_longreads", 8072592)
+    assert output == b'0'
+
 def test_tigmint_molecule():
     run_tigmint_molecule("pytest_contig", "pytest_longreads")
 
