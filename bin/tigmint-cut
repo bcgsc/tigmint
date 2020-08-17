@@ -12,10 +12,12 @@ import sys
 import argparse
 import subprocess
 import shlex
+import gzip
 import pybedtools
 from datetime import datetime
 from multiprocessing import Queue, Process
 from intervaltree import IntervalTree
+from read_fasta import read_fasta
 
 class NoSpanningRun:
     """
@@ -25,6 +27,15 @@ class NoSpanningRun:
     def __init__(self):
         self.beforeRun_bp = 0
         self.afterRun_bp = 0
+
+def calculateSpan(read_file, genome_size):
+    """Calculate sequence coverage and optimal span parameter given a set of reads."""
+    total_bases = 0
+    with gzip.open(read_file, "rt") as reads:
+        for _, seq, _, _ in read_fasta(reads):
+            total_bases += len(seq)
+    sequence_cov = total_bases / genome_size
+    return sequence_cov // 4
 
 def tallyBreakpoints(bps_queue, contig, noSpanningRun):
     """Add the breakpoints to the Process queue."""
@@ -222,6 +233,15 @@ def ensure_writable(f):
     if not os.access(d, os.W_OK):
         print("tigmint-cut: error: cannot write to parent directory:", f, file=sys.stderr)
         sys.exit(1)
+    
+def allowed_span(param_value):
+    """Allowed values for argument -n (minimum spanning molecules threshold)."""
+    if param_value.isnumeric():
+        return int(param_value)
+    elif param_value == "auto":
+        return param_value
+    else:
+        raise argparse.ArgumentTypeError("Minimum spanning molecules threshold must be an integer, or set to 'auto' to be calculated automatically.")
 
 def main():
     parser = argparse.ArgumentParser(description="Find misassembled regions in assembly using Chromium molecule extents")
@@ -232,10 +252,26 @@ def main():
     parser.add_argument("-b", "--bedout", type=str, help="The output BED file. Default is the output FASTA filename plus .bed")
     parser.add_argument("-p", "--processes", type=int, help="Number of parallel processes to launch [8]", default=8)
     parser.add_argument("-w", "--window", type=int, help="Window size used to check for spanning molecules (bp) [1000]", default=1000)
-    parser.add_argument("-n", "--spanning", type=int, help="Spanning molecules threshold (no misassembly in window if num. spanning molecules >= n [2])", default=2)
+    parser.add_argument("-n", "--spanning", type=allowed_span, help="Spanning molecules threshold (no misassembly in window if num. \
+        spanning molecules >= n) [2].", default=2)
     parser.add_argument("-t", "--trim", type=int, help="Number of base pairs to trim at contig cuts (bp) [0]", default=0)
+    parser.add_argument("-r", "--reads", type=str, help="Read file for calculating minimum spanning molecules parameter automatically.")
+    parser.add_argument("-g", "--genome", type=int, help="Genome size (bp) for calculating sequence coverage and \
+        minimum spanning molecules parameter automatically.")
 
     args = parser.parse_args()
+    if args.spanning == "auto":
+        if args.reads == None:
+            print("tigmint-cut: error: reads file must be provided to calculate optimal span parameter.", file=sys.stderr)
+            sys.exit(1)
+        if args.genome == None:
+            print("tigmint-cut: error: genome size must be provided to calculate optimal span parameter.", file=sys.stderr)
+            sys.exit(1)
+        fastaout_split = args.fastaout.split("span")
+        fastaout_end_split = fastaout_split[1].split(".")
+        args.spanning = calculateSpan(args.reads, args.genome)
+        args.fastaout = fastaout_split[0] + "span%i." % (args.spanning) + ".".join(fastaout_end_split[1:])
+
     if args.bedout == None:
         args.bedout = args.fastaout + ".bed"
 
