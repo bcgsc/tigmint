@@ -111,10 +111,8 @@ gtime=command time -v -o $@.time
 endif
 endif
 
-# Automatically set span value if span is set to "auto"
-ifeq ($(span), auto)
-override span:=$(shell gunzip -c $(lr_filename) | python3 $(bin)/calculate-span -g $(gsize))
-endif
+auto_span:
+	@echo $(span)
 
 .DELETE_ON_ERROR:
 .SECONDARY:
@@ -196,7 +194,7 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Segment long reads from gzipped fasta file.
 $(reads).cut$(cut).fa.gz: $(lr_filename)
-	gunzip -c $< | $(bin)/long-to-linked -l$(cut) -r - -m$(minsize) | $(gzip) > $@
+	$(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -r - -m$(minsize) | $(gzip) > $@
 
 # Minimap2
 
@@ -209,10 +207,6 @@ $(draft).%.cut$(cut).sortbx.bam: %.cut$(cut).fa.gz $(draft).fa
 # Index a FASTA file.
 %.fa.fai: %.fa
 	samtools faidx $<
-
-# Index the draft FASTA file.
-#$(draft).fa.fai: $(draft).fa
-#	samtools faidx $<
 
 # Create molecule extents BED
 %.as$(as).nm$(nm).molecule.size$(minsize).bed: %.sortbx.bam
