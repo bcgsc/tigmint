@@ -6,6 +6,7 @@ Usage: gunzip -c reads.fq.gz | python3 calculate-span
 """
 
 import argparse
+import sys
 from read_fasta import read_fasta
 
 def find_span(genome_size):
