@@ -12,12 +12,10 @@ import sys
 import argparse
 import subprocess
 import shlex
-import gzip
 import pybedtools
 from datetime import datetime
 from multiprocessing import Queue, Process
 from intervaltree import IntervalTree
-from read_fasta import read_fasta
 
 class NoSpanningRun:
     """
@@ -31,9 +29,19 @@ class NoSpanningRun:
 def calculateSpan(read_file, genome_size):
     """Calculate sequence coverage and optimal span parameter given a set of reads."""
     total_bases = 0
-    with gzip.open(read_file, "rt") as reads:
-        for _, seq, _, _ in read_fasta(reads):
-            total_bases += len(seq)
+    gunzip = "gunzip -c %s" % (read_file)
+    gunzip_shlex = shlex.split(gunzip)
+    gunzip_out = subprocess.Popen(gunzip_shlex, stdout=subprocess.PIPE)
+    reads = gunzip_out.stdout
+    header = reads.readline().decode("ascii")
+    if header[0] == ">":  # Fasta file
+        for i, line in enumerate(reads):
+            if i % 2 == 0:
+                total_bases += len(line.decode("ascii"))
+    elif header [0] == "@":
+        for i, line in enumerate(reads):
+            if i % 4 == 0:
+                total_bases += len(line.decode("ascii"))
     sequence_cov = total_bases / genome_size
     return sequence_cov // 4
 
@@ -235,13 +243,22 @@ def ensure_writable(f):
         sys.exit(1)
     
 def allowed_span(param_value):
-    """Allowed values for argument -n (minimum spanning molecules threshold)."""
+    """Allowed values for -n argument (minimum spanning molecules threshold)."""
     if param_value.isnumeric():
         return int(param_value)
     elif param_value == "auto":
         return param_value
     else:
         raise argparse.ArgumentTypeError("Minimum spanning molecules threshold must be an integer, or set to 'auto' to be calculated automatically.")
+
+def allowed_gsize(param_value):
+    """Allowed values for -g argument (genome size) used for automatically calculating span."""
+    if param_value.isnumeric():
+        return int(param_value)
+    elif param_value == "gsize":
+        return param_value
+    else:
+        raise argparse.ArgumentTypeError("Genome size must be a valid integer if calculating span parameter automatically.")
 
 def main():
     parser = argparse.ArgumentParser(description="Find misassembled regions in assembly using Chromium molecule extents")
@@ -256,7 +273,7 @@ def main():
         spanning molecules >= n) [2].", default=2)
     parser.add_argument("-t", "--trim", type=int, help="Number of base pairs to trim at contig cuts (bp) [0]", default=0)
     parser.add_argument("-r", "--reads", type=str, help="Read file for calculating minimum spanning molecules parameter automatically.")
-    parser.add_argument("-g", "--genome", type=int, help="Genome size (bp) for calculating sequence coverage and \
+    parser.add_argument("-g", "--genome", type=allowed_gsize, help="Genome size (bp) for calculating sequence coverage and \
         minimum spanning molecules parameter automatically.")
 
     args = parser.parse_args()
