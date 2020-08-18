@@ -12,10 +12,12 @@ import sys
 import argparse
 import subprocess
 import shlex
+import gzip
 import pybedtools
 from datetime import datetime
 from multiprocessing import Queue, Process
 from intervaltree import IntervalTree
+from read_fasta import read_fasta
 
 class NoSpanningRun:
     """
@@ -29,19 +31,9 @@ class NoSpanningRun:
 def calculateSpan(read_file, genome_size):
     """Calculate sequence coverage and optimal span parameter given a set of reads."""
     total_bases = 0
-    gunzip = "gunzip -c %s" % (read_file)
-    gunzip_shlex = shlex.split(gunzip)
-    gunzip_out = subprocess.Popen(gunzip_shlex, stdout=subprocess.PIPE)
-    reads = gunzip_out.stdout
-    header = reads.readline().decode("ascii")
-    if header[0] == ">":  # Fasta file
-        for i, line in enumerate(reads):
-            if i % 2 == 0:
-                total_bases += len(line.decode("ascii"))
-    elif header [0] == "@":
-        for i, line in enumerate(reads):
-            if i % 4 == 0:
-                total_bases += len(line.decode("ascii"))
+    with gzip.open(read_file, "rt") as reads:
+        for _, seq, _, _ in read_fasta(reads):
+            total_bases += len(seq)
     sequence_cov = total_bases / genome_size
     return sequence_cov // 4
 
