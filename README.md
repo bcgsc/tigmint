@@ -161,7 +161,7 @@ tigmint-make tigmint-long draft=myassembly reads=myreads span=auto gsize=3000000
 + `draft`: Name of the draft assembly, `draft.fa`
 + `reads`: Name of the reads, `reads.fq.gz`
 + `gsize`: Haploid genome size of the draft assembly organism. Used to calculate `span` parameter automatically
-+ `span=20`: Number of spanning molecules threshold. Set `span=auto` to automatically select ideal span parameter (only available for `tigmint-long` at the moment.)
++ `span=20`: Number of spanning molecules threshold. Set `span=auto` to automatically select ideal span parameter (only recommended for `tigmint-long` at the moment)
 + `cut=500`: Length to cut long reads to (`tigmint-long`)
 + `longmap=ont`: Long read platform; `ont` for Oxford Nanopore Technologies (ONT) long reads, `pb` for PacBio long reads (`tigmint-long`)
 + `window=1000`: Window size (bp) for checking spanning molecules

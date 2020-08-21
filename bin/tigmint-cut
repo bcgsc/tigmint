@@ -277,17 +277,17 @@ def main():
         minimum spanning molecules parameter automatically.")
 
     args = parser.parse_args()
+    print("Started at: %s" % datetime.now())
+    
     if args.spanning == "auto":
         if args.reads == None:
             print("tigmint-cut: error: reads file must be provided to calculate optimal span parameter.", file=sys.stderr)
+        if args.genome == "gsize":
+            print("tigmint-cut: error: genome size (bp) must be provided to calculate optimal span parameter.", file=sys.stderr)
             sys.exit(1)
-        if args.genome == None:
-            print("tigmint-cut: error: genome size must be provided to calculate optimal span parameter.", file=sys.stderr)
-            sys.exit(1)
-        fastaout_split = args.fastaout.split("span")
-        fastaout_end_split = fastaout_split[1].split(".")
+        
+        print("Calculating optimal span value...")
         args.spanning = calculateSpan(args.reads, args.genome)
-        args.fastaout = fastaout_split[0] + "span%i." % (args.spanning) + ".".join(fastaout_end_split[1:])
 
     if args.bedout == None:
         args.bedout = args.fastaout + ".bed"
@@ -295,7 +295,6 @@ def main():
     ensure_writable(args.fastaout)
     ensure_writable(args.bedout)
 
-    print("Started at: %s" % datetime.now())
     print("Reading contig lengths...")
     partitioned_contigLengths = findContigLengths(args.fasta, args.processes)
 
