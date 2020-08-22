@@ -1,6 +1,6 @@
 # Tigmint Test Run
 
-This test is provided for the purpose of testing your Tigmint installation with linked reads (tigmint-make tigmint).
+This test is provided for the purpose of testing your Tigmint installation.
 
 The script expects Tigmint to be in your PATH, and that all of the dependencies are installed (see main README for details). 
 
