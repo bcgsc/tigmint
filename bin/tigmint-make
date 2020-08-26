@@ -249,7 +249,7 @@ $(draft).%.cut$(cut).sortbx.bam: %.cut$(cut).fa.gz $(draft).fa
 
 # Make breakpoints BED file
 %.trim$(trim).window$(window).span$(span).breaktigs.fa: %.bed $(draft).fa $(draft).fa.fai
-	$(gtime) $(bin)/tigmint-cut -p $t -w $(window) -n $(span) -t $(trim) -o $@ -r $(lr_filename) -g $(gsize) $(draft).fa $<
+	$(gtime) $(bin)/tigmint-cut -p$t -w$(window) -n$(span) -t$(trim) -o $@ -r $(lr_filename) -g $(gsize) $(draft).fa $<
 
 ################################################################################
 # Calculate assembly contiguity and correctness metrics.
