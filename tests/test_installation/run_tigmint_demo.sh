@@ -8,6 +8,6 @@ echo "Running tigmint with linked reads..."
 
 echo "Running tigmint with long reads..."
 
-../../bin/tigmint-make tigmint-long draft=test_contig_long reads=test_longreads span=2
+../../bin/tigmint-make tigmint-long draft=test_contig_long reads=test_longreads span=auto gsize=1000000
 
 echo "Done! Compare your output files to those in the 'expected_outputs' directory to ensure that the run was successful."
