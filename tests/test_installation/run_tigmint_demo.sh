@@ -6,7 +6,7 @@ echo "Running tigmint with linked reads..."
 
 ../../bin/tigmint-make tigmint draft=test_contig reads=test_linkedreads
 
-echo "Running tigmint-make with long reads..."
+echo "Running tigmint with long reads..."
 
 ../../bin/tigmint-make tigmint-long draft=test_contig_long reads=test_longreads span=2
 
