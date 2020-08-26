@@ -30,7 +30,7 @@ def main():
     parser = argparse.ArgumentParser(description="Split long reads into pseudo-linked reads with a length of l.")
     parser.add_argument("-l", "--length", metavar="cut length for long reads",
         dest="cut_length", default=500, type=int, 
-        help="Length for pseudo-linked reads to be cut")
+        help="Length for pseudo-linked reads to be cut (bp)")
     parser.add_argument("-r", "--reads", metavar="input long read file", 
         dest="long_reads", required=True, help="Long read file")
     parser.add_argument("-m", "--min_size", metavar="minimum read size", dest="min_size", 
