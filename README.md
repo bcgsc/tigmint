@@ -94,24 +94,17 @@ brew install abyss seqtk
 
 # Usage
 
+The Makefile driver script `tigmint-make` should be used to run Tigmint.
+
 To run Tigmint on the draft assembly `draft.fa` with the reads `reads.fq.gz`, which have been run through `longranger basic`:
 
 ```sh
-samtools faidx draft.fa
-bwa index draft.fa
-bwa mem -t8 -p -C draft.fa reads.fq.gz | samtools sort -@8 -tBX -o draft.reads.sortbx.bam
-tigmint-molecule draft.reads.sortbx.bam | sort -k1,1 -k2,2n -k3,3n >draft.reads.molecule.bed
-tigmint-cut -p8 -o draft.tigmint.fa draft.fa draft.reads.molecule.bed
+tigmint-make tigmint draft=myassembly reads=myreads
 ```
 
 - `bwa mem -C` is used to copy the BX tag from the FASTQ header to the SAM tags.
 - `samtools sort -tBX` is used to sort first by barcode and then position.
 
-Alternatively, you can run the Tigmint pipeline using the Makefile driver script `tigmint-make`. To run Tigmint on the draft assembly `myassembly.fa` with the reads `myreads.fq.gz`, which have been run through `longranger basic`:
-
-```sh
-tigmint-make tigmint draft=myassembly reads=myreads
-```
 
 To run both Tigmint and scaffold the corrected assembly with [ARCS](https://github.com/bcgsc/arcs):
 
@@ -127,20 +120,13 @@ tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 ***
 
 To run Tigmint with long reads in fasta or fastq format (`reads.fa.gz` or `reads.fq.gz`) on the draft assembly `draft.fa`:
+
 ```sh
-gunzip -c reads.fa.gz/reads.fq.gz | long-to-linked -r - | gzip > reads.cutlength.fa.gz
-minimap2 -y -t8 -ax map-ont --secondary=no draft.fa reads.cutlength.fa.gz | samtools view -b -u -F4 | samtools sort -@8 -tBX -o draft.reads.cutlength.sortbx.bam
-tigmint-molecule draft.reads.cutlength.sortbx.bam | sort -k1,1 -k2,2n -k3,3n > draft.reads.cutlength.molecule.bed
-tigmint-cut -p8 -o draft.cutlength.tigmint.fa draft.fa draft.reads.cutlength.molecule.bed
+tigmint-make tigmint-long draft=myassembly reads=myreads span=auto gsize=genomesize
 ```
 
 - `minimap2 map-ont` is used to align long reads from the Oxford Nanopore Technologies (ONT) platform, which is the default input for Tigmint. To use PacBio long reads specify the parameter `longmap=pb`
 
-Alternatively, you can run the Tigmint pipeline for long reads using the Makefile driver script `tigmint-make`. To run Tigmint on the draft assembly `myassembly.fa` with the reads `reads.fq.gz` or `reads.fa.gz`:
-
-```sh
-tigmint-make tigmint-long draft=myassembly reads=myreads span=auto gsize=3000000000
-```
 
 # Note
 
@@ -193,7 +179,7 @@ tigmint-make tigmint-long draft=myassembly reads=myreads span=auto gsize=3000000
 - Sort by BX tag using `samtools sort -tBX`.
 - Merge multiple BAM files using `samtools merge -tBX`.
 - When aligning long reads with Minimap2, use the `-y` option to include the barcode in the BX tag of the alignments.
-- When using long reads, the minimum spanning molecule thresholds (`span`) should be no greater than 1/4 of the sequence coverage. Setting the parameter `span=auto` allows the appropriate parameter to be selected automatically.
+- When using long reads, the minimum spanning molecule thresholds (`span`) should be no greater than 1/4 of the sequence coverage. Setting the parameter `span=auto` allows the appropriate parameter value to be selected automatically (this setting requires the parameter `gsize` as well).
 - When using long reads, the edit distance threshold (`nm`) is automatically set to the cut length (`cut`) to compensate for the higher error rate and length. This parameter should be kept relatively high to include as many alignments as possible.
 
 # Using stLFR linked reads
