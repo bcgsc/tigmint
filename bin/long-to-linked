@@ -34,7 +34,7 @@ def main():
     parser.add_argument("-r", "--reads", metavar="input long read file", 
         dest="long_reads", required=True, help="Long read file")
     parser.add_argument("-m", "--min_size", metavar="minimum read size", dest="min_size", 
-        default=2000, type=int, help="Minimum read length to be considered a molecule")
+        default=2000, type=int, help="Minimum read length to be considered a molecule (bp)")
 
     arguments = parser.parse_args()
     l = arguments.cut_length
