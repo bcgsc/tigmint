@@ -9,10 +9,14 @@
 # To run Tigmint and calculate assembly metrics:
 # tigmint-make draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 
+# To run Tigmint with long reads:
+# tigmint-make tigmint-long draft=myassembly reads=myreads span=auto gsize=genomesize
+
 # Name of the draft assembly, draft.fa
 draft=draft
 
-# Name of the reads, reads.fq.gz, after running longranger basic (for linked reads). Can be reads.fq.gz or reads.fa.gz for long reads
+# Name of the reads, reads.fq.gz, after running longranger basic (for linked reads)
+# Can be reads.fq.gz or reads.fa.gz for long reads
 reads=reads
 
 # Find the complete read file name
@@ -25,14 +29,14 @@ ifeq ($(fasta), true)
 lr_filename=$(reads).fa.gz
 endif
 
-# Genome size
-gsize=gsize
-
 # Reference genome, ref.fa, for calculating assembly contiguity metrics
-#ref=ref
+ref=ref
 
 # Size of the reference genome, for calculating NG50 and NGA50
-#G=0
+G=G
+
+# Haploid size of the draft assembly organism's genome, for calculating span
+gsize=gsize
 
 # Minimap2 long read map parameter
 longmap=ont
@@ -111,9 +115,6 @@ gtime=command time -v -o $@.time
 endif
 endif
 
-auto_span:
-	@echo $(span)
-
 .DELETE_ON_ERROR:
 .SECONDARY:
 .PHONY: help version all tigmint tigmint-long arcs metrics draft_metrics tigmint_metrics arcs_metrics
@@ -129,8 +130,8 @@ version:
 	@echo "Written by Shaun Jackman @sjackman."
 
 all: tigmint arcs
-ifdef ref
-ifdef G
+ifneq ($(ref), ref)
+ifneq ($(G), G)
 all: metrics
 endif
 endif
