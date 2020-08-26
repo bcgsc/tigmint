@@ -13,38 +13,6 @@ def split_long_read(read_string, length):
     """Take an input read string and length, and cut the read into sub-reads of the specified length."""
     return [read_string.strip()[0+i:length+i] for i in range(0, len(read_string), length)]
 
-<<<<<<< HEAD
-def cut_reads(length, long_reads, min_size):
-    """Print cut reads to stdout."""
-    file_name = "/dev/stdin" if long_reads == "-" else long_reads
-    with open(file_name, 'rt') as reads:
-        i = 0
-        for header, seq, _, _ in read_fasta(reads):
-            i += 1
-            if len(seq) >= min_size:
-                split_reads = split_long_read(seq, length)
-                for i, read in enumerate(split_reads):
-                    print(">" + header + "_" + str(split_reads.index(read)) + " BX:Z:" + str(i), file=sys.stdout)
-                    print(read, file=sys.stdout)
-
-def main():
-    """Parse arguments and cut long reads."""
-    parser = argparse.ArgumentParser(description="Split long reads into pseudo-linked reads with a length of l.")
-    parser.add_argument("-l", "--length", metavar="cut length for long reads",
-        dest="cut_length", default=500, type=int, 
-        help="Length for pseudo-linked reads to be cut (bp)")
-    parser.add_argument("-r", "--reads", metavar="input long read file", 
-        dest="long_reads", required=True, help="Long read file")
-    parser.add_argument("-m", "--min_size", metavar="minimum read size", dest="min_size", 
-        default=2000, type=int, help="Minimum read length to be considered a molecule (bp)")
-
-    arguments = parser.parse_args()
-    l = arguments.cut_length
-    ont = arguments.long_reads
-    min_size = arguments.min_size
-
-    cut_reads(l, ont, min_size)
-=======
 def cut_reads(length, min_size, auto_span, genome_size, outfile):
     """
     Print cut reads to stdout. If auto_span is True, sequence coverage and span parameter are calculated,
@@ -63,7 +31,7 @@ def cut_reads(length, min_size, auto_span, genome_size, outfile):
                 total_bases += read_length
                 if read_length >= min_size:
                     split_reads = split_long_read(seq, length)
-                    for read in split_reads:
+                    for i, read in enumerate(split_reads):
                         print(">" + header + "_" + str(split_reads.index(read)) + " BX:Z:" + str(i), file=sys.stdout)
                         print(read, file=sys.stdout)
             if auto_span:
@@ -98,7 +66,7 @@ def main():
                         help="Minimum read length to be considered a molecule")
     parser.add_argument("-s", "--auto_span",
                         type=calculate_span,
-                        default=True,
+                        default=False,
                         help="Option to calculate spanning molecules threshold")
     parser.add_argument("-g", "--genome_size",
                         type=str,
@@ -117,7 +85,6 @@ def main():
             raise argparse.ArgumentTypeError("Genome size (bp) must be provided to calculate span parameter.")
 
     cut_reads(args.length, args.min_size, args.auto_span, args.genome_size, args.outfile)
->>>>>>> Calculate span in long-to-linked
    
 if __name__ == "__main__":
     main()
