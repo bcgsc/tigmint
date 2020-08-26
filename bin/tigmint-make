@@ -195,7 +195,7 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Segment long reads from gzipped fasta file.
 $(reads).cut$(cut).fa.gz: $(lr_filename)
-	$(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -r - -m$(minsize) | $(gzip) > $@
+	$(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) -s$(span) -g$(gsize) | $(gzip) > $@
 
 # Minimap2
 
