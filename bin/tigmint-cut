@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 """
 Given a BED file of molecule extents, scan the input draft assembly with windows of a fixed size to
 find windows with few spanning molecules. These areas are likely misassembled areas. Cut the input
@@ -273,7 +272,7 @@ def main():
     if args.spanning == "auto":
         if args.reads == None:
             print("tigmint-cut: error: reads file must be provided to calculate optimal span parameter.", file=sys.stderr)
-        if args.genome == "gsize" or not args.genome.isnumeric():
+        if not args.genome.isnumeric():
             print("tigmint-cut: error: genome size (bp) must be provided to calculate optimal span parameter.", file=sys.stderr)
             sys.exit(1)
         
