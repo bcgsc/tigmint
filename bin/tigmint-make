@@ -65,7 +65,7 @@ span=20
 #Window size for checking for spanning molecules
 window=1000
 
-#Length for tigmint-long-cut reads
+#Length for tigmint-long cut reads
 cut=500
 
 # Parameters of ARCS
