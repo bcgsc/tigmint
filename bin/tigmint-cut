@@ -25,25 +25,6 @@ class NoSpanningRun:
         self.beforeRun_bp = 0
         self.afterRun_bp = 0
 
-def calculateSpan(read_file, genome_size):
-    """Calculate sequence coverage and optimal span parameter given a set of reads."""
-    total_bases = 0
-    gunzip = "gunzip -c %s" % (read_file)
-    gunzip_shlex = shlex.split(gunzip)
-    gunzip_out = subprocess.Popen(gunzip_shlex, stdout=subprocess.PIPE, universal_newlines=True)
-    reads = gunzip_out.stdout
-    header = reads.readline()
-    if header[0] == ">":  # Fasta file
-        for i, line in enumerate(reads):
-            if i % 2 == 0:
-                total_bases += len(line)
-    elif header[0] == "@":
-        for i, line in enumerate(reads):
-            if i % 4 == 0:
-                total_bases += len(line)
-    sequence_cov = total_bases / genome_size
-    return sequence_cov // 4
-
 def tallyBreakpoints(bps_queue, contig, noSpanningRun):
     """Add the breakpoints to the Process queue."""
     if noSpanningRun.beforeRun_bp == noSpanningRun.afterRun_bp:
@@ -240,15 +221,30 @@ def ensure_writable(f):
     if not os.access(d, os.W_OK):
         print("tigmint-cut: error: cannot write to parent directory:", f, file=sys.stderr)
         sys.exit(1)
-    
+
 def allowed_span(param_value):
-    """Allowed values for -n argument (minimum spanning molecules threshold)."""
-    if param_value.isnumeric():
-        return int(param_value)
-    elif param_value == "auto":
+    """Allowed values for span parameter."""
+    if param_value == "auto":
         return param_value
+    elif param_value.isnumeric():
+        return int(param_value)
     else:
-        raise argparse.ArgumentTypeError("Minimum spanning molecules threshold must be an integer, or set to 'auto' to be calculated automatically.")
+        raise argparse.ArgumentTypeError("Span parameter (-n) must be set to a \
+            valid integer or 'auto' to be calculated automatically.")
+
+def get_span(filename):
+    """Read calculated span parameter from a file."""
+    if os.access(filename, os.F_OK):
+        if os.access(filename, os.R_OK):
+            with open(filename) as span_file:
+                span = span_file.readline().strip()
+            return int(span)
+        else: 
+            print("tigmint-cut: error: calculated span file tigmint-long.span.txt cannot be read", file=sys.stderr)
+            sys.exit(1)
+    else:
+        print("tigmint-cut: error: calculated span file tigmint-long.span.txt does not exist", file=sys.stderr)
+        sys.exit(1)
 
 def main():
     parser = argparse.ArgumentParser(description="Find misassembled regions in assembly using Chromium molecule extents")
@@ -260,25 +256,15 @@ def main():
     parser.add_argument("-p", "--processes", type=int, help="Number of parallel processes to launch [8]", default=8)
     parser.add_argument("-w", "--window", type=int, help="Window size used to check for spanning molecules (bp) [1000]", default=1000)
     parser.add_argument("-n", "--spanning", type=allowed_span, help="Spanning molecules threshold (no misassembly in window if num. \
-        spanning molecules >= n) [2].", default="2")
+        spanning molecules >= n) [2].", default=2)
     parser.add_argument("-t", "--trim", type=int, help="Number of base pairs to trim at contig cuts (bp) [0]", default=0)
-    parser.add_argument("-r", "--reads", type=str, help="Read file for calculating minimum spanning molecules parameter automatically.")
-    parser.add_argument("-g", "--genome", type=str, help="Genome size (bp) for calculating sequence coverage and \
-        minimum spanning molecules parameter automatically.", default="gsize")
+    parser.add_argument("-s", "--spanfile", type=str, help="Calculate span file [tigmint-long.span.txt]", default="tigmint-long.span.txt")
 
     args = parser.parse_args()
     print("Started at: %s" % datetime.now())
     
     if args.spanning == "auto":
-        if args.reads == None:
-            print("tigmint-cut: error: reads file must be provided to calculate optimal span parameter.", file=sys.stderr)
-        if not args.genome.isnumeric():
-            print("tigmint-cut: error: genome size (bp) must be provided to calculate optimal span parameter.", file=sys.stderr)
-            sys.exit(1)
-        
-        genome_size = int(args.genome)
-        print("Calculating optimal span value...")
-        args.spanning = calculateSpan(args.reads, genome_size)
+        args.spanning = get_span(args.spanfile)
         
     if args.bedout == None:
         args.bedout = args.fastaout + ".bed"
