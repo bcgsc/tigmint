@@ -2,6 +2,7 @@
 """
 Cut long reads and assign barcodes to the subreads.
 Usage: gunzip -c reads.fa.gz/fq.gz | python3 long-to-linked -r - | gzip > reads.cutlength.fa.gz
+@author: Janet Li
 """
 import sys
 import argparse
