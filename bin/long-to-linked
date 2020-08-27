@@ -32,7 +32,7 @@ def cut_reads(length, min_size, auto_span, genome_size, outfile):
                 if read_length >= min_size:
                     split_reads = split_long_read(seq, length)
                     for i, read in enumerate(split_reads):
-                        print(">" + header + "_" + str(split_reads.index(read)) + " BX:Z:" + str(i), file=sys.stdout)
+                        print(">" + header + "_" + str(i) + " BX:Z:" + str(i), file=sys.stdout)
                         print(read, file=sys.stdout)
             if auto_span:
                 genome_size = int(genome_size)
