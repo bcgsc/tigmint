@@ -94,7 +94,6 @@ brew install abyss seqtk
 
 # Usage
 
-The Makefile driver script `tigmint-make` should be used to run Tigmint.
 
 To run Tigmint on the draft assembly `draft.fa` with the reads `reads.fq.gz`, which have been run through `longranger basic`:
 
