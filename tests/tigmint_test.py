@@ -12,8 +12,13 @@ def long_to_linked(length=500, minsize=2000, span="auto", gsize=100000):
     open_reads = subprocess.Popen(shlex.split("gunzip -c test_longreads.fa.gz"), stdout=subprocess.PIPE, universal_newlines=True)
     input_reads = open_reads.stdout
     output_span_file = "span_gsize_%s" % gsize
-    long_to_linked = subprocess.Popen(shlex.split("../bin/long-to-linked -l%i -m%i -s%s -g %s -o %s" % (length, minsize, span, gsize, output_span_file)), 
-        stdin=input_reads, stdout=subprocess.PIPE, universal_newlines=True)
+    if span == "auto":
+        long_to_linked = subprocess.Popen(shlex.split("../bin/long-to-linked -l%i -m%i -s -g %s -o %s" % (length, minsize, gsize, output_span_file)), 
+            stdin=input_reads, stdout=subprocess.PIPE, universal_newlines=True)
+    else:
+        long_to_linked = subprocess.Popen(shlex.split("../bin/long-to-linked -l%i -m%i -g %s -o %s" % (length, minsize, gsize, output_span_file)), 
+            stdin=input_reads, stdout=subprocess.PIPE, universal_newlines=True)
+
     cut_reads = long_to_linked.communicate()[0].splitlines()
     assert long_to_linked.returncode == 0
     for read in cut_reads:
