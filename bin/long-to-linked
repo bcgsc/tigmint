@@ -13,7 +13,7 @@ def split_long_read(read_string, length):
     """Take an input read string and length, and cut the read into sub-reads of the specified length."""
     return [read_string.strip()[0+i:length+i] for i in range(0, len(read_string), length)]
 
-def cut_reads(length, min_size, auto_span, genome_size, outfile):
+def cut_reads(length, min_size, auto_span, genome_size, span_out):
     """
     Print cut reads to stdout. If auto_span is True, sequence coverage and span parameter are calculated,
     and span is saved to tigmint-long.span.txt.
@@ -24,9 +24,7 @@ def cut_reads(length, min_size, auto_span, genome_size, outfile):
 
     with open("/dev/stdin", 'rt') as reads:
         if not reads.isatty():  # Check that reads are being piped in from stdin
-            i = 0
             for header, seq, _, _ in read_fasta(reads):
-                i += 1
                 read_length = len(seq)
                 total_bases += read_length
                 if read_length >= min_size:
@@ -35,8 +33,7 @@ def cut_reads(length, min_size, auto_span, genome_size, outfile):
                         print(">" + header + "_" + str(i) + " BX:Z:" + str(i), file=sys.stdout)
                         print(read, file=sys.stdout)
             if auto_span:
-                genome_size = int(genome_size)
-                with open(outfile, "w") as span_file:
+                with open(span_out, "w") as span_file:
                     span = int(total_bases / genome_size * cov_to_span)
                     span_file.write(str(span))
 
@@ -64,7 +61,7 @@ def main():
                         default=-1,
                         help="Genome size (bp) for calculating sequence coverage and \
                         minimum spanning molecules parameter automatically")
-    parser.add_argument("-o", "--outfile",
+    parser.add_argument("-o", "--span_outfile",
                         type=str,
                         default="tigmint-long.span.txt",
                         help="Output file for calculated span")
@@ -75,7 +72,7 @@ def main():
         if args.genome_size == -1:
             raise ValueError("Genome size (bp) must be provided to calculate span parameter.")
 
-    cut_reads(args.length, args.min_size, args.auto_span, args.genome_size, args.outfile)
+    cut_reads(args.length, args.min_size, args.auto_span, args.genome_size, args.span_outfile)
    
 if __name__ == "__main__":
     main()
