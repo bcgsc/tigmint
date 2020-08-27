@@ -44,15 +44,6 @@ def cut_reads(length, min_size, auto_span, genome_size, outfile):
             print("long-to-linked: error: long reads must be piped from stdin", file=sys.stderr)
             sys.exit(1)
 
-def calculate_span(param_value):
-    """Allowed values for -s argument (option to calculate span)."""
-    if param_value.isnumeric():
-        return False
-    elif param_value == "auto":
-        return True
-    else:
-        raise argparse.ArgumentTypeError("Span must be set to 'auto' to be calculated automatically.")
-
 def main():
     """Parse arguments and cut long reads."""
     parser = argparse.ArgumentParser(description="Segment long reads into short reads and calculate span.")
@@ -65,12 +56,12 @@ def main():
                         default=2000,
                         help="Minimum read length to be considered a molecule")
     parser.add_argument("-s", "--auto_span",
-                        type=calculate_span,
                         default=False,
+                        action="store_true",
                         help="Option to calculate spanning molecules threshold")
     parser.add_argument("-g", "--genome_size",
-                        type=str,
-                        default="gsize",
+                        type=int,
+                        default=-1,
                         help="Genome size (bp) for calculating sequence coverage and \
                         minimum spanning molecules parameter automatically")
     parser.add_argument("-o", "--outfile",
@@ -81,8 +72,8 @@ def main():
     args = parser.parse_args()
 
     if args.auto_span:
-        if not args.genome_size.isnumeric():
-            raise argparse.ArgumentTypeError("Genome size (bp) must be provided to calculate span parameter.")
+        if args.genome_size == -1:
+            raise ValueError("Genome size (bp) must be provided to calculate span parameter.")
 
     cut_reads(args.length, args.min_size, args.auto_span, args.genome_size, args.outfile)
    
