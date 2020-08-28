@@ -5,10 +5,10 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="tigmint",
-    version="1.1.2",
+    version="1.2.0",
     author="Shaun Jackman",
     author_email="sjackman@gmail.com",
-    description="Correct misassemblies using linked reads",
+    description="Correct misassemblies using linked or long reads",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://bcgsc.github.io/tigmint/",
@@ -24,7 +24,8 @@ setuptools.setup(
         "bin/tigmint-arcs-tsv",
         "bin/tigmint-cut",
         "bin/tigmint-make",
-        "bin/tigmint-molecule"],
+        "bin/tigmint-molecule",
+        "bin/long-to-linked"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
