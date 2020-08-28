@@ -44,6 +44,9 @@ def cut_reads(length, min_size, auto_span, genome_size, span_out):
 def main():
     """Parse arguments and cut long reads."""
     parser = argparse.ArgumentParser(description="Segment long reads into short reads and calculate span.")
+    parser.add_argument("-v", "--version",
+                        action="version",
+                        version="long-to-linked 1.2.2")
     parser.add_argument("-l", "--length",
                         type=int,
                         default=500,
