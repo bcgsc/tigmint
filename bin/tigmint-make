@@ -10,7 +10,7 @@
 # tigmint-make draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 
 # To run Tigmint with long reads:
-# tigmint-make tigmint-long draft=myassembly reads=myreads span=auto gsize=genomesize
+# tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=genomesize
 
 # Name of the draft assembly, draft.fa
 draft=draft
@@ -128,7 +128,7 @@ version:
 
 all: tigmint arcs
 ifneq ($(ref), ref)
-ifneq ($(G), G)
+ifneq ($(G), -1)
 all: metrics
 endif
 endif
@@ -304,7 +304,7 @@ endif
 %.abyss-fac.tsv: %.fa
 	abyss-fac -G$G -t500 $< >$@
 
-ifdef G
+ifneq ($(G), -1)
 abyss_samtobreak=abyss-samtobreak -l500 -G$G
 else
 abyss_samtobreak=abyss-samtobreak -l500
