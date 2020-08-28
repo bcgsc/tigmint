@@ -53,17 +53,17 @@ def checkSpanningMolecules(intervals, window, contigLengths, contig, num_spannin
         smallestEndPos_spanningMolecs = float("inf")
         overlap_intervals = sorted(intervals[start_window], key=lambda x: x[1], reverse=True)
         for interval in overlap_intervals:
-            if interval.end > end_window: #last overlapping base for interval is interval.end - 1 (range is inclusive of lower limit, non-inclusive of upper limit)
+            if interval.end > end_window: # Last overlapping base for interval is interval.end - 1 (range is inclusive of lower limit, non-inclusive of upper limit)
                 numSpanningMolecs += 1
                 smallestEndPos_spanningMolecs = min(smallestEndPos_spanningMolecs, interval.end-1)
             else:
-                break #sorted by decreasing end position, so if this interval isn't spanning, can break out of loop
+                break # Sorted by decreasing end position, so if this interval isn't spanning, can break out of loop
             if numSpanningMolecs >= num_spanning:
                 break
 
         if numSpanningMolecs < num_spanning:
             if pastStart:
-                if noSpanningRun is None: #First non-spanning interval for a new run
+                if noSpanningRun is None: # First non-spanning interval for a new run
                     noSpanningRun = NoSpanningRun()
                     noSpanningRun.beforeRun_bp = end_window
             start_window += 1
@@ -96,7 +96,7 @@ def findBreakpoints(bed_name, window_length, contigLengths, num_spanning, bps_qu
                 interval_tree.clear()
             contig = bed.chrom
             interval_tree[bed.start:bed.stop] = bed.score
-        else: #Same contig ID, keep reading in the BED file to collect all molecule extents for that contig
+        else: # Same contig ID, keep reading in the BED file to collect all molecule extents for that contig
             interval_tree[bed.start:bed.stop] = bed.score
     # Ensuring final contig in the bed file is also checked for spanning molecules
     if contig != "":
@@ -178,9 +178,9 @@ def printBreakpoints(breakpoints, partitioned_contigLengths, bedout, len_trim):
                     start = bp + len_trim
                     contigNum += 1
                     curName = "%s-%d" % (contig, contigNum)
-                if start < contigLength: #Make sure to get the final bed region
+                if start < contigLength: # Make sure to get the final bed region
                     breakpoints_bedString += "%s\t%d\t%d\t%s\n" % (contig, start, contigLength, curName)
-            else: #No breakpoints, have BED for entire length of the contig.
+            else: # No breakpoints, have BED for entire length of the contig.
                 breakpoints_bedString += "%s\t%d\t%d\t%s\n" % (contig, 0, contigLength, contig)
 
     breakpoints_bed = pybedtools.BedTool(breakpoints_bedString, from_string=True)
@@ -222,16 +222,6 @@ def ensure_writable(f):
         print("tigmint-cut: error: cannot write to parent directory:", f, file=sys.stderr)
         sys.exit(1)
 
-def allowed_span(param_value):
-    """Allowed values for span parameter."""
-    if param_value == "auto":
-        return param_value
-    elif param_value.isnumeric():
-        return int(param_value)
-    else:
-        raise argparse.ArgumentTypeError("Span parameter (-n) must be set to a \
-            valid integer or 'auto' to be calculated automatically.")
-
 def get_span(filename):
     """Read calculated span parameter from a file."""
     if os.access(filename, os.F_OK):
@@ -255,15 +245,15 @@ def main():
     parser.add_argument("-b", "--bedout", type=str, help="The output BED file. Default is the output FASTA filename plus .bed")
     parser.add_argument("-p", "--processes", type=int, help="Number of parallel processes to launch [8]", default=8)
     parser.add_argument("-w", "--window", type=int, help="Window size used to check for spanning molecules (bp) [1000]", default=1000)
-    parser.add_argument("-n", "--spanning", type=allowed_span, help="Spanning molecules threshold (no misassembly in window if num. \
+    parser.add_argument("-n", "--spanning", type=int, help="Spanning molecules threshold (no misassembly in window if num. \
         spanning molecules >= n) [2].", default=2)
     parser.add_argument("-t", "--trim", type=int, help="Number of base pairs to trim at contig cuts (bp) [0]", default=0)
-    parser.add_argument("-s", "--spanfile", type=str, help="Calculate span file [tigmint-long.span.txt]", default="tigmint-long.span.txt")
+    parser.add_argument("-s", "--spanfile", action="store", help="File containing calculated span", default=None)
 
     args = parser.parse_args()
     print("Started at: %s" % datetime.now())
     
-    if args.spanning == "auto":
+    if args.spanfile:
         args.spanning = get_span(args.spanfile)
         
     if args.bedout == None:
