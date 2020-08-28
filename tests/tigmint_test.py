@@ -38,12 +38,16 @@ def tigmint_molecule(bamfile):
 def tigmint_cut():
     """Test tigmint-cut."""
     outfiles = []
-    def _run(draft, reads, molecule_bed, out_fasta, span, gsize=100000):
+    def _run(draft, reads, molecule_bed, out_fasta, span=2, auto_span=False, gsize=100000):
         outfiles.append(out_fasta)
         outfiles.append(out_fasta + ".bed")
-        output_span_file = "span_gsize_%s" % gsize
-        tigmint_cut = subprocess.call(shlex.split("../bin/tigmint-cut -p8 -w1000 -n %s -t0 -o %s -s %s \
-            %s %s" % (span, out_fasta, output_span_file, draft, molecule_bed)))
+        if auto_span:
+            output_span_file = "span_gsize_%s" % gsize
+            tigmint_cut = subprocess.call(shlex.split("../bin/tigmint-cut -p8 -w1000 -n %s -t0 -o %s -s %s \
+                %s %s" % (span, out_fasta, output_span_file, draft, molecule_bed)))
+        else:
+            tigmint_cut = subprocess.call(shlex.split("../bin/tigmint-cut -p8 -w1000 -n %s -t0 -o %s \
+                %s %s" % (span, out_fasta, draft, molecule_bed)))
         assert tigmint_cut == 0
         return out_fasta
     yield _run
@@ -101,7 +105,7 @@ def test_tigmint_cut_linked_span20(tigmint_cut):
     test_breaktigs = "pytest_" + real_breaktigs
     test_breaktigs_bed = test_breaktigs + ".bed"
     tigmint_cut("test_contig.fa", "test_linkedreads.fq.gz",
-                "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.bed", test_breaktigs, 20)
+                "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.bed", test_breaktigs, span=20)
     with open(test_breaktigs) as obs_breaktigs:
         with open(real_breaktigs) as exp_breaktigs:
                 for i, exp in enumerate(exp_breaktigs):
@@ -120,7 +124,7 @@ def test_tigmint_cut_long_span2(tigmint_cut):
     test_breaktigs = "pytest_" + real_breaktigs
     test_breaktigs_bed = test_breaktigs + ".bed"
     tigmint_cut("test_contig_long.fa", "test_longreads.fq.gz",
-                "test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.bed", test_breaktigs, 2)
+                "test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.bed", test_breaktigs)
     with open(test_breaktigs) as obs_breaktigs:
         with open(real_breaktigs) as exp_breaktigs:
             for i, exp in enumerate(exp_breaktigs):
@@ -141,7 +145,7 @@ def test_tigmint_cut_long_spanauto(tigmint_cut):
     test_breaktigs_bed = test_breaktigs + ".bed"
     tigmint_cut("test_contig_long.fa", "test_longreads.fa.gz",
                 "test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.bed", 
-                test_breaktigs, "auto")
+                test_breaktigs, auto_span=True)
     with open(test_breaktigs) as obs_breaktigs:
         with open(real_breaktigs) as exp_breaktigs:
             for i, exp in enumerate(exp_breaktigs):
@@ -160,7 +164,7 @@ def test_tigmint_cut_long_spanauto_largegsize(tigmint_cut):
     test_breaktigs_bed = test_breaktigs + ".bed"
     tigmint_cut("test_contig_long.fa", "test_longreads.fa.gz",
                 "test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.bed", 
-                test_breaktigs, "auto", gsize=1000000)
+                test_breaktigs, auto_span=True, gsize=1000000)
     with open(test_breaktigs) as obs_breaktigs:
         with open(real_breaktigs) as exp_breaktigs:
             for i, exp in enumerate(exp_breaktigs):
