@@ -117,13 +117,13 @@ endif
 .PHONY: help version all tigmint tigmint-long arcs metrics draft_metrics tigmint_metrics arcs_metrics
 
 help:
-	@echo 'Tigmint: Correct misassemblies using linked reads'
+	@echo 'Tigmint: Correct misassemblies using linked or long reads'
 	@echo 'Usage: tigmint-make [COMMAND]... [PARAMETER=VALUE]...'
 	@echo 'Example: tigmint-make tigmint draft=myassembly reads=myreads'
 	@echo 'For more information see https://bcgsc.github.io/tigmint/'
 
 version:
-	@echo "Tigmint 1.1.2"
+	@echo "Tigmint 1.2.2"
 	@echo "Written by Shaun Jackman @sjackman."
 
 all: tigmint arcs
