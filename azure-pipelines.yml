@@ -28,9 +28,8 @@ jobs:
       echo $PATH
       sudo /home/linuxbrew/.linuxbrew/bin/pip3 install pytest
       sudo HOMEBREW_NO_AUTOUPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew install bedtools bwa samtools gnu-time
-      cd tests/tigmint/pytest
+      cd tests/
       pytest -vs tigmint_test.py
-      cd ../../../
     env:
       HOMEBREW_NO_AUTO_UPDATE: 1
-    displayName: Testing tigmint
+    displayName: Run pytests

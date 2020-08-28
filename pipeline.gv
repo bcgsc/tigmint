@@ -1,15 +1,24 @@
 digraph {
 	node [shape="rectangle"]
-
-	reads [label="Linked reads (FASTQ)", shape="parallelogram"]
+	
+    long_reads [label="Long reads (FASTA or FASTQ)", shape="parallelogram"]
+	linked_reads [label="Linked reads (FASTQ)", shape="parallelogram"]
 	draft [label="Draft genome (FASTA)", shape="parallelogram"]
 
 	subgraph {
 		node [width=5]
 
-		map [label="BWA-MEM\nAlign reads to the draft assembly (BAM)"]
+		bwa [label="BWA-MEM\nAlign reads to the draft assembly (BAM)"]
 		molecules [label="tigmint-molecule\nInfer molecules extents from the linked reads (BED)"]
 		breakpoints [label="tigmint-cut\nIdentify regions poorly supported by molecules (BED)"]
+	}
+	
+	subgraph {
+	    node [width=5]
+	    
+	    cut [label="long-to-linked\nSegment long reads (FASTA)"]
+	    minimap2 [label="Minimap2\nAlign segmented reads to the draft assembly (BAM)"]
+	    
 	}
 
 	tigs [label="Corrected assembly (FASTA)", shape="ellipse"]
@@ -25,17 +34,21 @@ digraph {
 		scaffold_metrics [label="QUAST\nCompute assembly metrics (TSV)", shape="ellipse"]
 	}
 
-	reads -> map
-	draft -> map
-	map -> molecules
+	linked_reads -> bwa
+	draft -> bwa
+	bwa -> molecules
 	molecules -> breakpoints
 	breakpoints -> tigs
+	
+	long_reads -> cut
+	cut -> minimap2
+	minimap2 -> molecules
 
 	reference -> tigs_metrics
 	tigs -> tigs_metrics
 
 	tigs -> scaffold
-	reads -> scaffold
+	linked_reads -> scaffold
 
 	reference -> scaffold_metrics
 	scaffold -> scaffold_metrics

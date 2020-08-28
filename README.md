@@ -4,7 +4,7 @@
 
 <img src="http://sjackman.ca/img/tigmint.png" style="width:4in">
 
-# Correct misassemblies using linked reads
+# Correct misassemblies using linked or long reads
 
 Cut sequences at positions with few spanning molecules.
 
@@ -19,6 +19,8 @@ Shaun D. Jackman, Lauren Coombe, Justin Chu, Rene L. Warren, Benjamin P. Vanderv
 # Description
 
 Tigmint identifies and corrects misassemblies using linked reads from 10x Genomics Chromium. The reads are first aligned to the assembly, and the extents of the large DNA molecules are inferred from the alignments of the reads. The physical coverage of the large molecules is more consistent and less prone to coverage dropouts than that of the short read sequencing data. The sequences are cut at positions that have insufficient spanning molecules. Tigmint outputs a BED file of these cut points, and a FASTA file of the cut sequences.
+
+Tigmint also allows the use of long reads from Oxford Nanopore Technologies. The long reads are segmented and assigned barcodes, and the following steps of the pipeline are the same as described above.
 
 Each window of a specified fixed size is checked for a minimum number of spanning molecules. Sequences are cut at those positions where a window with sufficient coverage is followed by some number of windows with insufficient coverage is then followed again by a window with sufficient coverage.
 
@@ -75,6 +77,8 @@ Tigmint uses Bedtools, BWA and Samtools. These dependencies may be installed usi
 ## Install the dependencies of Tigmint
 ```sh
 brew install bedtools bwa samtools
+brew tap brewsci/bio
+brew install minimap2
 ```
 
 ## Install the dependencies of ARCS (optional)
@@ -90,24 +94,16 @@ brew install abyss seqtk
 
 # Usage
 
+
 To run Tigmint on the draft assembly `draft.fa` with the reads `reads.fq.gz`, which have been run through `longranger basic`:
 
 ```sh
-samtools faidx draft.fa
-bwa index draft.fa
-bwa mem -t8 -p -C draft.fa reads.fq.gz | samtools sort -@8 -tBX -o draft.reads.sortbx.bam
-tigmint-molecule draft.reads.sortbx.bam | sort -k1,1 -k2,2n -k3,3n >draft.reads.molecule.bed
-tigmint-cut -p8 -o draft.tigmint.fa draft.fa draft.reads.molecule.bed
+tigmint-make tigmint draft=myassembly reads=myreads
 ```
 
 - `bwa mem -C` is used to copy the BX tag from the FASTQ header to the SAM tags.
 - `samtools sort -tBX` is used to sort first by barcode and then position.
 
-Alternatively, you can run the Tigmint pipeline using the Makefile driver script `tigmint-make`. To run Tigmint on the draft assembly `myassembly.fa` with the reads `myreads.fq.gz`, which have been run through `longranger basic`:
-
-```sh
-tigmint-make tigmint draft=myassembly reads=myreads
-```
 
 To run both Tigmint and scaffold the corrected assembly with [ARCS](https://github.com/bcgsc/arcs):
 
@@ -120,15 +116,27 @@ To run Tigmint, ARCS, and calculate assembly metrics using the reference genome 
 ```sh
 tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 ```
+***
+
+To run Tigmint with long reads in fasta or fastq format (`reads.fa.gz` or `reads.fq.gz`) on the draft assembly `draft.fa`:
+
+```sh
+tigmint-make tigmint-long draft=myassembly reads=myreads span=auto gsize=genomesize
+```
+
+- `minimap2 map-ont` is used to align long reads from the Oxford Nanopore Technologies (ONT) platform, which is the default input for Tigmint. To use PacBio long reads specify the parameter `longmap=pb`
+
 
 # Note
 
 + `tigmint-make` is a Makefile script, and so any `make` options may also be used with `tigmint-make`, such as `-n` (`--dry-run`).
-+ The file extension of the assembly must be `.fa` and the reads `.fq.gz`, and the extension is not included in the parameters `draft` and `reads`. These specific file name requirements result from implementing the pipeline in GNU Make.
++ The file extension of the assembly must be `.fa` and the reads `.fq.gz` (or `.fa.gz` for long reads), and the extension is not included in the parameters `draft` and `reads`. These specific file name requirements result from implementing the pipeline in GNU Make.
++ The minimum spanning molecules parameter (`span`) for `tigmint-cut` is heavily dependent on the sequence coverage of the linked or long reads provided. When running Tigmint with long reads, use `span=auto` and set `gsize` to your assembly organism's haploid genome size for this parameter to be calculated automatically, or explicitly set `span` to a specific number if you are interested in adjusting it. See [Tips](https://github.com/bcgsc/tigmint/tree/long-to-linked/#Note) for more details. 
 
 # tigmint-make commands
 
 + `tigmint`: Run Tigmint, and produce a file named `$draft.tigmint.fa`
++ `tigmint-long`: Run Tigmint using long reads, and produce a file named `$draft.cut$cut.tigmint.fa`
 + `arcs`: Run Tigmint and ARCS, and produce a file name `$draft.tigmint.arcs.fa`
 + `metrics`: Run, Tigmint, ARCS, and calculate assembly metrics using `abyss-fac` and `abyss-samtobreak`, and produce TSV files.
 
@@ -136,7 +144,10 @@ tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 
 + `draft`: Name of the draft assembly, `draft.fa`
 + `reads`: Name of the reads, `reads.fq.gz`
-+ `span=20`: Number of spanning molecules threshold
++ `G`: Haploid genome size of the draft assembly organism. Used to calculate `span` parameter automatically
++ `span=20`: Number of spanning molecules threshold. Set `span=auto` to automatically select span parameter (currently only recommended for `tigmint-long`)
++ `cut=500`: Cut length for long reads (`tigmint-long` only)
++ `longmap=ont`: Long read platform; `ont` for Oxford Nanopore Technologies (ONT) long reads, `pb` for PacBio long reads (`tigmint-long` only)
 + `window=1000`: Window size (bp) for checking spanning molecules
 + `minsize=2000`: Minimum molecule size
 + `as=0.65`: Minimum AS/read length ratio
@@ -163,9 +174,12 @@ tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 # Tips
 
 - If your barcoded reads are in multiple FASTQ files, the initial alignments of the barcoded reads to the draft assembly can be done in parallel and merged prior to running Tigmint.
-- When aligning with BWA-MEM, use the `-C` option to include the barcode in the BX tag of the alignments.
+- When aligning linked reads with BWA-MEM, use the `-C` option to include the barcode in the BX tag of the alignments.
 - Sort by BX tag using `samtools sort -tBX`.
 - Merge multiple BAM files using `samtools merge -tBX`.
+- When aligning long reads with Minimap2, use the `-y` option to include the barcode in the BX tag of the alignments.
+- When using long reads, the minimum spanning molecule thresholds (`span`) should be no greater than 1/4 of the sequence coverage. Setting the parameter `span=auto` allows the appropriate parameter value to be selected automatically (this setting requires the parameter `gsize` as well).
+- When using long reads, the edit distance threshold (`nm`) is automatically set to the cut length (`cut`) to compensate for the higher error rate and length. This parameter should be kept relatively high to include as many alignments as possible.
 
 # Using stLFR linked reads
 

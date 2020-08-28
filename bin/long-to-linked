@@ -1,0 +1,78 @@
+#!/usr/bin/env python3 
+"""
+Cut long reads and assign barcodes to the subreads. Optionally calculate span parameter for tigmint-cut.
+Usage: gunzip -c reads.fa.gz (or reads.fq.gz) | python3 long-to-linked -l length -m min_size -s -g genome_size | gzip > reads.cutlength.fa.gz
+@author: Janet Li
+"""
+import sys
+import os
+import argparse
+from read_fasta import read_fasta
+
+def split_long_read(read_string, length):
+    """Take an input read string and length, and cut the read into sub-reads of the specified length."""
+    return [read_string.strip()[0+i:length+i] for i in range(0, len(read_string), length)]
+
+def cut_reads(length, min_size, auto_span, genome_size, span_out):
+    """
+    Print cut reads to stdout. If auto_span is True, sequence coverage and span parameter are calculated,
+    and span is saved to tigmint-long.span.txt.
+    """
+    # Span automatically calculated as 1/4 of sequence coverage
+    cov_to_span = 0.25
+    total_bases = 0
+
+    with open("/dev/stdin", 'rt') as reads:
+        if not reads.isatty():  # Check that reads are being piped in from stdin
+            for header, seq, _, _ in read_fasta(reads):
+                read_length = len(seq)
+                total_bases += read_length
+                if read_length >= min_size:
+                    split_reads = split_long_read(seq, length)
+                    for i, read in enumerate(split_reads):
+                        print(">" + header + "_" + str(i) + " BX:Z:" + str(i), file=sys.stdout)
+                        print(read, file=sys.stdout)
+            if auto_span:
+                with open(span_out, "w") as span_file:
+                    span = int(total_bases / genome_size * cov_to_span)
+                    span_file.write(str(span))
+
+        else:
+            print("long-to-linked: error: long reads must be piped from stdin", file=sys.stderr)
+            sys.exit(1)
+
+def main():
+    """Parse arguments and cut long reads."""
+    parser = argparse.ArgumentParser(description="Segment long reads into short reads and calculate span.")
+    parser.add_argument("-l", "--length",
+                        type=int,
+                        default=500,
+                        help="Length for long reads to be cut to")
+    parser.add_argument("-m", "--min_size",
+                        type=int,
+                        default=2000,
+                        help="Minimum read length to be considered a molecule")
+    parser.add_argument("-s", "--auto_span",
+                        default=False,
+                        action="store_true",
+                        help="Option to calculate spanning molecules threshold")
+    parser.add_argument("-g", "--genome_size",
+                        type=int,
+                        default=-1,
+                        help="Genome size (bp) for calculating sequence coverage and \
+                        minimum spanning molecules parameter automatically")
+    parser.add_argument("-o", "--span_outfile",
+                        type=str,
+                        default="tigmint-long.span.txt",
+                        help="Output file for calculated span")
+
+    args = parser.parse_args()
+
+    if args.auto_span:
+        if args.genome_size == -1:
+            raise ValueError("Genome size (bp) must be provided to calculate span parameter.")
+
+    cut_reads(args.length, args.min_size, args.auto_span, args.genome_size, args.span_outfile)
+   
+if __name__ == "__main__":
+    main()
