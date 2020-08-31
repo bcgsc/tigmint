@@ -226,8 +226,13 @@ def test_pipeline(tigmint_pipeline):
         with open(expected_output) as exp:
             with open(output) as obs:
                 obs_content = obs.readlines()
-                for i, exp_line in enumerate(exp):
-                    assert exp_line == obs_content[i]
+                if output.endswith(".fa"):
+                    for i, exp_line in enumerate(exp):
+                        if i % 2 == 1:
+                            assert exp_line == obs_content[i]
+                else:
+                    for i, exp_line in enumerate(exp):
+                        assert exp_line == obs_content[i]
     
     # Compare tigmint-long outputs
     # Cut reads
@@ -262,5 +267,10 @@ def test_pipeline(tigmint_pipeline):
         with open(expected_output) as exp:
             with open(output) as obs:
                 obs_content = obs.readlines()
-                for i, exp_line in enumerate(exp):
-                    assert exp_line == obs_content[i]
+                if output.endswith(".fa"):
+                    for i, exp_line in enumerate(exp):
+                        if i % 2 == 1:
+                            assert exp_line == obs_content[i]
+                else:
+                    for i, exp_line in enumerate(exp):
+                        assert exp_line == obs_content[i]
