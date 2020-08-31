@@ -7,16 +7,16 @@ import subprocess
 import os
 import gzip
 
-def long_to_linked(length=500, minsize=2000, span="auto", gsize=100000):
+def long_to_linked(length=500, minsize=2000, span="auto", G=100000):
     """Test long-to-linked."""
     open_reads = subprocess.Popen(shlex.split("gunzip -c test_longreads.fa.gz"), stdout=subprocess.PIPE, universal_newlines=True)
     input_reads = open_reads.stdout
-    output_span_file = "span_gsize_%s" % gsize
+    output_span_file = "span_G_%s" % G
     if span == "auto":
-        long_to_linked = subprocess.Popen(shlex.split("../bin/long-to-linked -l%i -m%i -s -g %s -o %s" % (length, minsize, gsize, output_span_file)), 
+        long_to_linked = subprocess.Popen(shlex.split("../bin/long-to-linked -l%i -m%i -s -g %s -o %s" % (length, minsize, G, output_span_file)), 
             stdin=input_reads, stdout=subprocess.PIPE, universal_newlines=True)
     else:
-        long_to_linked = subprocess.Popen(shlex.split("../bin/long-to-linked -l%i -m%i -g %s -o %s" % (length, minsize, gsize, output_span_file)), 
+        long_to_linked = subprocess.Popen(shlex.split("../bin/long-to-linked -l%i -m%i -g %s -o %s" % (length, minsize, G, output_span_file)), 
             stdin=input_reads, stdout=subprocess.PIPE, universal_newlines=True)
 
     cut_reads = long_to_linked.communicate()[0].splitlines()
@@ -38,11 +38,11 @@ def tigmint_molecule(bamfile):
 def tigmint_cut():
     """Test tigmint-cut."""
     outfiles = []
-    def _run(draft, reads, molecule_bed, out_fasta, span=2, auto_span=False, gsize=100000):
+    def _run(draft, reads, molecule_bed, out_fasta, span=2, auto_span=False, G=100000):
         outfiles.append(out_fasta)
         outfiles.append(out_fasta + ".bed")
         if auto_span:
-            output_span_file = "span_gsize_%s" % gsize
+            output_span_file = "span_G_%s" % G
             tigmint_cut = subprocess.call(shlex.split("../bin/tigmint-cut -p8 -w1000 -n %s -t0 -o %s -s %s \
                 %s %s" % (span, out_fasta, output_span_file, draft, molecule_bed)))
         else:
@@ -63,29 +63,29 @@ def test_long_to_linked_default():
     with gzip.open("test_longreads.cut500.fa.gz", "rt") as exp:
         for obs in long_to_linked():
             assert exp.readline().strip() == obs
-    with open("span_gsize_100000") as span:
+    with open("span_G_100000") as span:
         assert span.readline().strip() == "20"
 
 def test_long_to_linked_all_filtered():
     """Test long-to-linked script with all molecules filtered."""
     for obs in long_to_linked(minsize=47000):
         assert obs == None
-    with open("span_gsize_100000") as span:
+    with open("span_G_100000") as span:
         assert span.readline().strip() == "20"
 
 def test_long_to_linked_large_genome():
     with gzip.open("test_longreads.cut500.fa.gz", "rt") as exp:
-        for obs in long_to_linked(gsize=1000000):
+        for obs in long_to_linked(G=1000000):
             assert exp.readline().strip() == obs
-    with open("span_gsize_1000000") as span:
+    with open("span_G_1000000") as span:
         assert span.readline().strip() == "2"
 
 def test_long_to_linked_noauto():
     """Test long-to-linked script with a given span."""
     with gzip.open("test_longreads.cut500.fa.gz", "rt") as exp:
-        for obs in long_to_linked(span=20, gsize=1000):
+        for obs in long_to_linked(span=20, G=1000):
             assert exp.readline().strip() == obs
-    assert not os.access("span_gsize_1000", os.F_OK)
+    assert not os.access("span_G_1000", os.F_OK)
 
 def test_tigmint_molecule_linked_default():
     """Test tigmint-molecule with linked reads and default parameters."""
@@ -138,8 +138,8 @@ def test_tigmint_cut_long_span2(tigmint_cut):
             assert obs.strip() == exp_bed[i]
 
 def test_tigmint_cut_long_spanauto(tigmint_cut):
-    """Test tigmint-cut with long reads, automatic span calculation and gsize=100000."""
-    # No cuts should be made with gsize=100000
+    """Test tigmint-cut with long reads, automatic span calculation and G=100000."""
+    # No cuts should be made with G=100000
     real_breaktigs = "test_contig_long.fa"
     test_breaktigs = "pytest_test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.trim0.window1000.span2.breaktigs.fa"
     test_breaktigs_bed = test_breaktigs + ".bed"
@@ -156,15 +156,15 @@ def test_tigmint_cut_long_spanauto(tigmint_cut):
     with open(test_breaktigs_bed) as obs_bed:
         assert obs_bed.readline().strip() == exp_bed
 
-def test_tigmint_cut_long_spanauto_largegsize(tigmint_cut):
-    """Test tigmint-cut with long reads, automatic span calculation and gsize=1000000."""
+def test_tigmint_cut_long_spanauto_largeG(tigmint_cut):
+    """Test tigmint-cut with long reads, automatic span calculation and G=1000000."""
     # Auto calculation should result in span=2
     real_breaktigs = "test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.trim0.window1000.span2.breaktigs.fa"
     test_breaktigs = "pytest_" + real_breaktigs
     test_breaktigs_bed = test_breaktigs + ".bed"
     tigmint_cut("test_contig_long.fa", "test_longreads.fa.gz",
                 "test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.bed", 
-                test_breaktigs, auto_span=True, gsize=1000000)
+                test_breaktigs, auto_span=True, G=1000000)
     with open(test_breaktigs) as obs_breaktigs:
         with open(real_breaktigs) as exp_breaktigs:
             for i, exp in enumerate(exp_breaktigs):
