@@ -23,6 +23,7 @@ def cut_reads(length, min_size, auto_span, genome_size, span_out):
     total_bases = 0
 
     with open("/dev/stdin", 'rt') as reads:
+        barcode = 0
         if not reads.isatty():  # Check that reads are being piped in from stdin
             for header, seq, _, _ in read_fasta(reads):
                 read_length = len(seq)
@@ -30,8 +31,9 @@ def cut_reads(length, min_size, auto_span, genome_size, span_out):
                 if read_length >= min_size:
                     split_reads = split_long_read(seq, length)
                     for i, read in enumerate(split_reads):
-                        print(">" + header + "_" + str(i) + " BX:Z:" + str(i), file=sys.stdout)
+                        print(">" + header + "_" + str(i) + " BX:Z:" + str(barcode), file=sys.stdout)
                         print(read, file=sys.stdout)
+                    barcode += 1
             if auto_span:
                 with open(span_out, "w") as span_file:
                     span = int(total_bases / genome_size * cov_to_span)
