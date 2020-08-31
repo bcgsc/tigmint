@@ -27,7 +27,8 @@ jobs:
       echo path:
       echo $PATH
       sudo /home/linuxbrew/.linuxbrew/bin/pip3 install pytest
-      sudo HOMEBREW_NO_AUTOUPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew install bedtools bwa samtools gnu-time
+      sudo HOMEBREW_NO_AUTOUPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew tap brewsci/bio 
+      sudo HOMEBREW_NO_AUTOUPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew install bedtools bwa samtools gnu-time minimap2
       cd tests/
       pytest -vs tigmint_test.py
     env:
