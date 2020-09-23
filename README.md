@@ -8,7 +8,7 @@
 
 Cut sequences at positions with few spanning molecules.
 
-Written by [Shaun Jackman](http://sjackman.ca), Lauren Coombe, and Justin Chu.
+Written by [Shaun Jackman](http://sjackman.ca), Lauren Coombe, Justin Chu, and Janet Li.
 
 [Paper](https://doi.org/10.1186/s12859-018-2425-6) &middot; [Slides](http://sjackman.ca/tigmint-recomb-slides) &middot; [Poster](https://f1000research.com/posters/7-481)
 
