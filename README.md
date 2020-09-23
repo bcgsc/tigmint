@@ -95,7 +95,7 @@ brew install abyss seqtk
 # Usage
 
 
-To run Tigmint on the draft assembly `draft.fa` with the reads `reads.fq.gz`, which have been run through `longranger basic`:
+To run Tigmint on the draft assembly `myassembly.fa` with the reads `myreads.fq.gz`, which have been run through `longranger basic`:
 
 ```sh
 tigmint-make tigmint draft=myassembly reads=myreads
