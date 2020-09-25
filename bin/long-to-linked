@@ -4,40 +4,49 @@ Cut long reads and assign barcodes to the subreads. Optionally calculate span pa
 Usage: gunzip -c reads.fa.gz (or reads.fq.gz) | python3 long-to-linked -l length -m min_size -s -g genome_size | gzip > reads.cutlength.fa.gz
 @author: Janet Li
 """
+
 import sys
 import os
 import argparse
+import numpy as np
 from read_fasta import read_fasta
 
 def split_long_read(read_string, length):
     """Take an input read string and length, and cut the read into sub-reads of the specified length."""
     return [read_string.strip()[0+i:length+i] for i in range(0, len(read_string), length)]
 
-def cut_reads(length, min_size, auto_span, genome_size, span_out):
+def cut_reads(length, min_size, auto_span, genome_size, param_outfile, auto_dist):
     """
     Print cut reads to stdout. If auto_span is True, sequence coverage and span parameter are calculated,
-    and span is saved to tigmint-long.span.txt.
+    and span is saved to file. If auto_dist is True, read length p5 is calculated and saved to file.
     """
     # Span automatically calculated as 1/4 of sequence coverage
     cov_to_span = 0.25
     total_bases = 0
-
+    if auto_dist:
+        read_lengths = []
     with open("/dev/stdin", 'rt') as reads:
         barcode = 0
         if not reads.isatty():  # Check that reads are being piped in from stdin
             for header, seq, _, _ in read_fasta(reads):
                 read_length = len(seq)
                 total_bases += read_length
+                if auto_dist:
+                    read_lengths.append(read_length)
                 if read_length >= min_size:
                     split_reads = split_long_read(seq, length)
                     for i, read in enumerate(split_reads):
                         print(">" + header + "_" + str(i) + " BX:Z:" + str(barcode), file=sys.stdout)
                         print(read, file=sys.stdout)
                     barcode += 1
-            if auto_span:
-                with open(span_out, "w") as span_file:
-                    span = int(total_bases / genome_size * cov_to_span)
-                    span_file.write(str(span))
+            if auto_span or auto_dist:
+                with open(param_outfile, "w") as param_file:
+                    if auto_span:
+                        span = int(total_bases / genome_size * cov_to_span)
+                        print("span\t%s" % str(span), file=param_file)
+                    if auto_dist:
+                        read_p5 = int(np.percentile(read_lengths, 5) // 1)
+                        print("read_p5\t%s" % str(read_p5), file=param_file)
 
         else:
             print("long-to-linked: error: long reads must be piped from stdin", file=sys.stderr)
@@ -45,7 +54,7 @@ def cut_reads(length, min_size, auto_span, genome_size, span_out):
 
 def main():
     """Parse arguments and cut long reads."""
-    parser = argparse.ArgumentParser(description="Segment long reads into short reads and calculate span.")
+    parser = argparse.ArgumentParser(description="Segment long reads into short reads and calculate tigmint-long parameters.")
     parser.add_argument("-v", "--version",
                         action="version",
                         version="long-to-linked 1.2.1")
@@ -61,14 +70,18 @@ def main():
                         default=False,
                         action="store_true",
                         help="Option to calculate spanning molecules threshold")
+    parser.add_argument("-d", "--auto_dist",
+                        default=False,
+                        action="store_true",
+                        help="Option to calculate read length p5 for dist parameter")
     parser.add_argument("-g", "--genome_size",
                         type=int,
                         default=-1,
                         help="Genome size (bp) for calculating sequence coverage and \
                         minimum spanning molecules parameter automatically")
-    parser.add_argument("-o", "--span_outfile",
+    parser.add_argument("-o", "--param_outfile",
                         type=str,
-                        default="tigmint-long.span.txt",
+                        default="tigmint-long.params.tsv",
                         help="Output file for calculated span")
 
     args = parser.parse_args()
@@ -77,7 +90,8 @@ def main():
         if args.genome_size == -1:
             raise ValueError("Genome size (bp) must be provided to calculate span parameter.")
 
-    cut_reads(args.length, args.min_size, args.auto_span, args.genome_size, args.span_outfile)
+    cut_reads(args.length, args.min_size, args.auto_span,
+            args.genome_size, args.param_outfile, args.auto_dist)
    
 if __name__ == "__main__":
     main()
