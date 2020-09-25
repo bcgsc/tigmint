@@ -2,3 +2,4 @@ intervaltree
 pybedtools
 pysam
 statistics
+numpy
