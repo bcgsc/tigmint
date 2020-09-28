@@ -121,7 +121,7 @@ tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 To run Tigmint with long reads in fasta or fastq format (`reads.fa.gz` or `reads.fq.gz`) on the draft assembly `draft.fa`:
 
 ```sh
-tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=genomesize
+tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=genomesize dist=-1
 ```
 
 - `minimap2 map-ont` is used to align long reads from the Oxford Nanopore Technologies (ONT) platform, which is the default input for Tigmint. To use PacBio long reads specify the parameter `longmap=pb`
@@ -132,6 +132,7 @@ tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=genomesize
 + `tigmint-make` is a Makefile script, and so any `make` options may also be used with `tigmint-make`, such as `-n` (`--dry-run`).
 + The file extension of the assembly must be `.fa` and the reads `.fq.gz` (or `.fa.gz` for long reads), and the extension is not included in the parameters `draft` and `reads`. These specific file name requirements result from implementing the pipeline in GNU Make.
 + The minimum spanning molecules parameter (`span`) for `tigmint-cut` is heavily dependent on the sequence coverage of the linked or long reads provided. When running Tigmint with long reads, use `span=auto` and set `G` to your assembly organism's haploid genome size for this parameter to be calculated automatically, or explicitly set `span` to a specific number if you are interested in adjusting it. See [Tips](https://github.com/bcgsc/tigmint/tree/long-to-linked/#Note) for more details. 
++ For `tigmint-long`, the maximum distance between reads threshold should be calculated automatically based on the read length distribution. This can be done by setting the parameter `dist=-1`.
 
 # tigmint-make commands
 
@@ -152,7 +153,7 @@ tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=genomesize
 + `minsize=2000`: Minimum molecule size
 + `as=0.65`: Minimum AS/read length ratio
 + `nm=5`: Maximum number of mismatches
-+ `dist=50000`: Maximum distance (bp) between reads to be considered the same molecule
++ `dist=50000`: Maximum distance (bp) between reads to be considered the same molecule. Set `dist=-1` to automatically calculate dist threshold based on read length distribution (`tigmint-long` only)
 + `mapq=0`: Mapping quality threshold
 + `trim=0`: Number of bases to trim off contigs following cuts
 + `t=8`: Number of threads
