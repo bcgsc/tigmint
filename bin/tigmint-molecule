@@ -4,6 +4,7 @@ Group linked reads into molecules.
 @author: Justin Chu and Shaun Jackman
 """
 
+import os
 import argparse
 import statistics
 import sys
@@ -171,24 +172,27 @@ class MolecIdentifier:
                             out_bam_file.write(cur_read)
 
                     # Inter arrival time is distance between read of the same direction
+                    inter_arrival = 0
                     if cur_read.is_reverse:
                         if prev_val2 == 0:
                             prev_val2 = value
+                            prev_val = value
                             count += 1
                             continue
                         else:
-                            if value - prev_val2 > 0:
-                                count += 1
+                            inter_arrival = value - prev_val2
                             prev_val2 = value
                     else:
                         if prev_val1 == 0:
                             prev_val1 = value
+                            prev_val = value
                             count += 1
                             continue
                         else:
-                            if value - prev_val1 > 0:
-                                count += 1
+                            inter_arrival = value - prev_val1
                             prev_val1 = value
+                    if inter_arrival > 0:
+                        count += 1
                     prev_val = value
                     prev_read = cur_read
                 end = prev_read.reference_end
@@ -263,7 +267,29 @@ class MolecIdentifier:
             "-s", "--size", dest="min_size", type=int, default=2000,
             help="Minimum molecule size [2000]",
             metavar="N")
+        parser.add_argument(
+            "-p", "--params", dest="param_file", type=str)
+        
         self.opt = parser.parse_args()
+        
+        # Get read length p5 from file if max_dist=1
+        if self.opt.max_dist == -1:
+            if os.access(self.opt.param_file, os.F_OK):
+                if os.access(self.opt.param_file, os.R_OK):
+                    with open(self.opt.param_file) as param_file:
+                        for line in param_file:
+                            line_content = line.strip().split("\t")
+                            if line_content[0] == "read_p5":
+                                self.opt.max_dist = int(line_content[1])
+                                return
+                    print("tigmint-molecule: calculated max_dist parameter not found in parameter file '%'" % self.opt.param_file, file=sys.stderr)
+                    sys.exit(1)
+                else:
+                    print("tigmint-molecule: parameter file '%s' cannot be read" % self.opt.param_file, file=sys.stderr)
+                    sys.exit(1)
+            else:
+                print("tigmint-molecule: parameter file '%s' cannot be read" % self.opt.param_file, file=sys.stderr)
+                sys.exit(1)
 
 if __name__ == '__main__':
     MolecIdentifier().run()
