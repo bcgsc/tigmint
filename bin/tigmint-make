@@ -23,10 +23,10 @@ reads=reads
 fastq=$(shell test -f $(reads).fq.gz && echo "true")
 fasta=$(shell test -f $(reads).fa.gz && echo "true")
 ifeq ($(fastq), true)
-lr_filename=$(reads).fq.gz
+longreads=$(reads).fq.gz
 endif
 ifeq ($(fasta), true)
-lr_filename=$(reads).fa.gz
+longreads=$(reads).fa.gz
 endif
 
 # Reference genome, ref.fa, for calculating assembly contiguity metrics
@@ -196,12 +196,12 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 $(draft).%.cut$(cut).sortbx.bam: %.cut$(cut).fa.gz $(draft).fa
 	minimap2 -y -t$t -ax map-$(longmap) --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
 
-# Segment long reads from gzipped fasta file.
-$(reads).cut$(cut).fa.gz: $(lr_filename)
+# Segment long reads from gzipped fasta file, and calculate read length p5 for dist parameter.
+$(reads).cut$(cut).fa.gz: $(longreads)
 ifeq ($(span), auto)
-	$(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) -g$(G) -s -o $(reads).tigmint-long.span.txt | $(gzip) > $@
+	$(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) -g$(G) -s -d -o $(reads).tigmint-long.params.txt | $(gzip) > $@
 else
-	$(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) -g$(G) | $(gzip) > $@
+	$(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) -d -o $(reads).tigmint-long.params.txt | $(gzip) > $@
 endif
 
 # samtools
@@ -217,7 +217,7 @@ endif
 # Create molecule extents BED using cut long reads
 $(draft).$(reads).cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).bed: $(reads).cut$(cut).fa.gz $(draft).fa
 	$(gtime) minimap2 -y -t$t -as map-$(longmap) --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) | \
-		$(bin)/tigmint-molecule -a$(as) -n$(cut) -q$(mapq) -d$(dist) -s$(minsize) - | sort -k1,1 -k2,2n -k3,3n > $@
+		$(bin)/tigmint-molecule -a$(as) -n$(cut) -q$(mapq) -d$(dist) -s$(minsize) -p $(reads).tigmint-long.params.txt - | sort -k1,1 -k2,2n -k3,3n > $@
 
 # Create molecule extents TSV
 %.as$(as).nm$(nm).molecule.size$(minsize).tsv: %.sortbx.bam
@@ -252,7 +252,7 @@ $(draft).$(reads).cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).bed: $(read
 # Make breakpoints BED file
 %.trim$(trim).window$(window).span$(span).breaktigs.fa: %.bed $(draft).fa $(draft).fa.fai
 ifeq ($(span), auto)
-	$(gtime) $(bin)/tigmint-cut -p$t -w$(window) -t$(trim) -s $(reads).tigmint-long.span.txt -o $@ $(draft).fa $<
+	$(gtime) $(bin)/tigmint-cut -p$t -w$(window) -t$(trim) -f $(reads).tigmint-long.params.txt -o $@ $(draft).fa $<
 else
 	$(gtime) $(bin)/tigmint-cut -p$t -w$(window) -n$(span) -t$(trim) -o $@ $(draft).fa $<
 endif
