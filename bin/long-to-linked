@@ -22,6 +22,8 @@ def cut_reads(length, min_size, auto_span, genome_size, param_outfile, auto_dist
     """
     # Span automatically calculated as 1/4 of sequence coverage
     cov_to_span = 0.25
+    # Dist automatically calculated as p5 of read length
+    dist_read_perc = 5
     total_bases = 0
     if auto_dist:
         read_lengths = []
@@ -45,8 +47,8 @@ def cut_reads(length, min_size, auto_span, genome_size, param_outfile, auto_dist
                         span = int(total_bases / genome_size * cov_to_span)
                         print("span\t%s" % str(span), file=param_file)
                     if auto_dist:
-                        read_p5 = int(np.percentile(read_lengths, 5) // 1)
-                        print("read_p5\t%s" % str(read_p5), file=param_file)
+                        dist = int(np.percentile(read_lengths, dist_read_perc) // 1)
+                        print("read_p5\t%s" % str(dist), file=param_file)
 
         else:
             print("long-to-linked: error: long reads must be piped from stdin", file=sys.stderr)
