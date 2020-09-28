@@ -226,14 +226,17 @@ def get_span(filename):
     """Read calculated span parameter from a file."""
     if os.access(filename, os.F_OK):
         if os.access(filename, os.R_OK):
-            with open(filename) as span_file:
-                span = span_file.readline().strip()
-            return int(span)
+            with open(filename) as param_file:
+                line_content = param_file.readline().strip().split("\t")
+                if line_content[0] == "span":
+                    return int(line_content[1])
+            print("tigmint-cut: error: calculate span parameter not found in parameter file '%s'" % filename, file=sys.stderr)
+            sys.exit(1)
         else: 
-            print("tigmint-cut: error: calculated span file tigmint-long.span.txt cannot be read", file=sys.stderr)
+            print("tigmint-cut: error: parameter file '%s' cannot be read" % filename, file=sys.stderr)
             sys.exit(1)
     else:
-        print("tigmint-cut: error: calculated span file tigmint-long.span.txt does not exist", file=sys.stderr)
+        print("tigmint-cut: error: parameter file '%s' does not exist" % filename, file=sys.stderr)
         sys.exit(1)
 
 def main():
@@ -248,13 +251,13 @@ def main():
     parser.add_argument("-n", "--spanning", type=int, help="Spanning molecules threshold (no misassembly in window if num. \
         spanning molecules >= n) [2].", default=2)
     parser.add_argument("-t", "--trim", type=int, help="Number of base pairs to trim at contig cuts (bp) [0]", default=0)
-    parser.add_argument("-s", "--spanfile", action="store", help="File containing calculated span", default=None)
+    parser.add_argument("-f", "--param_file", help="File containing calculated parameters for tigmint-long", default=None)
 
     args = parser.parse_args()
     print("Started at: %s" % datetime.now())
     
-    if args.spanfile:
-        args.spanning = get_span(args.spanfile)
+    if args.param_file:
+        args.spanning = get_span(args.param_file)
         
     if args.bedout == None:
         args.bedout = args.fastaout + ".bed"
