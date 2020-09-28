@@ -69,7 +69,7 @@ curl -L https://github.com/bcgsc/tigmint/archive/master.tar.gz | tar xz && mv ti
 
 ## Install Python package dependencies
 ```sh
-pip3 install intervaltree pybedtools pysam statistics
+pip3 install intervaltree pybedtools pysam statistics numpy
 ```
 
 Tigmint uses Bedtools, BWA and Samtools. These dependencies may be installed using [Homebrew](https://brew.sh) on macOS or [Linuxbrew](http://linuxbrew.sh) on Linux.
