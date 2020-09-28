@@ -72,7 +72,6 @@ def tigmint_pipeline():
                 "test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.bed",
                 "test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.trim0.window1000.spanauto.breaktigs.fa",
                 "test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.trim0.window1000.spanauto.breaktigs.fa.bed",
-                "test_contig_long.test_longreads.cut500.sortbx.bam",
                 "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.bed",
                 "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.trim0.window1000.span20.breaktigs.fa",
                 "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.trim0.window1000.span20.breaktigs.fa.bed",
