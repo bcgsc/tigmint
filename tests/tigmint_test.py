@@ -76,7 +76,8 @@ def tigmint_pipeline():
                 "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.trim0.window1000.span20.breaktigs.fa",
                 "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.trim0.window1000.span20.breaktigs.fa.bed",
                 "test_contig.test_linkedreads.sortbx.bam",
-                "test_longreads.cut500.fa.gz", "test_longreads.tigmint-long.span.txt"]
+                "test_longreads.cut500.fa.gz", "test_longreads.tigmint-long.span.txt",
+                "test_longreads.tigmint-long.params.tsv"]
     for outfile in outfiles:
         if os.path.exists(outfile):
             os.remove(outfile)
@@ -262,7 +263,7 @@ def test_pipeline(tigmint_pipeline):
         assert exp_read == obs_cut_reads[i]
 
     # Other output files
-    tigmint_long_outputs = ["test_longreads.tigmint-long.params.txt",
+    tigmint_long_outputs = ["test_longreads.tigmint-long.params.tsv",
         "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.bed",
         "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.trim0.window1000.span20.breaktigs.fa",
         "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.trim0.window1000.span20.breaktigs.fa.bed"]
