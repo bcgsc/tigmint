@@ -18,7 +18,8 @@ setuptools.setup(
         "intervaltree",
         "pybedtools",
         "pysam",
-        "statistics"],
+        "statistics",
+        "numpy"],
     scripts=[
         "bin/tigmint",
         "bin/tigmint-arcs-tsv",

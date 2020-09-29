@@ -4,6 +4,7 @@ Group linked reads into molecules.
 @author: Justin Chu and Shaun Jackman
 """
 
+import os
 import argparse
 import statistics
 import sys
@@ -20,15 +21,13 @@ class Molecule:
 
     def __init__(
             self, rname, start, end, \
-            new_molec_id, barcode, \
-            inter_arrivals, count, \
+            new_molec_id, barcode, count, \
             mapq_median, as_median, nm_median):
         self.rname = rname
         self.start = start
         self.end = end
         self.barcode = barcode
         self.new_molec_id = new_molec_id
-        self.inter_arrivals = inter_arrivals
         self.count = count
         self.mapq_median = mapq_median
         self.as_median = as_median
@@ -118,7 +117,6 @@ class MolecIdentifier:
                 prev_val2 = 0
                 start = cur_reads[0].pos
                 rname = cur_reads[0].reference_name
-                inter_arrivals = []
                 mapqs = []
                 scores = []
                 nms = []
@@ -139,8 +137,7 @@ class MolecIdentifier:
 
                         # Find distance from nearest read
                         molec = Molecule(rname, start, end, \
-                                 new_molec_id, prev_barcode, \
-                                 inter_arrivals, count, \
+                                 new_molec_id, prev_barcode, count, \
                                  statistics.median(mapqs), \
                                  statistics.median(scores) if scores else "NA", \
                                  statistics.median(nms) if nms else "NA")
@@ -158,7 +155,6 @@ class MolecIdentifier:
                         if self.opt.out_bam_filename:
                             cur_read.set_tag("MI", new_molec_id)
                             out_bam_file.write(cur_read)
-                        inter_arrivals = []
                         mapqs = []
                         scores = []
                         nms = []
@@ -197,16 +193,14 @@ class MolecIdentifier:
                             prev_val1 = value
                     if inter_arrival > 0:
                         count += 1
-                        inter_arrivals.append(inter_arrival)
                     prev_val = value
                     prev_read = cur_read
                 end = prev_read.reference_end
                 molec = Molecule(rname, start, end, \
-                                 new_molec_id, prev_barcode, \
-                                 inter_arrivals, count, \
-                                 statistics.median(mapqs), \
-                                 statistics.median(scores) if scores else "NA", \
-                                 statistics.median(nms) if nms else "NA")
+                                new_molec_id, prev_barcode, count, \
+                                statistics.median(mapqs), \
+                                statistics.median(scores) if scores else "NA", \
+                                statistics.median(nms) if nms else "NA")
 
                 if count >= self.opt.min_reads and molec.end - molec.start >= self.opt.min_size:
                     molec.print_molecule(out_molecules_file, self.opt.output_format)
@@ -222,9 +216,28 @@ class MolecIdentifier:
             out_molecules_file.close()
         if out_bam_file != None:
             out_bam_file.close()
+    
+    def get_dist(self):
+        """Read calculated dist from parameter file."""
+        if os.access(self.opt.param_file, os.F_OK):
+            if os.access(self.opt.param_file, os.R_OK):
+                with open(self.opt.param_file) as param_file:
+                    for line in param_file:
+                        line_content = line.strip().split("\t")
+                        if line_content[0].startswith("read_p"):
+                            return int(line_content[1])
+                print("tigmint-molecule: calculated max_dist parameter not found in parameter file '%'" % self.opt.param_file, file=sys.stderr)
+                sys.exit(1)
+            else:
+                print("tigmint-molecule: parameter file '%s' cannot be read" % self.opt.param_file, file=sys.stderr)
+                sys.exit(1)
+        else:
+            print("tigmint-molecule: parameter file '%s' cannot be read" % self.opt.param_file, file=sys.stderr)
+            sys.exit(1)
+
 
     def parse_arguments(self):
-        "Parse the command line arguments."
+        """Parse the command line arguments."""
         parser = argparse.ArgumentParser(
             description="Group linked reads into molecules. "
             "Read a SAM/BAM file and output a TSV file. "
@@ -273,7 +286,14 @@ class MolecIdentifier:
             "-s", "--size", dest="min_size", type=int, default=2000,
             help="Minimum molecule size [2000]",
             metavar="N")
+        parser.add_argument(
+            "-p", "--params", dest="param_file", type=str, default=None)
+        
         self.opt = parser.parse_args()
+        
+        # Use calculated max dist if parameter file is provided
+        if self.opt.param_file:
+            self.opt.max_dist = self.get_dist()
 
 if __name__ == '__main__':
     MolecIdentifier().run()
