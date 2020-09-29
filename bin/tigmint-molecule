@@ -61,7 +61,7 @@ class MolecIdentifier:
     """Group molecules into barcodes"""
 
     def __init__(self):
-        """Constructor"""
+        """Constructor, identifies molecules based on inter-arrival time threshold."""
         self.opt = None
 
     def run(self):
@@ -216,9 +216,28 @@ class MolecIdentifier:
             out_molecules_file.close()
         if out_bam_file != None:
             out_bam_file.close()
+    
+    def get_dist(self):
+        """Read calculated dist from parameter file."""
+        if os.access(self.opt.param_file, os.F_OK):
+            if os.access(self.opt.param_file, os.R_OK):
+                with open(self.opt.param_file) as param_file:
+                    for line in param_file:
+                        line_content = line.strip().split("\t")
+                        if line_content[0] == "read_p5":
+                            return int(line_content[1])
+                print("tigmint-molecule: calculated max_dist parameter not found in parameter file '%'" % self.opt.param_file, file=sys.stderr)
+                sys.exit(1)
+            else:
+                print("tigmint-molecule: parameter file '%s' cannot be read" % self.opt.param_file, file=sys.stderr)
+                sys.exit(1)
+        else:
+            print("tigmint-molecule: parameter file '%s' cannot be read" % self.opt.param_file, file=sys.stderr)
+            sys.exit(1)
+
 
     def parse_arguments(self):
-        "Parse the command line arguments."
+        """Parse the command line arguments."""
         parser = argparse.ArgumentParser(
             description="Group linked reads into molecules. "
             "Read a SAM/BAM file and output a TSV file. "
@@ -268,28 +287,13 @@ class MolecIdentifier:
             help="Minimum molecule size [2000]",
             metavar="N")
         parser.add_argument(
-            "-p", "--params", dest="param_file", type=str)
+            "-p", "--params", dest="param_file", type=str, default=None)
         
         self.opt = parser.parse_args()
         
-        # Get read length p5 from file if max_dist=1
-        if self.opt.max_dist == -1:
-            if os.access(self.opt.param_file, os.F_OK):
-                if os.access(self.opt.param_file, os.R_OK):
-                    with open(self.opt.param_file) as param_file:
-                        for line in param_file:
-                            line_content = line.strip().split("\t")
-                            if line_content[0] == "read_p5":
-                                self.opt.max_dist = int(line_content[1])
-                                return
-                    print("tigmint-molecule: calculated max_dist parameter not found in parameter file '%'" % self.opt.param_file, file=sys.stderr)
-                    sys.exit(1)
-                else:
-                    print("tigmint-molecule: parameter file '%s' cannot be read" % self.opt.param_file, file=sys.stderr)
-                    sys.exit(1)
-            else:
-                print("tigmint-molecule: parameter file '%s' cannot be read" % self.opt.param_file, file=sys.stderr)
-                sys.exit(1)
+        # Use calculated max dist if parameter file is provided
+        if self.opt.param_file:
+            self.opt.max_dist = self.get_dist()
 
 if __name__ == '__main__':
     MolecIdentifier().run()

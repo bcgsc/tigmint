@@ -196,12 +196,20 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 $(draft).%.cut$(cut).sortbx.bam: %.cut$(cut).fa.gz $(draft).fa
 	minimap2 -y -t$t -ax map-$(longmap) --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
 
-# Segment long reads from gzipped fasta file, and calculate read length p5 for dist parameter.
+# Segment long reads from gzipped fasta file, optionally calculating tigmint-long parameters.
 $(reads).cut$(cut).fa.gz: $(longreads)
 ifeq ($(span), auto)
+ifeq ($(dist), auto)
 	$(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) -g$(G) -s -d -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
 else
+	$(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) -g$(G) -s -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
+endif
+else
+ifeq ($(dist), auto)
 	$(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) -d -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
+else
+	$(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) | $(gzip) > $@
+endif
 endif
 
 # samtools
@@ -216,8 +224,13 @@ endif
 
 # Create molecule extents BED using cut long reads
 $(draft).$(reads).cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).bed: $(reads).cut$(cut).fa.gz $(draft).fa
+ifeq ($(dist), auto)
 	$(gtime) minimap2 -y -t$t -as map-$(longmap) --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) | \
-		$(bin)/tigmint-molecule -a$(as) -n$(cut) -q$(mapq) -d$(dist) -s$(minsize) -p $(reads).tigmint-long.params.tsv - | sort -k1,1 -k2,2n -k3,3n > $@
+		$(bin)/tigmint-molecule -a$(as) -n$(cut) -q$(mapq) -s$(minsize) -p $(reads).tigmint-long.params.tsv - | sort -k1,1 -k2,2n -k3,3n > $@
+else 
+	$(gtime) minimap2 -y -t$t -as map-$(longmap) --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) | \
+		$(bin)/tigmint-molecule -a$(as) -n$(cut) -q$(mapq) -d$(dist) -s$(minsize) - | sort -k1,1 -k2,2n -k3,3n > $@
+endif
 
 # Create molecule extents TSV
 %.as$(as).nm$(nm).molecule.size$(minsize).tsv: %.sortbx.bam
