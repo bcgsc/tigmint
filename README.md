@@ -118,7 +118,7 @@ tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 ```
 ***
 
-To run Tigmint with long reads in fasta or fastq format (`myreads.fa.gz` or `myreads.fq.gz`) on the draft assembly `draft.fa`:
+To run Tigmint with long reads in fasta or fastq format (`myreads.fa.gz` or `myreads.fq.gz`) on the draft assembly `myassembly.fa`:
 
 ```sh
 tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=genomesize dist=auto
