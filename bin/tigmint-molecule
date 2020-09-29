@@ -224,7 +224,7 @@ class MolecIdentifier:
                 with open(self.opt.param_file) as param_file:
                     for line in param_file:
                         line_content = line.strip().split("\t")
-                        if line_content[0] == "read_p5":
+                        if line_content[0].startswith("read_p"):
                             return int(line_content[1])
                 print("tigmint-molecule: calculated max_dist parameter not found in parameter file '%'" % self.opt.param_file, file=sys.stderr)
                 sys.exit(1)

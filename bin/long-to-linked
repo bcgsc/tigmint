@@ -48,7 +48,7 @@ def cut_reads(length, min_size, auto_span, genome_size, param_outfile, auto_dist
                         print("span\t%s" % str(span), file=param_file)
                     if auto_dist:
                         dist = int(np.percentile(read_lengths, dist_read_perc) // 1)
-                        print("read_p5\t%s" % str(dist), file=param_file)
+                        print("read_p%i\t%i" % (dist_read_perc, dist), file=param_file)
 
         else:
             print("long-to-linked: error: long reads must be piped from stdin", file=sys.stderr)
