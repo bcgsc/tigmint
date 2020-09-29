@@ -118,7 +118,7 @@ tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 ```
 ***
 
-To run Tigmint with long reads in fasta or fastq format (`reads.fa.gz` or `reads.fq.gz`) on the draft assembly `draft.fa`:
+To run Tigmint with long reads in fasta or fastq format (`myreads.fa.gz` or `myreads.fq.gz`) on the draft assembly `draft.fa`:
 
 ```sh
 tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=genomesize dist=auto
@@ -143,8 +143,8 @@ tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=genomesize 
 
 # Parameters of Tigmint
 
-+ `draft`: Name of the draft assembly, `draft.fa`
-+ `reads`: Name of the reads, `reads.fq.gz`
++ `draft`: Name of the draft assembly, `myassembly.fa`
++ `reads`: Name of the reads, `myreads.fq.gz`
 + `G`: Haploid genome size of the draft assembly organism. Used to calculate `span` parameter automatically
 + `span=20`: Number of spanning molecules threshold. Set `span=auto` to automatically select span parameter (currently only recommended for `tigmint-long`)
 + `cut=500`: Cut length for long reads (`tigmint-long` only)
