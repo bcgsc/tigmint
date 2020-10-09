@@ -49,10 +49,24 @@ def cut_reads(length, min_size, auto_span, genome_size, param_outfile, auto_dist
                     if auto_dist:
                         dist = int(np.percentile(read_lengths, dist_read_perc) // 1)
                         print("read_p%i\t%i" % (dist_read_perc, dist), file=param_file)
-
         else:
             print("long-to-linked: error: long reads must be piped from stdin", file=sys.stderr)
             sys.exit(1)
+
+def get_genome_size(size_string):
+    """Read genome size from a string. Allows scientific notation."""
+    if size_string.isnumeric():
+        if size_string == "-1":
+            print("long-to-linked: error: genome size must be provided to calculate span parameter", file=sys.stderr)
+        else:
+            return int(size_string)
+    elif "e" in size_string and size_string.count("e") == 1:
+        sci_not = [int(i) for i in size_string.split("e")]
+        return sci_not[0] * (10 ** sci_not[1])
+    else:
+        print("long-to-linked: error: genome size must be given as an integer or in scientific notation (e.g. '3e9')",
+                file=sys.stderr)
+        sys.exit(1)
 
 def main():
     """Parse arguments and cut long reads."""
@@ -77,10 +91,11 @@ def main():
                         action="store_true",
                         help="Option to calculate read length p5 for dist parameter")
     parser.add_argument("-g", "--genome_size",
-                        type=int,
-                        default=-1,
-                        help="Genome size (bp) for calculating sequence coverage and \
-                        minimum spanning molecules parameter automatically")
+                        type=str,
+                        required=True,
+                        help="Genome size for calculating sequence coverage and \
+                        minimum spanning molecules parameter automatically. Can be given \
+                        as an integer or in scientific notation (e.g. '3e9')")
     parser.add_argument("-o", "--param_outfile",
                         type=str,
                         default="tigmint-long.params.tsv",
@@ -89,8 +104,7 @@ def main():
     args = parser.parse_args()
 
     if args.auto_span:
-        if args.genome_size == -1:
-            raise ValueError("Genome size (bp) must be provided to calculate span parameter.")
+        args.genome_size = get_genome_size(args.genome_size)
 
     cut_reads(args.length, args.min_size, args.auto_span,
             args.genome_size, args.param_outfile, args.auto_dist)
