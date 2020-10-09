@@ -73,7 +73,7 @@ def main():
     parser = argparse.ArgumentParser(description="Segment long reads into short reads and calculate tigmint-long parameters.")
     parser.add_argument("-v", "--version",
                         action="version",
-                        version="long-to-linked 1.2.1")
+                        version="long-to-linked 1.3.0")
     parser.add_argument("-l", "--length",
                         type=int,
                         default=500,
