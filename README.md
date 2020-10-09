@@ -118,10 +118,10 @@ tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 ```
 ***
 
-To run Tigmint with long reads in fasta or fastq format (`myreads.fa.gz` or `myreads.fq.gz`) on the draft assembly `myassembly.fa`:
+To run Tigmint with long reads in fasta or fastq format (`myreads.fa.gz` or `myreads.fq.gz`) on the draft assembly `myassembly.fa` for an organism with a genome size of gsize:
 
 ```sh
-tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=genomesize dist=auto
+tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=gsize dist=auto
 ```
 
 - `minimap2 map-ont` is used to align long reads from the Oxford Nanopore Technologies (ONT) platform, which is the default input for Tigmint. To use PacBio long reads specify the parameter `longmap=pb`
@@ -145,7 +145,7 @@ tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=genomesize 
 
 + `draft`: Name of the draft assembly, `myassembly.fa`
 + `reads`: Name of the reads, `myreads.fq.gz`
-+ `G`: Haploid genome size of the draft assembly organism. Used to calculate `span` parameter automatically
++ `G`: Haploid genome size of the draft assembly organism. Used to calculate `span` parameter automatically. Can be given as an integer or in scientific notation (e.g. '3e9' for human)
 + `span=20`: Number of spanning molecules threshold. Set `span=auto` to automatically select span parameter (currently only recommended for `tigmint-long`)
 + `cut=500`: Cut length for long reads (`tigmint-long` only)
 + `longmap=ont`: Long read platform; `ont` for Oxford Nanopore Technologies (ONT) long reads, `pb` for PacBio long reads (`tigmint-long` only)
