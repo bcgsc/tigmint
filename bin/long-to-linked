@@ -92,7 +92,6 @@ def main():
                         help="Option to calculate read length p5 for dist parameter")
     parser.add_argument("-g", "--genome_size",
                         type=str,
-                        required=True,
                         help="Genome size for calculating sequence coverage and \
                         minimum spanning molecules parameter automatically. Can be given \
                         as an integer or in scientific notation (e.g. '3e9')")
