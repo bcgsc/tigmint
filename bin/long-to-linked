@@ -33,10 +33,10 @@ def cut_reads(length, min_size, auto_span, genome_size, param_outfile, auto_dist
             for header, seq, _, _ in read_fasta(reads):
                 read_length = len(seq)
                 total_bases += read_length
-                if auto_dist:
-                    read_lengths.append(read_length)
                 if read_length >= min_size:
                     split_reads = split_long_read(seq, length)
+                    if auto_dist:
+                        read_lengths.append(read_length)
                     for i, read in enumerate(split_reads):
                         print(">" + header + "_" + str(i) + " BX:Z:" + str(barcode), file=sys.stdout)
                         print(read, file=sys.stdout)
