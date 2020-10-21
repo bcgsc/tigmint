@@ -33,10 +33,10 @@ def cut_reads(length, min_size, auto_span, genome_size, param_outfile, auto_dist
             for header, seq, _, _ in read_fasta(reads):
                 read_length = len(seq)
                 total_bases += read_length
+                if auto_dist and read_length >= 2*length:
+                    read_lengths.append(read_length)
                 if read_length >= min_size:
                     split_reads = split_long_read(seq, length)
-                    if auto_dist:
-                        read_lengths.append(read_length)
                     for i, read in enumerate(split_reads):
                         print(">" + header + "_" + str(i) + " BX:Z:" + str(barcode), file=sys.stdout)
                         print(read, file=sys.stdout)
@@ -47,7 +47,7 @@ def cut_reads(length, min_size, auto_span, genome_size, param_outfile, auto_dist
                         span = int(total_bases / genome_size * cov_to_span)
                         print("span\t%s" % str(span), file=param_file)
                     if auto_dist:
-                        dist = int(np.percentile(read_lengths, dist_read_perc) // 1)
+                        dist = int(np.percentile(read_lengths, dist_read_perc))
                         print("read_p%i\t%i" % (dist_read_perc, dist), file=param_file)
         else:
             print("long-to-linked: error: long reads must be piped from stdin", file=sys.stderr)
