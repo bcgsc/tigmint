@@ -24,6 +24,9 @@ def cut_reads(length, min_size, auto_span, genome_size, param_outfile, auto_dist
     cov_to_span = 0.25
     # Dist automatically calculated as p5 of read length
     dist_read_perc = 5
+    # Lower bound for dist
+    dist_lower_bound = 1000
+
     total_bases = 0
     if auto_dist:
         read_lengths = []
@@ -33,7 +36,7 @@ def cut_reads(length, min_size, auto_span, genome_size, param_outfile, auto_dist
             for header, seq, _, _ in read_fasta(reads):
                 read_length = len(seq)
                 total_bases += read_length
-                if auto_dist and read_length >= 2*length:
+                if auto_dist and read_length >= dist_lower_bound:
                     read_lengths.append(read_length)
                 if read_length >= min_size:
                     split_reads = split_long_read(seq, length)
