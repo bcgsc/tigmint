@@ -76,7 +76,7 @@ def tigmint_pipeline():
                 "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.trim0.window1000.span20.breaktigs.fa",
                 "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.trim0.window1000.span20.breaktigs.fa.bed",
                 "test_contig.test_linkedreads.sortbx.bam",
-                "test_longreads.cut500.fa.gz", "test_longreads.tigmint-long.span.txt",
+                "test_longreads.cut500.fq.gz", "test_longreads.tigmint-long.span.txt",
                 "test_longreads.tigmint-long.params.tsv"]
     for outfile in outfiles:
         if os.path.exists(outfile):
@@ -87,7 +87,7 @@ def tigmint_pipeline():
 
 def test_long_to_linked_default():
     """Test long-to-linked script with default parameters."""
-    with gzip.open("test_longreads.cut500.fa.gz", "rt") as exp:
+    with gzip.open("test_longreads.cut500.fq.gz", "rt") as exp:
         for obs in long_to_linked():
             assert exp.readline().strip() == obs
     with open("tigmint-long.span_G_100000.span_auto.dist_default.tsv") as span:
@@ -100,7 +100,7 @@ def test_long_to_linked_all_filtered():
 
 def test_long_to_linked_large_genome():
     """Test long-to-linked script with a large genome size."""
-    with gzip.open("test_longreads.cut500.fa.gz", "rt") as exp:
+    with gzip.open("test_longreads.cut500.fq.gz", "rt") as exp:
         for obs in long_to_linked(G=1000000):
             assert exp.readline().strip() == obs
     with open("tigmint-long.span_G_1000000.span_auto.dist_default.tsv") as span:
@@ -108,14 +108,14 @@ def test_long_to_linked_large_genome():
 
 def test_long_to_linked_no_auto_params():
     """Test long-to-linked script with a given span."""
-    with gzip.open("test_longreads.cut500.fa.gz", "rt") as exp:
+    with gzip.open("test_longreads.cut500.fq.gz", "rt") as exp:
         for obs in long_to_linked(span=20, G=1000):
             assert exp.readline().strip() == obs
     assert not os.access("tigmint-long.span_G_1000.span_20.dist_default.tsv", os.F_OK)
 
 def test_long_to_linked_auto_dist():
     """Test long-to-linked script with dist=auto."""
-    with gzip.open("test_longreads.cut500.fa.gz", "rt") as exp:
+    with gzip.open("test_longreads.cut500.fq.gz", "rt") as exp:
         for obs in long_to_linked(span=20, G=1000000, dist="auto"):
             assert exp.readline().strip() == obs
     with open("tigmint-long.span_G_1000000.span_20.dist_auto.tsv", "rt") as param_file:
@@ -252,7 +252,7 @@ def test_pipeline(tigmint_pipeline):
     
     # Compare tigmint-long outputs
     # Cut reads
-    cut_reads = "test_longreads.cut500.fa.gz"
+    cut_reads = "test_longreads.cut500.fq.gz"
     exp = subprocess.Popen(shlex.split("gunzip -c %s" % ("expected_outputs/" + cut_reads)),
                             stdout=subprocess.PIPE, universal_newlines=True)
     obs = subprocess.Popen(shlex.split("gunzip -c %s" % cut_reads), stdout=subprocess.PIPE,
