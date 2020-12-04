@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 
 """
-Cut long reads and assign barcodes to the subreads. Optionally calculate span parameter for tigmint-cut.
+Cuts long reads and assign barcodes to the subreads and optionally calculates tigmint-long span and dist parameters.
 Usage: gunzip -c reads.fa.gz (or reads.fq.gz) | python3 long-to-linked -l length -m min_size -s -g genome_size | gzip > reads.cutlength.fa.gz
 @author: Janet Li
 """
@@ -33,16 +33,20 @@ def cut_reads(length, min_size, auto_span, genome_size, param_outfile, auto_dist
     with open("/dev/stdin", 'rt') as reads:
         barcode = 0
         if not reads.isatty():  # Check that reads are being piped in from stdin
-            for header, seq, _, _ in read_fasta(reads):
+            for header, seq, _, qual in read_fasta(reads):
                 read_length = len(seq)
                 total_bases += read_length
                 if auto_dist and read_length >= dist_lower_bound:
                     read_lengths.append(read_length)
                 if read_length >= min_size:
                     split_reads = split_long_read(seq, length)
+                    if qual:
+                        split_quals = split_long_read(qual, length)
+                    else:
+                        split_quals = split_long_read(read_length * "#", length)
                     for i, read in enumerate(split_reads):
-                        print(">" + header + "_" + str(i) + " BX:Z:" + str(barcode), file=sys.stdout)
-                        print(read, file=sys.stdout)
+                        outheader = "@{0}_{1} BX:Z:{2}".format(header, str(i), str(barcode))
+                        print(outheader, read, "+", split_quals[i], sep="\n", file=sys.stdout)
                     barcode += 1
             if auto_span or auto_dist:
                 with open(param_outfile, "w") as param_file:
@@ -57,7 +61,7 @@ def cut_reads(length, min_size, auto_span, genome_size, param_outfile, auto_dist
             sys.exit(1)
 
 def get_genome_size(size_string):
-    """Read genome size from a string. Allows scientific notation."""
+    """Read genome size from a string."""
     if size_string.isnumeric():
         if size_string == "-1":
             print("long-to-linked: error: genome size must be provided to calculate span parameter", file=sys.stderr)
