@@ -16,7 +16,7 @@ digraph {
 	subgraph {
 	    node [width=5]
 	    
-	    cut [label="long-to-linked\nSegment long reads (FASTA)"]
+	    cut [label="long-to-linked\nSegment long reads (FASTQ)"]
 	    minimap2 [label="Minimap2\nAlign segmented reads to the draft assembly (BAM)"]
 	    
 	}
