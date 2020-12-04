@@ -62,17 +62,10 @@ def cut_reads(length, min_size, auto_span, genome_size, param_outfile, auto_dist
 
 def get_genome_size(size_string):
     """Read genome size from a string."""
-    if size_string.isnumeric():
-        if size_string == "-1":
-            print("long-to-linked: error: genome size must be provided to calculate span parameter", file=sys.stderr)
-        else:
-            return int(size_string)
-    elif "e" in size_string and size_string.count("e") == 1:
-        sci_not = [int(i) for i in size_string.split("e")]
-        return sci_not[0] * (10 ** sci_not[1])
-    else:
-        print("long-to-linked: error: genome size must be given as an integer or in scientific notation (e.g. '3e9')",
-                file=sys.stderr)
+    try:
+        return float(size_string)
+    except ValueError:
+        print("long-to-linked: error: improper format for genome size", file=sys.stderr)
         sys.exit(1)
 
 def main():
@@ -100,8 +93,7 @@ def main():
     parser.add_argument("-g", "--genome_size",
                         type=str,
                         help="Genome size for calculating sequence coverage and \
-                        minimum spanning molecules parameter automatically. Can be given \
-                        as an integer or in scientific notation (e.g. '3e9')")
+                        minimum spanning molecules parameter (e.g. 3e9)")
     parser.add_argument("-o", "--param_outfile",
                         type=str,
                         default="tigmint-long.params.tsv",
