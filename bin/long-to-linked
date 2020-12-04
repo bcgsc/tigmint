@@ -43,14 +43,14 @@ def cut_reads(length, min_size, auto_span, genome_size, param_outfile, auto_dist
                     else:
                         split_quals = split_long_read(read_length * "#", length)
                     for i, read in enumerate(split_reads):
-                        outheader = "@{0}_{1} BX:Z:{2}".format(header, str(i), str(barcode))
+                        outheader = "@{0}_{1} BX:Z:{2}".format(header, i, barcode)
                         print(outheader, read, "+", split_quals[i], sep="\n", file=sys.stdout)
                     barcode += 1
             if auto_span or auto_dist:
                 with open(param_outfile, "w") as param_file:
                     if auto_span:
                         span = int(total_bases / genome_size * cov_to_span)
-                        print("span\t%s" % str(span), file=param_file)
+                        print("span\t{}".format(span), file=param_file)
                     if auto_dist:
                         dist = int(np.percentile(read_lengths, dist_perc))
                         print("read_p%i\t%i" % (dist_perc, dist), file=param_file)
