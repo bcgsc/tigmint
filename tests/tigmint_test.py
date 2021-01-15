@@ -119,7 +119,7 @@ def test_long_to_linked_auto_dist():
         for obs in long_to_linked(span=20, G=1000000, dist="auto"):
             assert exp.readline().strip() == obs
     with open("tigmint-long.span_G_1000000.span_20.dist_auto.tsv", "rt") as param_file:
-        assert param_file.readline().strip() == "read_p5\t1534"
+        assert param_file.readline().strip() == "read_p50\t17154"
 
 def test_tigmint_molecule_linked_default():
     """Test tigmint-molecule with linked reads and default parameters."""
