@@ -123,7 +123,7 @@ help:
 	@echo 'For more information see https://bcgsc.github.io/tigmint/'
 
 version:
-	@echo "Tigmint 1.2.1"
+	@echo "Tigmint 1.2.2"
 	@echo "Written by Shaun Jackman @sjackman."
 
 all: tigmint arcs
@@ -194,21 +194,21 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 
 # Align cut long reads to the draft genome and output primary alignments sorted by BX tag.
 $(draft).%.cut$(cut).sortbx.bam: %.cut$(cut).fa.gz $(draft).fa
-	minimap2 -y -t$t -ax map-$(longmap) --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
+	$(gtime) minimap2 -y -t$t -ax map-$(longmap) --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
 
 # Segment long reads from gzipped fasta file, optionally calculating tigmint-long parameters.
-$(reads).cut$(cut).fa.gz: $(longreads)
+$(reads).cut$(cut).fq.gz: $(longreads)
 ifeq ($(span), auto)
 ifeq ($(dist), auto)
-	$(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) -g$(G) -s -d -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
+	$(gtime) $(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) -g$(G) -s -d -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
 else
-	$(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) -g$(G) -s -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
+	$(gtime) $(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) -g$(G) -s -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
 endif
 else
 ifeq ($(dist), auto)
-	$(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) -d -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
+	$(gtime) $(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) -d -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
 else
-	$(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) | $(gzip) > $@
+	$(gtime) $(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) | $(gzip) > $@
 endif
 endif
 
@@ -223,7 +223,7 @@ endif
 	$(gtime) $(bin)/tigmint-molecule -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) $< | sort -k1,1 -k2,2n -k3,3n >$@
 
 # Create molecule extents BED using cut long reads
-$(draft).$(reads).cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).bed: $(reads).cut$(cut).fa.gz $(draft).fa
+$(draft).$(reads).cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).bed: $(reads).cut$(cut).fq.gz $(draft).fa
 ifeq ($(dist), auto)
 	$(gtime) minimap2 -y -t$t -as map-$(longmap) --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) | \
 		$(bin)/tigmint-molecule -a$(as) -n$(cut) -q$(mapq) -s$(minsize) -p $(reads).tigmint-long.params.tsv - | sort -k1,1 -k2,2n -k3,3n > $@
