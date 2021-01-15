@@ -11,7 +11,7 @@ jobs:
       architecture: x64
   - script: |
       sudo HOMEBREW_NO_AUTO_UPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew install python@3.8
-      sudo /home/linuxbrew/.linuxbrew/bin/pip3 install --upgrade setuptools \
+      sudo /home/linuxbrew/.linuxbrew/opt/python@3.8/bin/pip3 install --upgrade setuptools \
       -U pip --no-cache-dir \
       pylint .
     displayName: Install Python packages
@@ -23,13 +23,13 @@ jobs:
       cd ../
     displayName: Run pylint
   - script: |
-      export PATH=/home/linuxbrew/.linuxbrew/bin:$PATH
-      echo path:
-      echo $PATH
-      sudo /home/linuxbrew/.linuxbrew/bin/pip3 install pytest
+      sudo /home/linuxbrew/.linuxbrew/opt/python@3.8/bin/pip3 install pytest
       sudo HOMEBREW_NO_AUTOUPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew tap brewsci/bio 
       sudo HOMEBREW_NO_AUTOUPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew install bedtools bwa samtools gnu-time minimap2
-      cd tests/
+      export PATH=/home/linuxbrew/.linuxbrew/bin:$PATH
+      export PATH=/home/linuxbrew/.linuxbrew/opt/python@3.8/bin:$PATH
+      echo $PATH
+      cd tests
       pytest -vs tigmint_test.py
     env:
       HOMEBREW_NO_AUTO_UPDATE: 1
