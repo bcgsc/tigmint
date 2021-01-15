@@ -10,8 +10,8 @@ jobs:
       versionSpec: "3.8"
       architecture: x64
   - script: |
-      sudo HOMEBREW_NO_AUTO_UPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew install python
-      sudo /home/linuxbrew/.linuxbrew/bin/pip3 install setuptools \
+      sudo HOMEBREW_NO_AUTO_UPDATE=1 /home/linuxbrew/.linuxbrew/bin/brew install python@3.8
+      sudo /home/linuxbrew/.linuxbrew/bin/pip3 install --upgrade setuptools \
       -U pip --no-cache-dir \
       pylint .
     displayName: Install Python packages
