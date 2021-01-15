@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 
 """
-Cuts long reads and assign barcodes to the subreads and optionally calculates tigmint-long span and dist parameters.
+Cuts long reads and assigns barcodes to the subreads, and optionally calculates tigmint-long span and dist parameters.
 Usage: gunzip -c reads.fa.gz (or reads.fq.gz) | python3 long-to-linked -l length -m min_size -s -g genome_size | gzip > reads.cutlength.fa.gz
 @author: Janet Li
 """
