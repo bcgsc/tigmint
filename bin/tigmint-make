@@ -225,10 +225,10 @@ endif
 # Create molecule extents BED using cut long reads
 $(draft).$(reads).cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).bed: $(reads).cut$(cut).fq.gz $(draft).fa
 ifeq ($(dist), auto)
-	$(gtime) minimap2 -y -t$t -as map-$(longmap) --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) | \
+	$(gtime) minimap2 -y -t$t -ax map-$(longmap) --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) | \
 		$(bin)/tigmint-molecule -a$(as) -n$(cut) -q$(mapq) -s$(minsize) -p $(reads).tigmint-long.params.tsv - | sort -k1,1 -k2,2n -k3,3n > $@
 else 
-	$(gtime) minimap2 -y -t$t -as map-$(longmap) --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) | \
+	$(gtime) minimap2 -y -t$t -ax map-$(longmap) --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) | \
 		$(bin)/tigmint-molecule -a$(as) -n$(cut) -q$(mapq) -d$(dist) -s$(minsize) - | sort -k1,1 -k2,2n -k3,3n > $@
 endif
 
