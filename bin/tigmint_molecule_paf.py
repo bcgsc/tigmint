@@ -7,11 +7,11 @@ Based on tigmint-molecule written by Justin Chu, Janet Li and Shaun Jackman
 import argparse
 import re
 import sys
-from tigmint_molecule import FileFormat, Molecule, MolecIdentifier
+from tigmint_molecule import MolecIdentifier
 
 
 class ReadMapping:
-    "Class representing a linked read mapping"
+    "Class representing a pseudo-linked read mapping"
 
     def __init__(self, rname, start, end, barcode):
         self.rname = rname
@@ -33,6 +33,7 @@ class MolecIdentifierPaf:
     """Group molecules into barcodes"""
 
     def print_current_molecule(self, ref, start, end, barcode, num_reads, new_molec_file):
+        "Print molecule"
         if num_reads >= self.opt.min_reads and end - start >= self.opt.min_size:
             print(ref, start, end, barcode, num_reads, sep="\t", file=new_molec_file)
 
@@ -75,18 +76,18 @@ class MolecIdentifierPaf:
         else:
             out_molecules_file = sys.stdout
 
-        if self.opt.output_format == FileFormat.TSV:
-            print("Rname\tStart\tEnd\tSize\tBX\tMI\tReads",
-                  file=out_molecules_file)
-
         prev_barcode = None
         cur_intervals = {}
-        #new_molec_id = 0
 
         with open(self.opt.PAF, 'r') as in_paf_file:
             for paf_entry in in_paf_file:
                 paf_entry = paf_entry.strip().split("\t")
-                rname, start, end, barcode = paf_entry[5], int(paf_entry[7]), int(paf_entry[8]), paf_entry[18]
+                rname, start, end, mapq, barcode = paf_entry[5], int(paf_entry[7]), \
+                                                   int(paf_entry[8]), int(paf_entry[11]), \
+                                                   paf_entry[18]
+                if mapq < self.opt.min_mapq:
+                    continue
+
                 if prev_barcode != barcode:
                     if prev_barcode is not None:
                         self.print_new_molecule(prev_barcode, cur_intervals, out_molecules_file)
@@ -99,40 +100,28 @@ class MolecIdentifierPaf:
             self.print_new_molecule(prev_barcode, cur_intervals, out_molecules_file)
 
     def parse_arguments(self):
-        "Parse input arguments"
+        "Parse input arguments for tigmint-molecule-paf"
         parser = argparse.ArgumentParser(
             description="Group linked reads simulated from long reads into molecules. "
-                        "Read a PAF file and output a BED file. ")
-        parser.add_argument(
-            '--version', action='version', version='tigmint-molecule-paf 1.2.2')
-        parser.add_argument(
-            metavar="PAF", dest="PAF",
-            help="Input PAF file, - for stdin")
-        parser.add_argument(
-            "-o", "--output", dest="out_molecules_filename",
-            help="Output molecule file [stdout]",
-            metavar="FILE")
-        parser.add_argument(
-            "--bed", action="store_const", dest="output_format", const=FileFormat.BED,
-            default=FileFormat.BED,
-            help="Output in BED format [default]")
-        parser.add_argument(
-            "--tsv", action="store_const", dest="output_format", const=FileFormat.TSV,
-            help="Output in TSV format")
-        parser.add_argument(
-            "-d", "--dist", dest="max_dist", type=int, default=50000,
-            help="Maximum distance between reads in the same molecule [50000]",
-            metavar="N")
-        parser.add_argument(
-            "-m", "--reads", dest="min_reads", type=int, default=4,
-            help="Minimum number of reads per molecule (duplicates are filtered out) [4]",
-            metavar="N")
-        parser.add_argument(
-            "-s", "--size", dest="min_size", type=int, default=2000,
-            help="Minimum molecule size [2000]",
-            metavar="N")
-        parser.add_argument(
-            "-p", "--params", dest="param_file", type=str, default=None)
+                        "Read a PAF file and output a BED file.")
+        parser.add_argument('--version', action='version', version='tigmint-molecule-paf 1.2.2')
+        parser.add_argument(metavar="PAF", dest="PAF", help="Input PAF file, - for stdin")
+        parser.add_argument("-o", "--output", dest="out_molecules_filename",
+                            help="Output molecule BED file [stdout]",
+                            metavar="FILE")
+        parser.add_argument("-d", "--dist", dest="max_dist", type=int,
+                            default=50000,
+                            help="Maximum distance between reads in the same molecule [50000]",
+                            metavar="N")
+        parser.add_argument("-m", "--reads", dest="min_reads", type=int, default=4,
+                            help="Minimum number of reads per molecule "
+                                 "(duplicates filtered out) [4]",
+                            metavar="N")
+        parser.add_argument("-s", "--size", dest="min_size", type=int, default=2000,
+                            help="Minimum molecule size [2000]", metavar="N")
+        parser.add_argument("-p", "--params", dest="param_file", type=str, default=None)
+        parser.add_argument("-q", "--mapq", dest="min_mapq", type=int, default=0,
+                            help="Minimum mapping quality [0]", metavar="N")
 
         self.opt = parser.parse_args()
 
@@ -142,8 +131,8 @@ class MolecIdentifierPaf:
 
         self.opt.PAF = "/dev/stdin" if self.opt.PAF == "-" else self.opt.PAF
 
-
     def __init__(self):
+        self.opt = None
         self.parse_arguments()
 
 def main():
