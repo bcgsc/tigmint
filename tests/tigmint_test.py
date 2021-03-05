@@ -264,9 +264,9 @@ def test_pipeline(tigmint_pipeline):
 
     # Other output files
     tigmint_long_outputs = ["test_longreads.tigmint-long.params.tsv",
-        "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.bed",
-        "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.trim0.window1000.span20.breaktigs.fa",
-        "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.trim0.window1000.span20.breaktigs.fa.bed"]
+        "test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.bed",
+        "test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.trim0.window1000.spanauto.breaktigs.fa",
+        "test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.trim0.window1000.spanauto.breaktigs.fa.bed"]
     for output in tigmint_long_outputs:
         expected_output = "expected_outputs/" + output
         with open(expected_output) as exp:
