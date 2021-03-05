@@ -184,7 +184,7 @@ def test_tigmint_cut_long_spanauto(tigmint_cut):
     test_breaktigs = "pytest_test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.trim0.window1000.span2.breaktigs.fa"
     test_breaktigs_bed = test_breaktigs + ".bed"
     tigmint_cut("test_contig_long.fa", "test_longreads.fa.gz",
-                "test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.bed", 
+                "test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.bed",
                 test_breaktigs, auto_span=True)
     with open(test_breaktigs) as obs_breaktigs:
         with open(real_breaktigs) as exp_breaktigs:
@@ -203,7 +203,7 @@ def test_tigmint_cut_long_spanauto_largeG(tigmint_cut):
     test_breaktigs = "pytest_" + real_breaktigs
     test_breaktigs_bed = test_breaktigs + ".bed"
     tigmint_cut("test_contig_long.fa", "test_longreads.fa.gz",
-                "test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.bed", 
+                "test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.bed",
                 test_breaktigs, auto_span=True, G=1000000)
     with open(test_breaktigs) as obs_breaktigs:
         with open(real_breaktigs) as exp_breaktigs:
@@ -264,9 +264,9 @@ def test_pipeline(tigmint_pipeline):
 
     # Other output files
     tigmint_long_outputs = ["test_longreads.tigmint-long.params.tsv",
-        "test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.bed",
-        "test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.trim0.window1000.spanauto.breaktigs.fa",
-        "test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.trim0.window1000.spanauto.breaktigs.fa.bed"]
+        "test_contig_long.test_longreads.cut500.molecule.size2000.bed",
+        "test_contig_long.test_longreads.cut500.molecule.size2000.trim0.window1000.spanauto.breaktigs.fa",
+        "test_contig_long.test_longreads.cut500.molecule.size2000.trim0.window1000.spanauto.breaktigs.fa.bed"]
     for output in tigmint_long_outputs:
         expected_output = "expected_outputs/" + output
         with open(expected_output) as exp:
