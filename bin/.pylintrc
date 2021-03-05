@@ -1,0 +1,7 @@
+[basic]
+max-args = 8
+ 
+[MISCELLANEOUS]
+
+# List of note tags to take in consideration, separated by a comma.
+notes=FIXME,XXX
