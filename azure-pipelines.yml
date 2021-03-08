@@ -19,7 +19,8 @@ jobs:
       HOMEBREW_NO_AUTOUPDATE: 1
   - script: |
       cd bin
-      pylint tigmint_molecule.py long-to-linked tigmint-cut tigmint-molecule tigmint-molecule-paf
+      pylint long-to-linked tigmint-cut tigmint-molecule tigmint-molecule-paf
+      echo $?
       cd ../
     displayName: Run pylint
   - script: |
