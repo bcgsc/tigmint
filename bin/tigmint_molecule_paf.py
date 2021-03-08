@@ -40,9 +40,7 @@ class MolecIdentifierPaf:
 
     def print_new_molecule(self, barcode, intervals, new_molec_file):
         "Given a collection of intervals from a barcode, find the molecule extents and print them"
-        barcode_re = re.compile(r'^BX:Z:(\S+)')
-
-        barcode_match = re.search(barcode_re, barcode)
+        barcode_match = re.search(r'^BX:Z:(\S+)', barcode)
         assert barcode_match
         barcode_short = barcode_match.group(1)
 
