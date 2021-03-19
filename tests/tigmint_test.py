@@ -26,11 +26,11 @@ def long_to_linked(length=500, minsize=2000, span="auto", G=100000, dist="defaul
         yield read
 
 def tigmint_molecule(bamfile, dist="default"):
-    """Run tigmint-molecule with a given alignment bam file."""
+    """Run tigmint_molecule.py with a given alignment bam file."""
     if dist == "default":
-        tigmint_molecule = subprocess.Popen(shlex.split("../bin/tigmint-molecule -a0.65 -n5 -q0 -d50000 -s2000 %s" % bamfile), stdout=subprocess.PIPE)
+        tigmint_molecule = subprocess.Popen(shlex.split("../bin/tigmint_molecule.py -a0.65 -n5 -q0 -d50000 -s2000 %s" % bamfile), stdout=subprocess.PIPE)
     elif dist == "auto":
-        tigmint_molecule = subprocess.Popen(shlex.split("../bin/tigmint-molecule -a0.65 -n5 -q0 -d50000 -s2000 -p tigmint-long.span_G_1000000.span_20.dist_auto.tsv %s" % bamfile), stdout=subprocess.PIPE)
+        tigmint_molecule = subprocess.Popen(shlex.split("../bin/tigmint_molecule.py -a0.65 -n5 -q0 -d50000 -s2000 -p tigmint-long.span_G_1000000.span_20.dist_auto.tsv %s" % bamfile), stdout=subprocess.PIPE)
     sorted_molecules = subprocess.Popen(shlex.split("sort -k1,1 -k2,2n -k3,3n"), stdin=tigmint_molecule.stdout, stdout=subprocess.PIPE, universal_newlines=True)
     tigmint_molecule.wait()
     molecules = sorted_molecules.communicate()[0].splitlines()
@@ -122,19 +122,19 @@ def test_long_to_linked_auto_dist():
         assert param_file.readline().strip() == "read_p50\t17154"
 
 def test_tigmint_molecule_linked_default():
-    """Test tigmint-molecule with linked reads and default parameters."""
+    """Test tigmint_molecule.py with linked reads and default parameters."""
     with open("test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.bed", "r") as exp:
         for obs in tigmint_molecule("test_contig.test_linkedreads.sortbx.bam"):
             assert exp.readline().strip() == obs
 
 def test_tigmint_molecule_long_default():
-    """Test tigmint-molecule with long read and default parameters."""
+    """Test tigmint_molecule.py with long read and default parameters."""
     with open("test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.bed", "r") as exp:
         for obs in tigmint_molecule("test_contig_long.test_longreads.cut500.sortbx.bam"):
             assert exp.readline().strip() == obs
 
 def test_tigmint_molecule_long_dist_auto():
-    """Test tigmint-molecule with dist=read length p5 from calculated file."""
+    """Test tigmint_molecule.py with dist=read length p5 from calculated file."""
     with open("test_contig_long.test_longreads.cut500.as0.65.nm500.molecule.size2000.dist_auto.bed", "r") as exp:
         for obs in tigmint_molecule("test_contig_long.test_longreads.cut500.sortbx.bam", dist="auto"):
             assert exp.readline().strip() == obs
