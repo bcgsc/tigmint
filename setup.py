@@ -25,7 +25,8 @@ setuptools.setup(
         "bin/tigmint-arcs-tsv",
         "bin/tigmint-cut",
         "bin/tigmint-make",
-        "bin/tigmint-molecule",
+        "bin/tigmint_molecule.py",
+        "bin/tigmint_molecule_paf.py",
         "bin/long-to-linked"],
     classifiers=[
         "Programming Language :: Python :: 3",

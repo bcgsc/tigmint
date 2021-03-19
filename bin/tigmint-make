@@ -148,7 +148,7 @@ tigmint: \
 
 # Correct misassemblies for long reads using Tigmint
 tigmint-long: \
-	$(draft).$(reads).cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa \
+	$(draft).$(reads).cut$(cut).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa \
 	$(draft).cut$(cut).tigmint.fa
 
 # Calculate assembly metrics after Tigmint
@@ -173,7 +173,7 @@ $(draft).tigmint.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).t
 	ln -sf $< $@
 
 # Symlink the long read Tigmint results
-$(draft).cut$(cut).tigmint.fa: $(draft).$(reads).cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa
+$(draft).cut$(cut).tigmint.fa: $(draft).$(reads).cut$(cut).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa
 	ln -sf $< $@
 
 # Symlink the ARCS results
@@ -220,25 +220,25 @@ endif
 
 # Create molecule extents BED
 %.as$(as).nm$(nm).molecule.size$(minsize).bed: %.sortbx.bam
-	$(gtime) $(bin)/tigmint-molecule -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) $< | sort -k1,1 -k2,2n -k3,3n >$@
+	$(gtime) $(bin)/tigmint_molecule.py -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) $< | sort -k1,1 -k2,2n -k3,3n >$@
 
 # Create molecule extents BED using cut long reads
-$(draft).$(reads).cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).bed: $(reads).cut$(cut).fq.gz $(draft).fa
+$(draft).$(reads).cut$(cut).molecule.size$(minsize).bed: $(reads).cut$(cut).fq.gz $(draft).fa
 ifeq ($(dist), auto)
-	$(gtime) minimap2 -y -t$t -ax map-$(longmap) --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) | \
-		$(bin)/tigmint-molecule -a$(as) -n$(cut) -q$(mapq) -s$(minsize) -p $(reads).tigmint-long.params.tsv - | sort -k1,1 -k2,2n -k3,3n > $@
+	$(gtime) minimap2 -y -t$t -x map-$(longmap) --secondary=no $(draft).fa $< | \
+		$(bin)/tigmint_molecule_paf.py -q$(mapq) -s$(minsize) -p $(reads).tigmint-long.params.tsv - | sort -k1,1 -k2,2n -k3,3n > $@
 else 
-	$(gtime) minimap2 -y -t$t -ax map-$(longmap) --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) | \
-		$(bin)/tigmint-molecule -a$(as) -n$(cut) -q$(mapq) -d$(dist) -s$(minsize) - | sort -k1,1 -k2,2n -k3,3n > $@
+	$(gtime) minimap2 -y -t$t -x map-$(longmap) --secondary=no $(draft).fa $< | \
+		$(bin)/tigmint_molecule_paf.py -q$(mapq) -d$(dist) -s$(minsize) - | sort -k1,1 -k2,2n -k3,3n > $@
 endif
 
 # Create molecule extents TSV
 %.as$(as).nm$(nm).molecule.size$(minsize).tsv: %.sortbx.bam
-	$(gtime) $(bin)/tigmint-molecule --tsv -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) -o $@ $<
+	$(gtime) $(bin)/tigmint_molecule.py --tsv -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) -o $@ $<
 
 # Create molecule extents TSV using cut long reads
 %.cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).tsv: %.cut$(cut).sortbx.bam
-	$(gtime) $(bin)/tigmint-molecule --tsv -a$(as) -n$(cut) -q$(mapq) -d$(dist) -s$(minsize) -o $@ $<
+	$(gtime) $(bin)/tigmint_molecule.py --tsv -a$(as) -n$(cut) -q$(mapq) -d$(dist) -s$(minsize) -o $@ $<
 
 # Report summary statistics of a Chromium library
 %.molecule.summary.html: %.molecule.tsv
