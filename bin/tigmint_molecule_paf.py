@@ -2,7 +2,7 @@
 """
 Group linked reads from paf format into molecules.
 @author: Lauren Coombe
-Based on tigmint-molecule written by Justin Chu, Janet Li and Shaun Jackman
+Based on tigmint_molecule.py written by Justin Chu, Janet Li and Shaun Jackman
 """
 import argparse
 import re
@@ -98,11 +98,11 @@ class MolecIdentifierPaf:
             self.print_new_molecule(prev_barcode, cur_intervals, out_molecules_file)
 
     def parse_arguments(self):
-        "Parse input arguments for tigmint-molecule-paf"
+        "Parse input arguments for tigmint_molecule_paf.py"
         parser = argparse.ArgumentParser(
             description="Group linked reads simulated from long reads into molecules. "
                         "Read a PAF file and output a BED file.")
-        parser.add_argument('--version', action='version', version='tigmint-molecule-paf 1.2.2')
+        parser.add_argument('--version', action='version', version='tigmint_molecule_paf.py 1.2.2')
         parser.add_argument(metavar="PAF", dest="PAF", help="Input PAF file, - for stdin")
         parser.add_argument("-o", "--output", dest="out_molecules_filename",
                             help="Output molecule BED file [stdout]",
