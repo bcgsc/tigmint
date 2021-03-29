@@ -35,7 +35,8 @@ print_usage()
 {
 	std::cerr
 	    << "Usage: Split long reads into paired-end pseudo-linked reads." << PROGNAME
-	    << " -l L -g G [--fasta -s -d -p P -c C -m M -t T -f FILE] READS \n\n"
+	    << " -l L -g G [--fasta -s -d -p P -c C -m M -t T -f FILE -b B --bx / (--bx-only)]  READS "
+	       "\n\n"
 	       "  -l L        Use L as simulated read length size.\n"
 	       "  -g G        Use G as Genome size (bp) for calculating tigmint-long span "
 	       "parameter as an integer or in scientific notation (e.g. '3e9').\n"
@@ -47,6 +48,9 @@ print_usage()
 	       "  -p P        Use P percentile to estimate dist parameter. [50].\n"
 	       "  -m M        M minimum read length for a read to be considered a molecule. [2000].\n"
 	       "  -t T        Use T number of threads (max 6) per input file. [6]\n"
+	       "  -b B        Write barcode multiplicity to B. [barcode_multiplicity.tsv].\n"
+	       "  --bx        Compute barcode multiplicity of simulated linked reads output.\n"
+	       "  --bx--only  Compute barcode multiplicity of simulated linked reads output only.\n"
 	       "  -v          Show verbose output.\n"
 	       "  --help      Display this help and exit.\n"
 	       "  --version   Display version and exit.\n"
@@ -61,7 +65,7 @@ main(int argc, char* argv[])
 	int optindex = 0;
 	int help = 0, version = 0;
 	bool auto_span = false, auto_dist = false;
-	size_t l = 0, g = 0, t = 7, m = 2000;
+	size_t l = 0, g = 0, t = 6, m = 2000;
 	bool g_set = false;
 	bool l_set = false;
 	double cov_to_span = 0.25;      // Optimal tigmint-long span is 1/4 sequence coverage
@@ -69,14 +73,19 @@ main(int argc, char* argv[])
 	size_t dist_lower_bound = 1000; // Lower bound for dist
 	std::vector<size_t> read_lengths;
 	size_t total_bases = 0;
-	int with_fasta = 0;
+	int with_fasta = 0, with_bx_multiplicity = 0, with_bx_multiplicity_only = 0;
 	std::string configFile("tigmint-long.params.tsv");
+	std::string bxMultiplicityFile("barcode_multiplicity.tsv");
 	bool failed = false;
-	static const struct option longopts[] = { { "fasta", no_argument, &with_fasta, 1 },
-		                                      { "help", no_argument, &help, 1 },
-		                                      { "version", no_argument, &version, 1 },
-		                                      { nullptr, 0, nullptr, 0 } };
-	while ((c = getopt_long(argc, argv, "l:g:o:c:p:sdf:t:", longopts, &optindex)) != -1) {
+	static const struct option longopts[] = {
+		{ "bx", no_argument, &with_bx_multiplicity, 1 },
+		{ "bx-only", no_argument, &with_bx_multiplicity_only, 1 },
+		{ "fasta", no_argument, &with_fasta, 1 },
+		{ "help", no_argument, &help, 1 },
+		{ "version", no_argument, &version, 1 },
+		{ nullptr, 0, nullptr, 0 }
+	};
+	while ((c = getopt_long(argc, argv, "l:g:o:c:p:sdf:t:b:m:", longopts, &optindex)) != -1) {
 		switch (c) {
 		case 0:
 			break;
@@ -102,6 +111,9 @@ main(int argc, char* argv[])
 		case 'f':
 			configFile = optarg;
 			break;
+		case 'b':
+			bxMultiplicityFile = optarg;
+			break;
 		case 's':
 			auto_span = true;
 			break;
@@ -111,14 +123,6 @@ main(int argc, char* argv[])
 		default:
 			std::exit(EXIT_FAILURE);
 		}
-	}
-
-	if (t > MAX_THREADS) {
-		t = MAX_THREADS;
-		std::cerr << (PROGNAME + ' ' + VERSION + ": Using more than " +
-		              std::to_string(MAX_THREADS) + " threads does not scale, reverting to " +
-		              std::to_string(MAX_THREADS) + ".\n")
-		          << std::flush;
 	}
 
 	std::vector<std::string> infiles(&argv[optind], &argv[argc]);
@@ -156,10 +160,23 @@ main(int argc, char* argv[])
 		std::exit(EXIT_FAILURE);
 	}
 
+	if (t > MAX_THREADS) {
+		t = MAX_THREADS;
+		std::cerr << (PROGNAME + ' ' + VERSION + ": Using more than " +
+		              std::to_string(MAX_THREADS) + " threads does not scale, reverting to " +
+		              std::to_string(MAX_THREADS) + ".\n")
+		          << std::flush;
+	}
+
 	char header_symbol = '@';
 
 	if (with_fasta) {
 		header_symbol = '>';
+	}
+
+	std::ofstream bx_multiplicity_ofs;
+	if (with_bx_multiplicity_only || with_bx_multiplicity) {
+		bx_multiplicity_ofs = std::ofstream(bxMultiplicityFile, std::ofstream::out);
 	}
 
 	for (auto& infile : infiles) {
@@ -171,93 +188,109 @@ main(int argc, char* argv[])
 		while ((record = reader.read())) {
 			size_t step = l * 2;
 			std::string& seq = record.seq;
-			std::string& qual = record.qual;
 			size_t seq_size = seq.size();
-			size_t qual_size = qual.size();
-
-			if (auto_dist) {
-				if (seq_size > dist_lower_bound) {
-					read_lengths.push_back(seq_size);
+			if (with_bx_multiplicity_only || with_bx_multiplicity) {
+				if (step > seq_size || m > seq_size) {
+					continue;
+				}
+				if (seq_size % step != 0) {
+					bx_multiplicity_ofs << record.num + 1 << "\t" << (seq_size / step + 1) * 2
+					                    << std::endl;
+				} else {
+					bx_multiplicity_ofs << record.num + 1 << "\t" << seq_size / l << std::endl;
 				}
 			}
-			if (auto_span) {
-				total_bases += seq_size;
-			}
+			if (!with_bx_multiplicity_only) {
 
-			if (step > seq_size || m > seq_size) {
-				continue;
-			}
-			int read_num = 1;
-			for (size_t i = 0; i <= seq_size - step; i = i + step) {
-				std::cout << header_symbol << record.name << "_f" << read_num
-				          << " BX:Z:" << record.num + 1 << '\n';
-				std::cout << seq.substr(i, l) << '\n';
-				if (!with_fasta) {
-					std::cout << "+\n";
-					if (qual_size == 0) {
-						std::cout << std::string(l, '#') << '\n';
-					} else {
-						std::cout << qual.substr(i, l) << '\n';
+				std::string& qual = record.qual;
+
+				size_t qual_size = qual.size();
+
+				if (auto_dist) {
+					if (seq_size > dist_lower_bound) {
+						read_lengths.push_back(seq_size);
 					}
 				}
-				std::string reverse_linked_read = seq.substr(i + l, l);
-				btllib::reverse_complement(reverse_linked_read);
-				std::cout << header_symbol << record.name << "_f" << read_num
-				          << " BX:Z:" << record.num + 1 << '\n';
-				std::cout << reverse_linked_read << '\n';
-				if (!with_fasta) {
-					std::cout << "+\n";
-					if (qual_size == 0) {
-						std::cout << std::string(l, '#') << '\n';
-					} else {
-						std::string reverse_qual = qual.substr(i + l, l);
-						std::reverse(reverse_qual.begin(), reverse_qual.end());
-						std::cout << reverse_qual << '\n';
-					}
+				if (auto_span) {
+					total_bases += seq_size;
 				}
-				++read_num;
-			}
 
-			size_t remainder = seq_size % step;
-			if (remainder != 0) {
-				size_t curr_i = seq_size - remainder;
-				std::cout << header_symbol << record.name << "_f" << read_num
-				          << " BX:Z:" << record.num + 1 << '\n';
-				std::string forward_linked_read = seq.substr(curr_i, l);
-				std::cout << forward_linked_read << '\n';
-				if (!with_fasta) {
-					std::cout << "+\n";
-					if (qual_size == 0) {
-						std::cout << std::string(forward_linked_read.size(), '#') << '\n';
-					} else {
-						std::cout << qual.substr(curr_i, l) << '\n';
-					}
+				if (step > seq_size || m > seq_size) {
+					continue;
 				}
-				std::string reverse_linked_read =
-				    seq.substr(seq_size - forward_linked_read.size(), forward_linked_read.size());
-				btllib::reverse_complement(reverse_linked_read);
-				std::cout << header_symbol << record.name << "_f" << read_num
-				          << " BX:Z:" << record.num + 1 << '\n';
-				std::cout << reverse_linked_read << '\n';
-				if (!with_fasta) {
-					std::cout << "+\n";
-					if (qual_size == 0) {
-						std::cout << std::string(forward_linked_read.size(), '#') << '\n';
-					} else {
-						std::string reverse_qual = qual.substr(
-						    seq_size - forward_linked_read.size(), forward_linked_read.size());
-						std::reverse(reverse_qual.begin(), reverse_qual.end());
-						std::cout << reverse_qual << '\n';
-					}
-				}
-			}
 
-			std::cout << std::flush;
+				int read_num = 1;
+				for (size_t i = 0; i <= seq_size - step; i = i + step) {
+					std::cout << header_symbol << record.name << "_f" << read_num
+					          << " BX:Z:" << record.num + 1 << '\n';
+					std::cout << seq.substr(i, l) << '\n';
+					if (!with_fasta) {
+						std::cout << "+\n";
+						if (qual_size == 0) {
+							std::cout << std::string(l, '#') << '\n';
+						} else {
+							std::cout << qual.substr(i, l) << '\n';
+						}
+					}
+					std::string reverse_linked_read = seq.substr(i + l, l);
+					btllib::reverse_complement(reverse_linked_read);
+					std::cout << header_symbol << record.name << "_f" << read_num
+					          << " BX:Z:" << record.num + 1 << '\n';
+					std::cout << reverse_linked_read << '\n';
+					if (!with_fasta) {
+						std::cout << "+\n";
+						if (qual_size == 0) {
+							std::cout << std::string(l, '#') << '\n';
+						} else {
+							std::string reverse_qual = qual.substr(i + l, l);
+							std::reverse(reverse_qual.begin(), reverse_qual.end());
+							std::cout << reverse_qual << '\n';
+						}
+					}
+					++read_num;
+				}
+
+				size_t remainder = seq_size % step;
+				if (remainder != 0) {
+					size_t curr_i = seq_size - remainder;
+					std::cout << header_symbol << record.name << "_f" << read_num
+					          << " BX:Z:" << record.num + 1 << '\n';
+					std::string forward_linked_read = seq.substr(curr_i, l);
+					std::cout << forward_linked_read << '\n';
+					if (!with_fasta) {
+						std::cout << "+\n";
+						if (qual_size == 0) {
+							std::cout << std::string(forward_linked_read.size(), '#') << '\n';
+						} else {
+							std::cout << qual.substr(curr_i, l) << '\n';
+						}
+					}
+					std::string reverse_linked_read = seq.substr(
+					    seq_size - forward_linked_read.size(), forward_linked_read.size());
+					btllib::reverse_complement(reverse_linked_read);
+					std::cout << header_symbol << record.name << "_f" << read_num
+					          << " BX:Z:" << record.num + 1 << '\n';
+					std::cout << reverse_linked_read << '\n';
+					if (!with_fasta) {
+						std::cout << "+\n";
+						if (qual_size == 0) {
+							std::cout << std::string(forward_linked_read.size(), '#') << '\n';
+						} else {
+							std::string reverse_qual = qual.substr(
+							    seq_size - forward_linked_read.size(), forward_linked_read.size());
+							std::reverse(reverse_qual.begin(), reverse_qual.end());
+							std::cout << reverse_qual << '\n';
+						}
+					}
+				}
+
+				std::cout << std::flush;
+			}
 		}
 	}
 
 	if (auto_span || auto_dist) {
-		std::ofstream ofs(configFile, std::ofstream::out);
+		std::ofstream ofs(configFile, std::ofstream::app);
 		if (auto_span) {
 			ofs << "span\t" << (size_t)(total_bases / g * cov_to_span) << "\n";
 		}
