@@ -225,7 +225,7 @@ endif
 # Estimate dist parameter for tigmint-long
 dist_sample=1000000
 $(reads).tigmint-long.params.tsv: $(longreads)
-	$(gtime) sh -c 'gunzip -c $(reads) | \
+	$(gtime) sh -c 'gunzip -c $(longreads) | \
 	$(bin)/tigmint_estimate_dist.py - -n $(dist_sample) -o $@'
 
 # Create molecule extents BED using cut long reads
