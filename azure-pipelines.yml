@@ -27,7 +27,7 @@ jobs:
     displayName: Run pylint
   - script: |
       source activate tigmint_CI
-      conda install --yes --quiet --name tigmint_CI-c bioconda pytest bedtools bwa samtools minimap2
+      conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda pytest bedtools bwa samtools minimap2
       echo $PATH
       cd tests
       pytest -vs tigmint_test.py
