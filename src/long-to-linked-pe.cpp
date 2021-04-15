@@ -149,7 +149,7 @@ main(int argc, char* argv[])
 		if (!g_set) {
 			print_error_msg("missing option -- 'g'");
 			failed = true;
-		} 
+		}
 	}
 	if (infiles.empty()) {
 		print_error_msg("missing file operand");
