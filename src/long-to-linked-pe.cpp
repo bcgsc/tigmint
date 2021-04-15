@@ -145,11 +145,9 @@ main(int argc, char* argv[])
 		print_error_msg("option has incorrect value -- 'l'");
 		failed = true;
 	}
-	if (auto_span) {
-		if (!g_set) {
-			print_error_msg("missing option -- 'g'");
-			failed = true;
-		}
+	if (auto_span && !g_set) {
+		print_error_msg("missing option -- 'g'");
+		failed = true;
 	}
 	if (infiles.empty()) {
 		print_error_msg("missing file operand");
