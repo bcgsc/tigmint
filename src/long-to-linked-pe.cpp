@@ -64,7 +64,7 @@ main(int argc, char* argv[])
 {
 	int c;
 	int optindex = 0;
-	int help = 0, version = 0;
+	static int help = 0, version = 0;
 	bool auto_span = false, auto_dist = false;
 	size_t l = 0, g = 0, t = 6, m = 2000;
 	bool g_set = false;
@@ -74,7 +74,7 @@ main(int argc, char* argv[])
 	size_t dist_lower_bound = 1000; // Lower bound for dist
 	std::vector<size_t> read_lengths;
 	size_t total_bases = 0;
-	int with_fasta = 0, with_bx_multiplicity = 0, with_bx_multiplicity_only = 0;
+	static int with_fasta = 0, with_bx_multiplicity = 0, with_bx_multiplicity_only = 0;
 	std::string configFile("tigmint-long.params.tsv");
 	std::string bxMultiplicityFile("barcode_multiplicity.tsv");
 	bool failed = false;
