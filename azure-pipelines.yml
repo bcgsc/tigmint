@@ -12,26 +12,6 @@ jobs:
 
   - script: conda create --yes --quiet --name tigmint_CI
     displayName: Create Anaconda environment
-
-  - script: |
-      source activate tigmint_CI
-      conda install --yes --quiet --name tigmint_CI python pylint
-      conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda --file requirements.txt
-    displayName: Install Anaconda packages
-  - script: |
-      source activate tigmint_CI
-      cd bin
-      pylint long-to-linked tigmint-cut tigmint_molecule.py tigmint_molecule_paf.py
-      echo $?
-      cd ../
-    displayName: Run pylint
-  - script: |
-      source activate tigmint_CI
-      conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda pytest bedtools bwa samtools minimap2
-      echo $PATH
-      cd tests
-      pytest -vs tigmint_test.py
-    displayName: Run pytests
   - script: |
       curl https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
       sudo apt-add-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-11 main"
@@ -44,4 +24,22 @@ jobs:
     displayName: Compile C++ executables
   - script: make -C src lint
     displayName: Run clang-format and clang-tidy
-
+  - script: |
+      source activate tigmint_CI
+      conda install --yes --quiet --name tigmint_CI python=3.7 pylint
+      conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda --file requirements.txt
+    displayName: Install Anaconda packages
+  - script: |
+      source activate tigmint_CI
+      cd bin
+      pylint long-to-linked tigmint-cut tigmint_molecule.py tigmint_molecule_paf.py tigmint_estimate_dist.py
+      echo $?
+      cd ../
+    displayName: Run pylint
+  - script: |
+      source activate tigmint_CI
+      conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda pytest bedtools bwa samtools=1.9 minimap2
+      echo $PATH
+      cd tests
+      pytest -vs tigmint_test.py
+    displayName: Run pytests

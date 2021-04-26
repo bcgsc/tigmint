@@ -227,9 +227,10 @@ def get_span(filename):
     if os.access(filename, os.F_OK):
         if os.access(filename, os.R_OK):
             with open(filename) as param_file:
-                line_content = param_file.readline().strip().split("\t")
-                if line_content[0] == "span":
-                    return int(line_content[1])
+                for line in param_file:
+                    line_content = line.strip().split("\t")
+                    if line_content[0] == "span":
+                        return int(line_content[1])
             print("tigmint-cut: error: calculate span parameter not found in parameter file '%s'" % filename, file=sys.stderr)
             sys.exit(1)
         else: 

@@ -251,16 +251,6 @@ def test_pipeline(tigmint_pipeline):
                         assert exp_line == obs_content[i]
     
     # Compare tigmint-long outputs
-    # Cut reads
-    cut_reads = "test_longreads.cut500.fq.gz"
-    exp = subprocess.Popen(shlex.split("gunzip -c %s" % ("expected_outputs/" + cut_reads)),
-                            stdout=subprocess.PIPE, universal_newlines=True)
-    obs = subprocess.Popen(shlex.split("gunzip -c %s" % cut_reads), stdout=subprocess.PIPE,
-                            universal_newlines=True)
-    exp_cut_reads = exp.communicate()[0].splitlines()
-    obs_cut_reads = obs.communicate()[0].splitlines()
-    for i, exp_read in enumerate(exp_cut_reads):
-        assert exp_read == obs_cut_reads[i]
 
     # Other output files
     tigmint_long_outputs = ["test_longreads.tigmint-long.params.tsv",
