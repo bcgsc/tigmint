@@ -24,8 +24,8 @@ test_misassembly	2447	6369	18	8
 test_misassembly	2447	6499	41	9
 test_misassembly	2447	6542	100	9
 test_misassembly	2447	6551	101	9
-test_misassembly	2447	6551	7	9
 test_misassembly	2447	6551	72	9
+test_misassembly	2447	6551	7	9
 test_misassembly	2451	6527	87	9
 test_misassembly	2455	5626	14	7
 test_misassembly	2455	6523	73	9
