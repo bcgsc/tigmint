@@ -15,7 +15,7 @@ jobs:
 
   - script: |
       source activate tigmint_CI
-      conda install --yes --quiet --name tigmint_CI python pylint
+      conda install --yes --quiet --name tigmint_CI python=3.7 pylint
       conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda --file requirements.txt
     displayName: Install Anaconda packages
   - script: |
