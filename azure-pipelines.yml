@@ -32,7 +32,7 @@ jobs:
   - script: |
       source activate tigmint_CI
       cd bin
-      pylint long-to-linked tigmint-cut tigmint_molecule.py tigmint_molecule_paf.py tigmint_estimate_dist.py
+      pylint tigmint-cut tigmint_molecule.py tigmint_molecule_paf.py tigmint_estimate_dist.py
       echo $?
       cd ../
     displayName: Run pylint

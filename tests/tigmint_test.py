@@ -9,16 +9,13 @@ import gzip
 
 def long_to_linked(length=500, minsize=2000, span="auto", G=100000, dist="default"):
     """Run long-to-linked."""
-    open_reads = subprocess.Popen(shlex.split("gunzip -c test_longreads.fa.gz"), stdout=subprocess.PIPE, universal_newlines=True)
-    input_reads = open_reads.stdout
     output_param_file = "tigmint-long.span_G_%s.span_%s.dist_%s.tsv" % (G, str(span), dist)
     params = []
     if span == "auto":
         params.append('-s')
     if dist == "auto":
         params.append('-d')
-    long_to_linked = subprocess.Popen(shlex.split("../bin/long-to-linked -l%i -m%i -g %i -o %s %s" % (length, minsize, G, output_param_file, " ".join(params))), 
-            stdin=input_reads, stdout=subprocess.PIPE, universal_newlines=True)
+    long_to_linked = subprocess.Popen(shlex.split("../src/long-to-linked-pe -l%i -m%i -g %i -f %s %s %s" % (length, minsize, G, output_param_file, " ".join(params), "test_longreads.fa.gz")), stdout=subprocess.PIPE, universal_newlines=True)
 
     cut_reads = long_to_linked.communicate()[0].splitlines()
     assert long_to_linked.returncode == 0
