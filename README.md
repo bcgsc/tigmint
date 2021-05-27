@@ -55,14 +55,18 @@ docker run -it bcgsc/tigmint
 
 ## Install Tigmint from the source code
 
-Download and extract the source code. Compiling is not needed.
+Download and extract the source code.
 
 ```
 git clone https://github.com/bcgsc/tigmint && cd tigmint
+cd src
+make
 ```
 or
 ```
 curl -L https://github.com/bcgsc/tigmint/archive/master.tar.gz | tar xz && mv tigmint-master tigmint && cd tigmint
+cd src
+make
 ```
 
 # Dependencies
