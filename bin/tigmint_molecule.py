@@ -243,7 +243,7 @@ class MolecIdentifier:
             "Read a SAM/BAM file and output a TSV file. "
             "The SAM/BAM file must be sorted by BX tag and then by position.")
         parser.add_argument(
-            '--version', action='version', version='tigmint-molecule 1.2.2')
+            '--version', action='version', version='tigmint-molecule 1.2.3')
         parser.add_argument(
             metavar="BAM", dest="in_bam_filename",
             help="Input BAM file sorted by BX tag then position, - for stdin")

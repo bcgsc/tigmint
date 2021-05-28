@@ -123,7 +123,7 @@ help:
 	@echo 'For more information see https://bcgsc.github.io/tigmint/'
 
 version:
-	@echo "Tigmint 1.2.2"
+	@echo "Tigmint 1.2.3"
 	@echo "Written by Shaun Jackman @sjackman."
 
 all: tigmint arcs
