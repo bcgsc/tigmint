@@ -44,7 +44,7 @@ def main():
                         required=False)
     parser.add_argument("-v", "--version",
                         action="version",
-                        version="tigmint_estimate_dist.py 1.2.2")
+                        version="tigmint_estimate_dist.py 1.2.3")
 
     args = parser.parse_args()
 
