@@ -102,7 +102,7 @@ class MolecIdentifierPaf:
         parser = argparse.ArgumentParser(
             description="Group linked reads simulated from long reads into molecules. "
                         "Read a PAF file and output a BED file.")
-        parser.add_argument('--version', action='version', version='tigmint_molecule_paf.py 1.2.3')
+        parser.add_argument('--version', action='version', version='tigmint_molecule_paf.py 1.2.4')
         parser.add_argument(metavar="PAF", dest="PAF", help="Input PAF file, - for stdin")
         parser.add_argument("-o", "--output", dest="out_molecules_filename",
                             help="Output molecule BED file [stdout]",
