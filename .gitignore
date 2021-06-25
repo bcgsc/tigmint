@@ -26,6 +26,7 @@ xml-patch-make/
 __pycache__
 .pytest_cache
 .vscode
+src/long-to-linked-pe
 
 # BWA
 *.fa.amb
