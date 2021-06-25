@@ -149,7 +149,7 @@ tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=gsize dist=
 
 + `draft`: Name of the draft assembly, `myassembly.fa`
 + `reads`: Name of the reads, `myreads.fq.gz`
-+ `G`: Haploid genome size of the draft assembly organism. Used to calculate `span` parameter automatically. Can be given as an integer or in scientific notation (e.g. '3e9' for human)
++ `G`: Haploid genome size of the draft assembly organism. Required to calculate `span` parameter automatically. Can be given as an integer or in scientific notation (e.g. '3e9' for human) [0]
 + `span=20`: Number of spanning molecules threshold. Set `span=auto` to automatically select span parameter (currently only recommended for `tigmint-long`)
 + `cut=500`: Cut length for long reads (`tigmint-long` only)
 + `longmap=ont`: Long read platform; `ont` for Oxford Nanopore Technologies (ONT) long reads, `pb` for PacBio long reads (`tigmint-long` only)
