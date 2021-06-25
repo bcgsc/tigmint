@@ -33,7 +33,7 @@ endif
 ref=ref
 
 # Haploid size of the reference genome, for calculating span, NG50 and NGA50
-G=-1
+G=0
 
 # Minimap2 long read map parameter
 longmap=ont
@@ -114,7 +114,7 @@ endif
 
 .DELETE_ON_ERROR:
 .SECONDARY:
-.PHONY: help version all tigmint tigmint-long arcs metrics draft_metrics tigmint_metrics arcs_metrics
+.PHONY: help version all tigmint tigmint-long arcs metrics draft_metrics tigmint_metrics arcs_metrics check_span_g
 
 help:
 	@echo 'Tigmint: Correct misassemblies using linked or long reads'
@@ -128,7 +128,7 @@ version:
 
 all: tigmint arcs
 ifneq ($(ref), ref)
-ifneq ($(G), -1)
+ifneq ($G, 0)
 all: metrics
 endif
 endif
@@ -196,19 +196,27 @@ $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
 $(draft).%.cut$(cut).sortbx.bam: %.cut$(cut).fa.gz $(draft).fa
 	$(gtime) minimap2 -y -t$t -ax map-$(longmap) --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
 
+# Check that G is set if span=auto
+check_span_g:
+ifeq ($(span), auto)
+ifeq ($G, 0)
+	$(error Must set genome size parameter (G) to calculate span automatically)
+endif
+endif
+
 # Segment long reads from gzipped fasta file, optionally calculating tigmint-long parameters.
-$(reads).cut$(cut).fq.gz: $(longreads)
+$(reads).cut$(cut).fq.gz: $(longreads) check_span_g
 ifeq ($(span), auto)
 ifeq ($(dist), auto)
-	$(gtime) $(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) -g$(G) -s -d -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
+	$(gtime) $(gzip) -dc $(longreads) | $(bin)/long-to-linked -l$(cut) -m$(minsize) -g$G -s -d -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
 else
-	$(gtime) $(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) -g$(G) -s -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
+	$(gtime) $(gzip) -dc $(longreads) | $(bin)/long-to-linked -l$(cut) -m$(minsize) -g$G -s -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
 endif
 else
 ifeq ($(dist), auto)
-	$(gtime) $(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) -d -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
+	$(gtime) $(gzip) -dc $(longreads) | $(bin)/long-to-linked -l$(cut) -m$(minsize) -d -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
 else
-	$(gtime) $(gzip) -dc $< | $(bin)/long-to-linked -l$(cut) -m$(minsize) | $(gzip) > $@
+	$(gtime) $(gzip) -dc $(longreads) | $(bin)/long-to-linked -l$(cut) -m$(minsize) | $(gzip) > $@
 endif
 endif
 
@@ -229,7 +237,7 @@ $(reads).tigmint-long.params.tsv: $(longreads)
 	$(bin)/tigmint_estimate_dist.py - -n $(dist_sample) -o $@'
 
 # Create molecule extents BED using cut long reads
-$(draft).$(reads).cut$(cut).molecule.size$(minsize).bed: $(longreads) $(draft).fa $(reads).tigmint-long.params.tsv
+$(draft).$(reads).cut$(cut).molecule.size$(minsize).bed: $(longreads) $(draft).fa $(reads).tigmint-long.params.tsv check_span_g
 ifeq ($(dist), auto)
 	$(gtime) $(bin)/../src/long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
 	minimap2 -y -t$t -x map-$(longmap) --secondary=no $(draft).fa - | \
@@ -326,7 +334,7 @@ endif
 %.abyss-fac.tsv: %.fa
 	abyss-fac -G$G -t500 $< >$@
 
-ifneq ($(G), -1)
+ifneq ($G, 0)
 abyss_samtobreak=abyss-samtobreak -l500 -G$G
 else
 abyss_samtobreak=abyss-samtobreak -l500
