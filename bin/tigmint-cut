@@ -33,7 +33,7 @@ def tallyBreakpoints(bps_queue, contig, noSpanningRun):
         bps_queue.put((contig, noSpanningRun.beforeRun_bp))
         bps_queue.put((contig, noSpanningRun.afterRun_bp))
 
-def checkSpanningMolecules(intervals, window, contigLengths, contig, num_spanning, bps_queue):
+def checkSpanningMolecules(intervals, window, contigLengths, contig, num_spanning, bps_queue, attempted_corr_queue, min_length=3000):
     """
     Given the molecule intervals on a contig, check all windows of specified lengths for flanking chromium molecules.
     Cuts will be made in windows of the genome where there are no spanning molecules.
@@ -72,13 +72,19 @@ def checkSpanningMolecules(intervals, window, contigLengths, contig, num_spannin
             if pastStart and noSpanningRun is not None: # We have come to the end of a valid string of non-spanning molecule windows
                 noSpanningRun.afterRun_bp = start_window
                 tallyBreakpoints(bps_queue, contig, noSpanningRun)
+
+                # Keep track of attempted corrections
+                if contigLength >= min_length:
+                        attempted_corr_queue.put(1)
+                
                 noSpanningRun = None
+            
             pastStart = True
 
             end_window = max(smallestEndPos_spanningMolecs + 1, end_window + 1)
             start_window = end_window - window
 
-def findBreakpoints(bed_name, window_length, contigLengths, num_spanning, bps_queue):
+def findBreakpoints(bed_name, window_length, contigLengths, num_spanning, bps_queue, attempted_corr_queue, min_length=3000):
     """
     Given an input sorted BED file, find all breakpoints (in regions where there are no spanning molecules),
     based on the specified window size.
@@ -92,7 +98,7 @@ def findBreakpoints(bed_name, window_length, contigLengths, num_spanning, bps_qu
             continue
         if bed.chrom != contig:
             if contig != "":
-                checkSpanningMolecules(interval_tree, window_length, contigLengths, contig, num_spanning, bps_queue)
+                checkSpanningMolecules(interval_tree, window_length, contigLengths, contig, num_spanning, bps_queue, attempted_corr_queue, min_length)
                 interval_tree.clear()
             contig = bed.chrom
             interval_tree[bed.start:bed.stop] = bed.score
@@ -100,9 +106,9 @@ def findBreakpoints(bed_name, window_length, contigLengths, num_spanning, bps_qu
             interval_tree[bed.start:bed.stop] = bed.score
     # Ensuring final contig in the bed file is also checked for spanning molecules
     if contig != "":
-        checkSpanningMolecules(interval_tree, window_length, contigLengths, contig, num_spanning, bps_queue)
+        checkSpanningMolecules(interval_tree, window_length, contigLengths, contig, num_spanning, bps_queue, attempted_corr_queue, min_length)
 
-def launchFindBreakpoints(bedfile, window, num_processes, partitioned_contigLengths, num_spanning):
+def launchFindBreakpoints(bedfile, window, num_processes, partitioned_contigLengths, num_spanning, min_length=3000):
     """
     Launch processes to find breakpoints for partitioned contigs in parallel.
     Returns dictionary of identified breakpoints.
@@ -111,8 +117,11 @@ def launchFindBreakpoints(bedfile, window, num_processes, partitioned_contigLeng
     bp_queue = Queue()
     breakpoints = {}
 
+    attempted_corr_queue = Queue()
+    total_attempted_corr = 0
+
     for i in range(0, num_processes):
-        p = Process(target=findBreakpoints, args=(bedfile, window, partitioned_contigLengths[i], num_spanning, bp_queue))
+        p = Process(target=findBreakpoints, args=(bedfile, window, partitioned_contigLengths[i], num_spanning, bp_queue, attempted_corr_queue, min_length))
         processes.append(p)
         p.start()
 
@@ -125,11 +134,18 @@ def launchFindBreakpoints(bedfile, window, num_processes, partitioned_contigLeng
             if chrom not in breakpoints:
                 breakpoints[chrom] = []
             breakpoints[chrom].append(pos)
+        
+        while not attempted_corr_queue.empty():
+            attempted_corr_queue.get()
+            total_attempted_corr += 1
+        
         if not running:
             break
 
     for p in processes:
         p.join()
+    
+    print("Attempted corrections: %i" % (total_attempted_corr))
 
     return breakpoints
 
@@ -231,7 +247,7 @@ def get_span(filename):
                     line_content = line.strip().split("\t")
                     if line_content[0] == "span":
                         return int(line_content[1])
-            print("tigmint-cut: error: calculate span parameter not found in parameter file '%s'" % filename, file=sys.stderr)
+            print("tigmint-cut: error: calculated span parameter not found in parameter file '%s'" % filename, file=sys.stderr)
             sys.exit(1)
         else: 
             print("tigmint-cut: error: parameter file '%s' cannot be read" % filename, file=sys.stderr)
@@ -253,6 +269,7 @@ def main():
         spanning molecules >= n) [2].", default=2)
     parser.add_argument("-t", "--trim", type=int, help="Number of base pairs to trim at contig cuts (bp) [0]", default=0)
     parser.add_argument("-f", "--param_file", help="File containing calculated parameters for tigmint-long", default=None)
+    parser.add_argument("-m", "--min_length", type=int, help="Minimum contig length for tallying attempted corrections (bp) [3000]", default=3000)
 
     args = parser.parse_args()
     print("Started at: %s" % datetime.now())
@@ -270,7 +287,8 @@ def main():
     partitioned_contigLengths = findContigLengths(args.fasta, args.processes)
 
     print("Finding breakpoints...")
-    breakpoints = launchFindBreakpoints(args.bed, args.window, args.processes, partitioned_contigLengths, args.spanning)
+    breakpoints = launchFindBreakpoints(args.bed, args.window, args.processes, partitioned_contigLengths, args.spanning, args.min_length)
+
     printBreakpoints(breakpoints, partitioned_contigLengths, args.bedout, args.trim)
 
     print("Cutting assembly at breakpoints...")
