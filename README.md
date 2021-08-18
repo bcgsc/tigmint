@@ -161,6 +161,7 @@ tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=gsize dist=
 + `mapq=0`: Mapping quality threshold
 + `trim=0`: Number of bases to trim off contigs following cuts
 + `t=8`: Number of threads
++ `ac=3000`: Minimum contig length (bp) for tallying attempted corrections. This is for assessing the accuracy of Tigmint, and will not affect its performance.
 
 # Parameters of ARCS
 + `c=5`
