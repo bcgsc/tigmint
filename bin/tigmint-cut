@@ -132,7 +132,7 @@ def launchFindBreakpoints(bedfile, window, num_processes, partitioned_contigLeng
             chrom = bp[0]
             pos = int(bp[1])
             if chrom not in breakpoints:
-                breakpoints[chrom] = []gi
+                breakpoints[chrom] = []
             breakpoints[chrom].append(pos)
         
         while not attempted_corr_queue.empty():
