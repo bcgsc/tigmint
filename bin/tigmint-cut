@@ -75,7 +75,7 @@ def checkSpanningMolecules(intervals, window, contigLengths, contig, num_spannin
 
                 # Keep track of attempted corrections
                 if contigLength >= min_length:
-                        attempted_corr_queue.put([1])
+                        attempted_corr_queue.put(1)
                 
                 noSpanningRun = None
             
@@ -136,9 +136,8 @@ def launchFindBreakpoints(bedfile, window, num_processes, partitioned_contigLeng
             breakpoints[chrom].append(pos)
         
         while not attempted_corr_queue.empty():
-            attempted_corrections = attempted_corr_queue.get()
-            for _ in attempted_corrections:
-                total_attempted_corr += 1
+            attempted_corr_queue.get()
+            total_attempted_corr += 1
         
         if not running:
             break
