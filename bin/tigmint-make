@@ -65,6 +65,9 @@ window=1000
 #Length for tigmint-long cut reads
 cut=500
 
+# Minimum length of contig for tallying attempted corrections
+ac=3000
+
 # Parameters of ARCS
 c=5
 e=30000
@@ -281,9 +284,9 @@ endif
 # Make breakpoints BED file
 %.trim$(trim).window$(window).span$(span).breaktigs.fa: %.bed $(draft).fa $(draft).fa.fai
 ifeq ($(span), auto)
-	$(gtime) $(bin)/tigmint-cut -p$t -w$(window) -t$(trim) -f $(reads).tigmint-long.params.tsv -o $@ $(draft).fa $<
+	$(gtime) $(bin)/tigmint-cut -p$t -w$(window) -t$(trim) -m$(ac) -f $(reads).tigmint-long.params.tsv -o $@ $(draft).fa $<
 else
-	$(gtime) $(bin)/tigmint-cut -p$t -w$(window) -n$(span) -t$(trim) -o $@ $(draft).fa $<
+	$(gtime) $(bin)/tigmint-cut -p$t -w$(window) -n$(span) -t$(trim) -m$(ac) -o $@ $(draft).fa $<
 endif
 
 ################################################################################
