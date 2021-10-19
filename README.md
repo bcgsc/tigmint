@@ -76,7 +76,7 @@ make
 pip3 install intervaltree pybedtools pysam numpy
 ```
 
-Tigmint uses Bedtools, BWA and Samtools. These dependencies may be installed using [Homebrew](https://brew.sh) on macOS or [Linuxbrew](http://linuxbrew.sh) on Linux.
+Tigmint uses pigz, sort, Bedtools, minimap2, BWA and Samtools. These dependencies may be installed using [Homebrew](https://brew.sh) on macOS or [Linuxbrew](http://linuxbrew.sh) on Linux.
 
 ## Install the dependencies of Tigmint
 ```sh
@@ -128,13 +128,13 @@ To run Tigmint with long reads in fasta or fastq format (`myreads.fa.gz` or `myr
 tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=gsize dist=auto
 ```
 
-- `minimap2 map-ont` is used to align long reads from the Oxford Nanopore Technologies (ONT) platform, which is the default input for Tigmint. To use PacBio long reads specify the parameter `longmap=pb`
+- `minimap2 map-ont` is used to align long reads from the Oxford Nanopore Technologies (ONT) platform, which is the default input for Tigmint. To use PacBio long reads specify the parameter `longmap=pb`. The former calls `minimap2 -ax map-ont-ax map-ont` while the latter results in `minimap2 -ax map-pb` calling instead.
 
 
 # Note
 
 + `tigmint-make` is a Makefile script, and so any `make` options may also be used with `tigmint-make`, such as `-n` (`--dry-run`).
-+ The file extension of the assembly must be `.fa` and the reads `.fq.gz` (or `.fa.gz` for long reads), and the extension is not included in the parameters `draft` and `reads`. These specific file name requirements result from implementing the pipeline in GNU Make.
++ The file extension of the assembly must be `.fa` and the reads `.fq.gz` (or `.fa.gz` for long reads), and the extension may NOT be included in the parameters `draft` and `reads` on the command line (otherwise you will get an error). These specific file name requirements result from implementing the pipeline in GNU Make.
 + The minimum spanning molecules parameter (`span`) for `tigmint-cut` is heavily dependent on the sequence coverage of the linked or long reads provided. When running Tigmint with long reads, use `span=auto` and set `G` to your assembly organism's haploid genome size for this parameter to be calculated automatically, or explicitly set `span` to a specific number if you are interested in adjusting it. See [Tips](#Tips) for more details. 
 + For `tigmint-long`, the maximum distance between reads threshold should be calculated automatically based on the read length distribution. This can be done by setting the parameter `dist=auto`.
 
