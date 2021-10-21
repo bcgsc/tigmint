@@ -96,11 +96,11 @@ PATH:=$(bin):$(PATH)
 endif
 
 # Use pigz or bgzip for parallel compression if available.
-ifneq ($(shell command -v pigz),)
-gzip=pigz -p$t
-else
 ifneq ($(shell command -v bgzip),)
 gzip=bgzip -@$t
+else
+ifneq ($(shell command -v pigz),)
+gzip=pigz -p$t
 else
 gzip=gzip
 endif
@@ -114,6 +114,15 @@ else
 gtime=command time -v -o $@.time
 endif
 endif
+
+# infer location of summary.rmd template from environment variable
+tigmint_template = $(TIGMINT_TEMPLATE):$(bin)/..
+
+# provide a way to pass down sort options, like sort buffer size
+sort_opts = $(SORT_OPTS)
+
+# sort should respect TMPDIR variable, see its manpage
+tmpdir = $(TMPDIR)
 
 .DELETE_ON_ERROR:
 .SECONDARY:
@@ -191,13 +200,13 @@ $(draft).tigmint.arcs.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsi
 
 # Align paired-end reads to the draft genome and sort by BX tag.
 $(draft).%.sortbx.bam: %.fq.gz $(draft).fa.bwt
-	$(gtime) bwa mem -t$t -pC $(draft).fa $< | samtools view -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
+	$(gtime) bwa mem -t$t -pC $(draft).fa $< | samtools view -u -F4 | samtools sort -@$t -tBX -T $(tmpdir)/$$(mktemp -u -t $@.XXXXXX) $(sort_opts) -o $@
 
 # Minimap2
 
 # Align cut long reads to the draft genome and output primary alignments sorted by BX tag.
 $(draft).%.cut$(cut).sortbx.bam: %.cut$(cut).fa.gz $(draft).fa
-	$(gtime) minimap2 -y -t$t -ax map-$(longmap) --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T$$(mktemp -u -t $@.XXXXXX) -o $@
+	$(gtime) minimap2 -y -t$t -ax map-$(longmap) --secondary=no $(draft).fa $< | samtools view -b -u -F4 | samtools sort -@$t -tBX -T $(tmpdir)/$$(mktemp -u -t $@.XXXXXX) $(sort_opts) -o $@
 
 # Check that G is set if span=auto
 check_span_g:
@@ -211,15 +220,15 @@ endif
 $(reads).cut$(cut).fq.gz: $(longreads) check_span_g
 ifeq ($(span), auto)
 ifeq ($(dist), auto)
-	$(gtime) $(gzip) -dc $(longreads) | $(bin)/long-to-linked -l$(cut) -m$(minsize) -g$G -s -d -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
+	$(gtime) $(gzip) -dc $(longreads) | long-to-linked -l$(cut) -m$(minsize) -g$G -s -d -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
 else
-	$(gtime) $(gzip) -dc $(longreads) | $(bin)/long-to-linked -l$(cut) -m$(minsize) -g$G -s -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
+	$(gtime) $(gzip) -dc $(longreads) | long-to-linked -l$(cut) -m$(minsize) -g$G -s -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
 endif
 else
 ifeq ($(dist), auto)
-	$(gtime) $(gzip) -dc $(longreads) | $(bin)/long-to-linked -l$(cut) -m$(minsize) -d -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
+	$(gtime) $(gzip) -dc $(longreads) | long-to-linked -l$(cut) -m$(minsize) -d -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
 else
-	$(gtime) $(gzip) -dc $(longreads) | $(bin)/long-to-linked -l$(cut) -m$(minsize) | $(gzip) > $@
+	$(gtime) $(gzip) -dc $(longreads) | long-to-linked -l$(cut) -m$(minsize) | $(gzip) > $@
 endif
 endif
 
@@ -231,37 +240,39 @@ endif
 
 # Create molecule extents BED
 %.as$(as).nm$(nm).molecule.size$(minsize).bed: %.sortbx.bam
-	$(gtime) $(bin)/tigmint_molecule.py -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) $< | sort -k1,1 -k2,2n -k3,3n >$@
+	$(gtime) tigmint_molecule.py -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) $< | sort -k1,1 -k2,2n -k3,3n -T $(tmpdir) $(sort_opts) >$@
 
 # Estimate dist parameter for tigmint-long
 dist_sample=1000000
+# use shell wrapper to mask some non-zero return code from tigmint_estimate_dist.py causing make to delete the output file
+# decompressed stream is consumed only partially but that is not the case as including head -n 4000000 in between does not fix this
 $(reads).tigmint-long.params.tsv: $(longreads)
-	$(gtime) sh -c 'gunzip -c $(longreads) | \
-	$(bin)/tigmint_estimate_dist.py - -n $(dist_sample) -o $@'
+	$(gtime) sh -c '$(gzip) -dc $(longreads) | \
+	tigmint_estimate_dist.py - -n $(dist_sample) -o $@'
 
 # Create molecule extents BED using cut long reads
 $(draft).$(reads).cut$(cut).molecule.size$(minsize).bed: $(longreads) $(draft).fa $(reads).tigmint-long.params.tsv check_span_g
 ifeq ($(dist), auto)
-	$(gtime) $(bin)/../src/long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
+	$(gtime) long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
 	minimap2 -y -t$t -x map-$(longmap) --secondary=no $(draft).fa - | \
-	$(bin)/tigmint_molecule_paf.py -q$(mapq) -s$(minsize) -p $(reads).tigmint-long.params.tsv - | sort -k1,1 -k2,2n -k3,3n > $@
+	tigmint_molecule_paf.py -q$(mapq) -s$(minsize) -p $(reads).tigmint-long.params.tsv - | sort -k1,1 -k2,2n -k3,3n -T $(tmpdir) $(sort_opts) > $@
 else
-	$(gtime) $(bin)/../src/long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
+	$(gtime) long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
 	minimap2 -y -t$t -x map-$(longmap) --secondary=no $(draft).fa - | \
-	$(bin)/tigmint_molecule_paf.py -q$(mapq) -d$(dist) -s$(minsize) - | sort -k1,1 -k2,2n -k3,3n > $@
+	tigmint_molecule_paf.py -q$(mapq) -d$(dist) -s$(minsize) - | sort -k1,1 -k2,2n -k3,3n -T $(tmpdir) $(sort_opts) > $@
 endif
 
 # Create molecule extents TSV
 %.as$(as).nm$(nm).molecule.size$(minsize).tsv: %.sortbx.bam
-	$(gtime) $(bin)/tigmint_molecule.py --tsv -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) -o $@ $<
+	$(gtime) tigmint_molecule.py --tsv -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) -o $@ $<
 
 # Create molecule extents TSV using cut long reads
 %.cut$(cut).as$(as).nm$(cut).molecule.size$(minsize).tsv: %.cut$(cut).sortbx.bam
-	$(gtime) $(bin)/tigmint_molecule.py --tsv -a$(as) -n$(cut) -q$(mapq) -d$(dist) -s$(minsize) -o $@ $<
+	$(gtime) tigmint_molecule.py --tsv -a$(as) -n$(cut) -q$(mapq) -d$(dist) -s$(minsize) -o $@ $<
 
 # Report summary statistics of a Chromium library
 %.molecule.summary.html: %.molecule.tsv
-	Rscript -e 'rmarkdown::render("$(bin)/../summary.rmd", "html_document", "$@", params = list(input_tsv="$<", output_tsv="$*.summary.tsv"))'
+	Rscript -e 'rmarkdown::render("$(TIGMINT_TEMPLATE)/summary.rmd", "html_document", "$@", params = list(input_tsv="$<", output_tsv="$*.summary.tsv"))'
 
 # bedtools
 
@@ -284,9 +295,9 @@ endif
 # Make breakpoints BED file
 %.trim$(trim).window$(window).span$(span).breaktigs.fa: %.bed $(draft).fa $(draft).fa.fai
 ifeq ($(span), auto)
-	$(gtime) $(bin)/tigmint-cut -p$t -w$(window) -t$(trim) -m$(ac) -f $(reads).tigmint-long.params.tsv -o $@ $(draft).fa $<
+	$(gtime) tigmint-cut -p$t -w$(window) -t$(trim) -m$(ac) -f $(reads).tigmint-long.params.tsv -o $@ $(draft).fa $<
 else
-	$(gtime) $(bin)/tigmint-cut -p$t -w$(window) -n$(span) -t$(trim) -m$(ac) -o $@ $(draft).fa $<
+	$(gtime) tigmint-cut -p$t -w$(window) -n$(span) -t$(trim) -m$(ac) -o $@ $(draft).fa $<
 endif
 
 ################################################################################
@@ -316,7 +327,7 @@ endif
 
 # Convert the ARCS graph to LINKS TSV format.
 %.$(reads).c$c_e$e_r$r.arcs.links.tsv: %.$(reads).c$c_e$e_r$r.arcs_original.gv %.fa
-	$(bin)/tigmint-arcs-tsv $< $@ $*.fa
+	tigmint-arcs-tsv $< $@ $*.fa
 
 # Scaffold the assembly using the ARCS graph and LINKS.
 %.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.scaffolds.fa %.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.assembly_correspondence.tsv: %.$(reads).c$c_e$e_r$r.arcs.links.tsv %.fa
