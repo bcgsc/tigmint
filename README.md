@@ -137,6 +137,7 @@ tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=gsize dist=
 + The file extension of the assembly must be `.fa` and the reads `.fq.gz` (or `.fa.gz` for long reads), and the extension is not included in the parameters `draft` and `reads`. These specific file name requirements result from implementing the pipeline in GNU Make.
 + The minimum spanning molecules parameter (`span`) for `tigmint-cut` is heavily dependent on the sequence coverage of the linked or long reads provided. When running Tigmint with long reads, use `span=auto` and set `G` to your assembly organism's haploid genome size for this parameter to be calculated automatically, or explicitly set `span` to a specific number if you are interested in adjusting it. See [Tips](#Tips) for more details. 
 + For `tigmint-long`, the maximum distance between reads threshold should be calculated automatically based on the read length distribution. This can be done by setting the parameter `dist=auto`.
++ The `long-to-linked-pe` step of `tigmint-long` uses a maximum of 6 threads
 
 # tigmint-make commands
 
