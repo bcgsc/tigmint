@@ -76,7 +76,7 @@ make
 pip3 install intervaltree pybedtools pysam numpy
 ```
 
-Tigmint uses pigz, sort, Bedtools, minimap2, BWA and Samtools. These dependencies may be installed using [Homebrew](https://brew.sh) on macOS or [Linuxbrew](http://linuxbrew.sh) on Linux.
+Tigmint uses Bedtools, minimap2, BWA, zsh and Samtools. These dependencies may be installed using [Homebrew](https://brew.sh) on macOS or [Linuxbrew](http://linuxbrew.sh) on Linux.
 
 ## Install the dependencies of Tigmint
 ```sh
