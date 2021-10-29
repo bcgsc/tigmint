@@ -152,14 +152,14 @@ tigmint: \
 # Index the linked reads 
 tigmint-index: $(draft).fa.bwt
 
-# # Align the linked reads (using bwa alignment) 
-tigmint-align: $(draft).%.sortbx.bam
+# Align the linked reads (using bwa alignment) 
+tigmint-align: $(draft).$(reads).sortbx.bam
 
-# # Perform the tigmint-molecule step for linked reads 
-tigmint-molecule: %.as$(as).nm$(nm).molecule.size$(minsize).bed
+# Perform the tigmint-molecule step for linked reads 
+tigmint-molecule: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).bed
 
-# # Perform the final tigmint-cut step for linked or long reads
-tigmint-cut: %.trim$(trim).window$(window).span$(span).breaktigs.fa
+# Perform the final tigmint-cut step for linked reads
+tigmint-cut: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa
 
 # Correct misassemblies for long reads using Tigmint
 tigmint-long: \
@@ -171,6 +171,9 @@ tigmint-long-estimate: $(reads).tigmint-long.params.tsv
 
 # # Covert the long reads to linked reads, perform minimap alignment and the tigmint-molecule step
 tigmint-long-to-link: $(draft).$(reads).cut$(cut).molecule.size$(minsize).bed
+
+# Perform the final tigmint-cut step for long reads
+tigmint-long-cut: $(draft).$(reads).cut$(cut).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa
 
 # Calculate assembly metrics after Tigmint
 tigmint_metrics: \
