@@ -64,7 +64,7 @@ make
 ```
 or
 ```
-curl -L https://github.com/bcgsc/tigmint/archive/master.tar.gz | tar xz && mv tigmint-master tigmint && cd tigmint
+curl -L https://github.com/bcgsc/tigmint/releases/download/v1.2.4/tigmint-1.2.4.tar.gz | tar xz && cd tigmint-1.2.4
 cd src
 make
 ```
