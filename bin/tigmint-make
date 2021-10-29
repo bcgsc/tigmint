@@ -149,10 +149,28 @@ tigmint: \
 	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa \
 	$(draft).tigmint.fa
 
+# Index the linked reads 
+tigmint-index: $(draft).fa.bwt
+
+# # Align the linked reads (using bwa alignment) 
+tigmint-align: $(draft).%.sortbx.bam
+
+# # Perform the tigmint-molecule step for linked reads 
+tigmint-molecule: %.as$(as).nm$(nm).molecule.size$(minsize).bed
+
+# # Perform the final tigmint-cut step for linked or long reads
+tigmint-cut: %.trim$(trim).window$(window).span$(span).breaktigs.fa
+
 # Correct misassemblies for long reads using Tigmint
 tigmint-long: \
 	$(draft).$(reads).cut$(cut).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa \
 	$(draft).cut$(cut).tigmint.fa
+
+# Estimate the tigmint parameters for long reads 
+tigmint-long-estimate: $(reads).tigmint-long.params.tsv
+
+# # Covert the long reads to linked reads, perform minimap alignment and the tigmint-molecule step
+tigmint-long-to-link: $(draft).$(reads).cut$(cut).molecule.size$(minsize).bed
 
 # Calculate assembly metrics after Tigmint
 tigmint_metrics: \
@@ -204,22 +222,6 @@ check_span_g:
 ifeq ($(span), auto)
 ifeq ($G, 0)
 	$(error Must set genome size parameter (G) to calculate span automatically)
-endif
-endif
-
-# Segment long reads from gzipped fasta file, optionally calculating tigmint-long parameters.
-$(reads).cut$(cut).fq.gz: $(longreads) check_span_g
-ifeq ($(span), auto)
-ifeq ($(dist), auto)
-	$(gtime) $(gzip) -dc $(longreads) | $(bin)/long-to-linked -l$(cut) -m$(minsize) -g$G -s -d -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
-else
-	$(gtime) $(gzip) -dc $(longreads) | $(bin)/long-to-linked -l$(cut) -m$(minsize) -g$G -s -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
-endif
-else
-ifeq ($(dist), auto)
-	$(gtime) $(gzip) -dc $(longreads) | $(bin)/long-to-linked -l$(cut) -m$(minsize) -d -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
-else
-	$(gtime) $(gzip) -dc $(longreads) | $(bin)/long-to-linked -l$(cut) -m$(minsize) | $(gzip) > $@
 endif
 endif
 
