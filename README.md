@@ -187,7 +187,9 @@ tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=gsize dist=
 - When aligning long reads with Minimap2, use the `-y` option to include the barcode in the BX tag of the alignments.
 - When using long reads, the minimum spanning molecule thresholds (`span`) should be no greater than 1/4 of the sequence coverage. Setting the parameter `span=auto` allows the appropriate parameter value to be selected automatically (this setting requires the parameter `G` as well).
 - When using long reads, the edit distance threshold (`nm`) is automatically set to the cut length (`cut`) to compensate for the higher error rate and length. This parameter should be kept relatively high to include as many alignments as possible.
-
+- Each Tigmint (and Tigmint-long) step can be run seperately through specifying the target on the makefile. For example index the linked reads using `tigmint-make tigmint-index`
+  - Tigmint steps\targets (for linked reads): `tigmint-index`, `tigmint-align`, `tigmint-molecule`, `tigmint-cut`
+  - Tigmint-long steps\targets: `tigmint-long-estimate`, `tigmint-long-to-linked`, `tigmint-long-cut`
 # Using stLFR linked reads
 
 To use stLFR linked reads with Tigmint, you will need to re-format the reads to have the barcode in a `BX:Z:` tag in the read header.
