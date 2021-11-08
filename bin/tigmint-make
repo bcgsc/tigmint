@@ -146,41 +146,66 @@ draft_metrics: \
 
 # Correct misassemblies using Tigmint
 tigmint: \
-	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa \
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.fa \
 	$(draft).tigmint.fa
+
+# Index the linked reads 
+tigmint-index: $(draft).fa.bwt
+
+# Align the linked reads (using bwa mem) 
+tigmint-align: $(draft).$(reads).sortbx.bam
+
+# Perform the tigmint-molecule step for linked reads 
+tigmint-molecule: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).dist$(dist).bed
+
+# Perform the final tigmint-cut step for linked reads
+tigmint-cut: \
+        $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.fa \
+        $(draft).tigmint.fa
 
 # Correct misassemblies for long reads using Tigmint
 tigmint-long: \
-	$(draft).$(reads).cut$(cut).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa \
+	$(draft).$(reads).cut$(cut).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.fa \
 	$(draft).cut$(cut).tigmint.fa
+
+# Estimate the tigmint parameters for long reads 
+tigmint-long-estimate: $(reads).tigmint-long.params.tsv
+
+# Covert the long reads to pseudo-linked reads, perform minimap2 alignment and the tigmint-molecule step
+tigmint-long-to-linked: $(draft).$(reads).cut$(cut).molecule.size$(minsize).dist$(dist).bed
+
+# Perform the final tigmint-cut step for long reads
+tigmint-long-cut: \
+        $(draft).$(reads).cut$(cut).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.fa \
+        $(draft).cut$(cut).tigmint.fa
 
 # Calculate assembly metrics after Tigmint
 tigmint_metrics: \
-	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.abyss-fac.tsv \
-	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.scaftigs.abyss-fac.tsv \
-	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.scaftigs.$(ref).samtobreak.tsv
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.abyss-fac.tsv \
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.scaftigs.abyss-fac.tsv \
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.scaftigs.$(ref).samtobreak.tsv
 
 # Scaffold using ARCS
 arcs: \
-	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.fa \
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.fa \
 	$(draft).tigmint.arcs.fa
 
 # Calculate assembly metrics after ARCS
 arcs_metrics: \
-	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.abyss-fac.tsv \
-	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.scaftigs.abyss-fac.tsv \
-	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.scaftigs.$(ref).samtobreak.tsv
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.abyss-fac.tsv \
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.scaftigs.abyss-fac.tsv \
+	$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.scaftigs.$(ref).samtobreak.tsv
 
 # Symlink the Tigmint results
-$(draft).tigmint.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa
+$(draft).tigmint.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.fa
 	ln -sf $< $@
 
 # Symlink the long read Tigmint results
-$(draft).cut$(cut).tigmint.fa: $(draft).$(reads).cut$(cut).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.fa
+$(draft).cut$(cut).tigmint.fa: $(draft).$(reads).cut$(cut).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.fa
 	ln -sf $< $@
 
 # Symlink the ARCS results
-$(draft).tigmint.arcs.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).trim$(trim).window$(window).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.fa
+$(draft).tigmint.arcs.fa: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.$(reads).c$c_e$e_r$r.arcs.a$a_l$l.links.fa
 	ln -sf $< $@
 
 # BWA
@@ -207,22 +232,6 @@ ifeq ($G, 0)
 endif
 endif
 
-# Segment long reads from gzipped fasta file, optionally calculating tigmint-long parameters.
-$(reads).cut$(cut).fq.gz: $(longreads) check_span_g
-ifeq ($(span), auto)
-ifeq ($(dist), auto)
-	$(gtime) $(gzip) -dc $(longreads) | $(bin)/long-to-linked -l$(cut) -m$(minsize) -g$G -s -d -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
-else
-	$(gtime) $(gzip) -dc $(longreads) | $(bin)/long-to-linked -l$(cut) -m$(minsize) -g$G -s -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
-endif
-else
-ifeq ($(dist), auto)
-	$(gtime) $(gzip) -dc $(longreads) | $(bin)/long-to-linked -l$(cut) -m$(minsize) -d -o $(reads).tigmint-long.params.tsv | $(gzip) > $@
-else
-	$(gtime) $(gzip) -dc $(longreads) | $(bin)/long-to-linked -l$(cut) -m$(minsize) | $(gzip) > $@
-endif
-endif
-
 # samtools
 
 # Index a FASTA file.
@@ -230,7 +239,7 @@ endif
 	samtools faidx $<
 
 # Create molecule extents BED
-%.as$(as).nm$(nm).molecule.size$(minsize).bed: %.sortbx.bam
+%.as$(as).nm$(nm).molecule.size$(minsize).dist$(dist).bed: %.sortbx.bam
 	$(gtime) $(bin)/tigmint_molecule.py -a$(as) -n$(nm) -q$(mapq) -d$(dist) -s$(minsize) $< | sort -k1,1 -k2,2n -k3,3n >$@
 
 # Estimate dist parameter for tigmint-long
@@ -240,7 +249,13 @@ $(reads).tigmint-long.params.tsv: $(longreads)
 	$(bin)/tigmint_estimate_dist.py - -n $(dist_sample) -o $@'
 
 # Create molecule extents BED using cut long reads
-$(draft).$(reads).cut$(cut).molecule.size$(minsize).bed: $(longreads) $(draft).fa $(reads).tigmint-long.params.tsv check_span_g
+$(draft).$(reads).cut$(cut).molecule.size$(minsize).dist$(dist).bed: $(longreads) $(draft).fa $(reads).tigmint-long.params.tsv
+ifeq ($(span), auto)
+ifeq ($G, 0)
+	$(error Must set genome size parameter (G) to calculate span automatically)
+endif
+endif
+
 ifeq ($(dist), auto)
 	$(gtime) $(bin)/../src/long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
 	minimap2 -y -t$t -x map-$(longmap) --secondary=no $(draft).fa - | \
