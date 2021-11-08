@@ -69,9 +69,9 @@ def tigmint_pipeline():
                 "test_contig_long.test_longreads.cut500.molecule.size2000.distauto.bed",
                 "test_contig_long.test_longreads.cut500.molecule.size2000.distauto.trim0.window1000.span10.breaktigs.fa",
                 "test_contig_long.test_longreads.cut500.molecule.size2000.distauto.trim0.window1000.span10.breaktigs.fa.bed",
-                "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.bed",
-                "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.trim0.window1000.span20.breaktigs.fa",
-                "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.trim0.window1000.span20.breaktigs.fa.bed",
+                "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.dist50000.bed",
+                "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.dist50000.trim0.window1000.span20.breaktigs.fa",
+                "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.dist50000.trim0.window1000.span20.breaktigs.fa.bed",
                 "test_contig.test_linkedreads.sortbx.bam",
                 "test_longreads.cut500.fq.gz", "test_longreads.tigmint-long.span.txt",
                 "test_longreads.tigmint-long.params.tsv"]
@@ -231,9 +231,9 @@ def test_pipeline(tigmint_pipeline):
         assert exp_alignment == obs_bam[i]
     
     # Other readable files
-    tigmint_outputs = ["test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.bed",
-        "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.trim0.window1000.span20.breaktigs.fa",
-        "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.trim0.window1000.span20.breaktigs.fa.bed"]
+    tigmint_outputs = ["test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.dist50000.bed",
+        "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.dist50000.trim0.window1000.span20.breaktigs.fa",
+        "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.dist50000.trim0.window1000.span20.breaktigs.fa.bed"]
     for output in tigmint_outputs:
         expected_output = "expected_outputs/" + output
         with open(expected_output) as exp:
