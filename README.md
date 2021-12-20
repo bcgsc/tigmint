@@ -163,7 +163,7 @@ tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=gsize dist=
 + `trim=0`: Number of bases to trim off contigs following cuts
 + `t=8`: Number of threads
 + `ac=3000`: Minimum contig length (bp) for tallying attempted corrections. This is for logging purposes only, and will not affect the performance.
-+ `SORT_OPTS`: specify any options to be used for `samtools sort` or `sort`
++ `SORT_OPTS`: specify any options to be used for `sort`
 
 # Parameters of ARCS
 + `c=5`
@@ -191,7 +191,7 @@ tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=gsize dist=
 - Each Tigmint (and Tigmint-long) step can be run separately through specifying the target using `tigmint-make`. For example, the bwa index step for Tigmint with linked reads can be launched with `tigmint-make tigmint-index`
   - Tigmint steps\targets (for linked reads): `tigmint-index`, `tigmint-align`, `tigmint-molecule`, `tigmint-cut`
   - Tigmint-long steps\targets: `tigmint-long-estimate`, `tigmint-long-to-linked`, `tigmint-long-cut`
-- In the command line, `SORT_OPTS` can be specified to add options used for `samtools sort` and `sort`
+- In the command line, `SORT_OPTS` can be specified to add options used for `sort`
 # Using stLFR linked reads
 
 To use stLFR linked reads with Tigmint, you will need to re-format the reads to have the barcode in a `BX:Z:` tag in the read header.
