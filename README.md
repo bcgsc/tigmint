@@ -165,6 +165,7 @@ tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=gsize dist=
 + `ac=3000`: Minimum contig length (bp) for tallying attempted corrections. This is for logging purposes only, and will not affect the performance.
 + `SORT_OPTS`: specify any options to be used for `sort`
 
+
 # Parameters of ARCS
 + `c=5`
 + `e=30000`
@@ -192,6 +193,7 @@ tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=gsize dist=
   - Tigmint steps\targets (for linked reads): `tigmint-index`, `tigmint-align`, `tigmint-molecule`, `tigmint-cut`
   - Tigmint-long steps\targets: `tigmint-long-estimate`, `tigmint-long-to-linked`, `tigmint-long-cut`
 - In the command line, `SORT_OPTS` can be specified to add options used for `sort`
+
 # Using stLFR linked reads
 
 To use stLFR linked reads with Tigmint, you will need to re-format the reads to have the barcode in a `BX:Z:` tag in the read header.
