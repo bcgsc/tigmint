@@ -41,12 +41,6 @@ brew install tigmint
 conda install -c bioconda tigmint
 ```
 
-## Install Tigmint using PyPI
-
-```sh
-pip3 install tigmint
-```
-
 ## Run Tigmint using Docker
 
 ```sh
