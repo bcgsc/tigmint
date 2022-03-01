@@ -128,15 +128,10 @@ if [[ $missing_dep -eq 1 ]]; then
   in_venv=true
 fi
 
-# We set the flags internally, don't need no nosy flags from the outside
-unset CFLAGS
-unset CXXFLAGS
-unset LDFLAGS
-
-rm -rf __compile_build python bin
-meson setup --buildtype release --prefix=$SCRIPTPATH __compile_build
+rm -rf __build-compile python bin
+meson setup --buildtype release --prefix=$SCRIPTPATH __build-compile
 if [[ $? -eq 0 ]]; then
-  cd __compile_build
+  cd __build-compile
   ninja build-sdsl
   ninja install
   cd ..
