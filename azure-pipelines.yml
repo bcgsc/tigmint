@@ -24,12 +24,12 @@ jobs:
       conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda --file requirements.txt
     displayName: Install Anaconda packages
   - script: |
-    conda activate tigmint_CI
-    make -C src all
+      conda activate tigmint_CI
+      make -C src all
     displayName: Compile C++ executables
   - script: |
-    conda activate tigmint_CI
-    make -C src lint
+      conda activate tigmint_CI
+      make -C src lint
     displayName: Run clang-format and clang-tidy
   - script: |
       source activate tigmint_CI
