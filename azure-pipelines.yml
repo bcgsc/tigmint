@@ -22,7 +22,7 @@ jobs:
       source activate tigmint_CI
       conda install --yes --quiet --name tigmint_CI python=3.7 pylint
       conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda --file requirements.txt
-      conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda pytest bedtools bwa samtools=1.9 minimap2
+      conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda pytest bedtools bwa samtools=1.9 minimap2 meson ninja cmake
     displayName: Install Anaconda packages
   - script: |
       source activate tigmint_CI
