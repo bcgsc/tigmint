@@ -16,7 +16,7 @@
 draft=draft
 
 # Name of the reads, reads.fq.gz, after running longranger basic (for linked reads)
-# Can be reads.fq.gz or reads.fa.gz for long reads
+# Can be reads.fq.gz, reads.fq, reads.fastq, reads.fa, reads.fasta or reads.fa.gz for long reads
 reads=reads
 
 # Find the complete read file name
@@ -267,7 +267,7 @@ endif
 # Estimate dist parameter for tigmint-long
 dist_sample=1000000
 $(reads).tigmint-long.params.tsv: $(longreads)
-	$(PYTHONPATH) $(gtime) $(bin)/tigmint_estimate_dist.py $< -n $(dist_sample) -o $@'
+	$(PYTHONPATH) $(gtime) $(bin)/tigmint_estimate_dist.py $< -n $(dist_sample) -o $@
 
 # Create molecule extents BED using cut long reads
 $(draft).$(reads).cut$(cut).molecule.size$(minsize).dist$(dist).bed: $(longreads) $(draft).fa $(reads).tigmint-long.params.tsv
