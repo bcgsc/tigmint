@@ -267,7 +267,7 @@ endif
 # Estimate dist parameter for tigmint-long
 dist_sample=1000000
 $(reads).tigmint-long.params.tsv: $(longreads)
-	$(PYTHONPATH) $(gtime) $(bin)/tigmint_estimate_dist.py $< -n $(dist_sample) -o $@
+	PYTHONPATH=$(PYTHONPATH) $(gtime) $(bin)/tigmint_estimate_dist.py $< -n $(dist_sample) -o $@
 
 # Create molecule extents BED using cut long reads
 $(draft).$(reads).cut$(cut).molecule.size$(minsize).dist$(dist).bed: $(longreads) $(draft).fa $(reads).tigmint-long.params.tsv
