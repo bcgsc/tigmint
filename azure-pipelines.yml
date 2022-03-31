@@ -18,15 +18,19 @@ jobs:
       sudo apt-get update
       sudo apt-get install -y --no-install-recommends clang-format clang-tidy
     displayName: Install clang-format and clang-tidy
-  - script: make -C src all
-    displayName: Compile C++ executables
-  - script: make -C src lint
-    displayName: Run clang-format and clang-tidy
   - script: |
       source activate tigmint_CI
-      conda install --yes --quiet --name tigmint_CI python=3.7 pylint
+      conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda pytest bedtools bwa samtools=1.9 minimap2 meson ninja cmake pylint
       conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda --file requirements.txt
     displayName: Install Anaconda packages
+  - script: |
+      source activate tigmint_CI
+      make -C src all
+    displayName: Compile C++ executables
+  - script: |
+      source activate tigmint_CI
+      make -C src lint
+    displayName: Run clang-format and clang-tidy
   - script: |
       source activate tigmint_CI
       cd bin
@@ -36,7 +40,6 @@ jobs:
     displayName: Run pylint
   - script: |
       source activate tigmint_CI
-      conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda pytest bedtools bwa samtools=1.9 minimap2
       echo $PATH
       cd tests
       pytest -vs tigmint_test.py

@@ -16,17 +16,36 @@
 draft=draft
 
 # Name of the reads, reads.fq.gz, after running longranger basic (for linked reads)
-# Can be reads.fq.gz or reads.fa.gz for long reads
+# Can be reads.fq.gz, reads.fq, reads.fastq, reads.fa, reads.fasta or reads.fa.gz for long reads
 reads=reads
 
 # Find the complete read file name
-fastq=$(shell test -f $(reads).fq.gz && echo "true")
-fasta=$(shell test -f $(reads).fa.gz && echo "true")
-ifeq ($(fastq), true)
+fastq_gz=$(shell test -f $(reads).fq.gz && echo "true")
+fastq=$(shell test -f $(reads).fq && echo "true")
+fastq_long=$(shell test -f $(reads).fastq && echo "true")
+
+fasta_gz=$(shell test -f $(reads).fa.gz && echo "true")
+fasta=$(shell test -f $(reads).fa && echo "true")
+fasta_long=$(shell test -f $(reads).fasta && echo "true")
+
+ifeq ($(fastq_gz), true)
 longreads=$(reads).fq.gz
 endif
-ifeq ($(fasta), true)
+ifeq ($(fastq), true)
+longreads=$(reads).fq
+endif
+ifeq ($(fastq_long), true)
+longreads=$(reads).fastq
+endif
+
+ifeq ($(fasta_gz), true)
 longreads=$(reads).fa.gz
+endif
+ifeq ($(fasta), true)
+longreads=$(reads).fa
+endif
+ifeq ($(fasta_long), true)
+longreads=$(reads).fasta
 endif
 
 # Reference genome, ref.fa, for calculating assembly contiguity metrics
@@ -105,6 +124,9 @@ else
 gzip=gzip
 endif
 endif
+
+# Set-up PYTHON PATH
+PYTHONPATH=$(bin)/../src/btllib/python/
 
 # Record run time and memory usage in a file using GNU time.
 ifdef time
@@ -245,8 +267,7 @@ endif
 # Estimate dist parameter for tigmint-long
 dist_sample=1000000
 $(reads).tigmint-long.params.tsv: $(longreads)
-	$(gtime) sh -c '$(gzip) -dc $(longreads) | \
-	$(bin)/tigmint_estimate_dist.py - -n $(dist_sample) -o $@'
+	PYTHONPATH=$(PYTHONPATH) $(gtime) $(bin)/tigmint_estimate_dist.py $< -n $(dist_sample) -o $@
 
 # Create molecule extents BED using cut long reads
 $(draft).$(reads).cut$(cut).molecule.size$(minsize).dist$(dist).bed: $(longreads) $(draft).fa $(reads).tigmint-long.params.tsv

@@ -7,15 +7,15 @@ Sample the long reads, and estimate the optimal 'dist' parameter setting
 
 import argparse
 import numpy as np
-from read_fasta import read_fasta
+import btllib
 
 def get_n_read_lengths(reads_filename, num_reads, lower_bound):
     "Collect the read lengths for n reads"
     read_lengths = []
     read_count = 0
-    with open(reads_filename, 'r') as fin:
-        for _, seq, _, _ in read_fasta(fin):
-            seq_len = len(seq)
+    with btllib.SeqReader(reads_filename, btllib.SeqReaderFlag.LONG_MODE) as reads:
+        for read in reads:
+            seq_len = len(read.seq)
             if seq_len > lower_bound:
                 read_lengths.append(seq_len)
                 read_count += 1
@@ -29,7 +29,7 @@ def main():
     parser = argparse.ArgumentParser(description="Sample the reads from the given fasta/fastq file "
                                                  "and estimate the Tigmint-long dist parameter "
                                                  "based on the chosen length percentile")
-    parser.add_argument("READS", help="Input reads file (fa or fq). Set to '-' to read from stdin",
+    parser.add_argument("READS", help="Input reads file (fa or fq)",
                         type=str)
     parser.add_argument("-n", help="Number of reads to sample [10000]", type=int, required=False,
                         default=10000)
@@ -47,8 +47,6 @@ def main():
                         version="tigmint_estimate_dist.py 1.2.5")
 
     args = parser.parse_args()
-
-    args.READS = "/dev/stdin" if args.READS == "-" else args.READS
 
     read_lengths = get_n_read_lengths(args.READS, args.n, args.d)
 

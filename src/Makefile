@@ -1,6 +1,12 @@
-CXXFLAGS=-O3 -Wall -Werror -Wno-unknown-pragmas -std=c++11 -pthread -Ibtllib/include -Iinclude
+all: btllib_build long-to-linked-pe
 
-all: long-to-linked-pe
+long-to-linked-pe: CXXFLAGS=-O3 -Wall -Werror -Wno-unknown-pragmas -std=c++11 -pthread -Ibtllib/include -Iinclude -Lbtllib/lib -lbtllib
+
+btllib_build:
+	./btllib/compile
+
+long-to-linked-pe: long-to-linked-pe.cpp btllib_build
+	$(CXX) -o $@ $< $(CXXFLAGS)
 
 clean:
 	rm -f long-to-linked-pe

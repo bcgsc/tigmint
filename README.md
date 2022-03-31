@@ -44,7 +44,7 @@ conda install -c bioconda tigmint
 ## Run Tigmint using Docker
 
 ```sh
-docker run -it bcgsc/tigmint
+docker run quay.io/biocontainers/tigmint
 ```
 
 ## Install Tigmint from the source code
@@ -116,7 +116,7 @@ tigmint-make metrics draft=myassembly reads=myreads ref=GRCh38 G=3088269832
 ```
 ***
 
-To run Tigmint with long reads in fasta or fastq format (`myreads.fa.gz` or `myreads.fq.gz`) on the draft assembly `myassembly.fa` for an organism with a genome size of gsize:
+To run Tigmint with long reads in fasta or fastq format (`myreads.fa.gz` or `myreads.fq.gz` - or uncompressed) on the draft assembly `myassembly.fa` for an organism with a genome size of gsize:
 
 ```sh
 tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=gsize dist=auto
@@ -125,10 +125,11 @@ tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=gsize dist=
 - `minimap2 map-ont` is used to align long reads from the Oxford Nanopore Technologies (ONT) platform, which is the default input for Tigmint. To use PacBio long reads specify the parameter `longmap=pb`. The former calls `minimap2 -x map-ont` while the latter calls `minimap2 -x map-pb` instead.
 
 
-# Note
+# Notes
 
 + `tigmint-make` is a Makefile script, and so any `make` options may also be used with `tigmint-make`, such as `-n` (`--dry-run`).
-+ The file extension of the assembly must be `.fa` and the reads `.fq.gz` (or `.fa.gz` for long reads), and the extension should NOT be included in the parameters `draft` and `reads` on the command line (otherwise you will get an error). These specific file name requirements result from implementing the pipeline in GNU Make.
++ When running Tigmint with linked reads, the file extension of the assembly must be `.fa` and the reads `.fq.gz`, and the extension should NOT be included in the parameters `draft` and `reads` on the command line (otherwise you will get an error). These specific file name requirements result from implementing the pipeline in GNU Make.
+  + The requirements for running Tigmint with long reads are the same, but the file extension of the reads file can also be `.fa`, `.fa.gz`, or `.fq`
 + The minimum spanning molecules parameter (`span`) for `tigmint-cut` is heavily dependent on the sequence coverage of the linked or long reads provided. When running Tigmint with long reads, use `span=auto` and set `G` to your assembly organism's haploid genome size for this parameter to be calculated automatically, or explicitly set `span` to a specific number if you are interested in adjusting it. See [Tips](#Tips) for more details. 
 + For `tigmint-long`, the maximum distance between reads threshold should be calculated automatically based on the read length distribution. This can be done by setting the parameter `dist=auto`.
 + The `long-to-linked-pe` step of `tigmint-long` uses a maximum of 6 threads
