@@ -122,7 +122,7 @@ To run Tigmint with long reads in fasta or fastq format (`myreads.fa.gz` or `myr
 tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=gsize dist=auto
 ```
 
-- `minimap2 map-ont` is used to align long reads from the Oxford Nanopore Technologies (ONT) platform, which is the default input for Tigmint. To use PacBio long reads specify the parameter `longmap=pb`. The former calls `minimap2 -x map-ont` while the latter calls `minimap2 -x map-pb` instead.
+- `minimap2 map-ont` is used to align long reads from the Oxford Nanopore Technologies (ONT) platform, which is the default input for Tigmint. To use PacBio long reads specify the parameter `longmap=pb`. The former calls `minimap2 -x map-ont` while the latter calls `minimap2 -x map-pb` instead. To  When using PacBio HiFi long reads, specify the parameter `longmap=hifi`.
 
 
 # Notes
