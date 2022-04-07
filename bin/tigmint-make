@@ -126,7 +126,7 @@ endif
 endif
 
 # Set-up PYTHON PATH
-PYTHONPATH=$(bin)/../src/btllib/python/
+PYTHONPATH=$(bin)/../src/btllib/install/python/
 
 # Record run time and memory usage in a file using GNU time.
 ifdef time
