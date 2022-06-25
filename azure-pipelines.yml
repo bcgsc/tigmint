@@ -13,14 +13,8 @@ jobs:
   - script: conda create --yes --quiet --name tigmint_CI
     displayName: Create Anaconda environment
   - script: |
-      curl https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-      sudo apt-add-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-11 main"
-      sudo apt-get update
-      sudo apt-get install -y --no-install-recommends clang-format clang-tidy
-    displayName: Install clang-format and clang-tidy
-  - script: |
       source activate tigmint_CI
-      conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda pytest bedtools bwa samtools=1.9 minimap2 meson ninja cmake pylint
+      conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda pytest bedtools bwa samtools=1.9 minimap2 pylint
       conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda --file requirements.txt
     displayName: Install Anaconda packages
   - script: |

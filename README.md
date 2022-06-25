@@ -28,9 +28,6 @@ Each window of a specified fixed size is checked for a minimum number of spannin
 
 ## Install Tigmint using Brew
 
-Install [Linuxbrew](http://linuxbrew.sh/) on Linux or Windows Subsystem for Linux (WSL), or
-install [Homebrew](https://brew.sh/) on macOS, and then run the command
-
 ```sh
 brew install tigmint
 ```
@@ -53,30 +50,19 @@ Download and extract the source code.
 
 ```
 git clone https://github.com/bcgsc/tigmint && cd tigmint
-cd src
-make
+make -C src
 ```
 or
 ```
-curl -L https://github.com/bcgsc/tigmint/releases/download/v1.2.4/tigmint-1.2.4.tar.gz | tar xz && cd tigmint-1.2.4
-cd src
-make
+curl -L https://github.com/bcgsc/tigmint/releases/download/v1.2.6/tigmint-1.2.6.tar.gz | tar xz && cd tigmint-1.2.6
+make -C src
 ```
 
 # Dependencies
 
 ## Install Python package dependencies
 ```sh
-pip3 install intervaltree pybedtools pysam numpy
-```
-
-Tigmint uses Bedtools, minimap2, BWA, zsh and Samtools. These dependencies may be installed using [Homebrew](https://brew.sh) on macOS or [Linuxbrew](http://linuxbrew.sh) on Linux.
-
-## Install the dependencies of Tigmint
-```sh
-brew install bedtools bwa samtools
-brew tap brewsci/bio
-brew install minimap2
+conda -c bioconda install intervaltree pybedtools pysam numpy bedtools minimap2 bwa zsh btllib samtools
 ```
 
 ## Install the dependencies of ARCS (optional)
