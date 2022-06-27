@@ -16,9 +16,11 @@ jobs:
       source activate tigmint_CI
       conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda pytest bedtools bwa samtools=1.9 minimap2 pylint
       conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda --file requirements.txt
+      conda list
     displayName: Install Anaconda packages
   - script: |
       source activate tigmint_CI
+      conda list
       echo $CXXFLAGS
       make -C src all
     displayName: Compile C++ executables
