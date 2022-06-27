@@ -24,7 +24,7 @@ jobs:
     displayName: Compile C++ executables
   - script: |
       source activate tigmint_CI
-      conda install clang clang-tools
+      conda install --yes -c bioconda -c conda-forge clang clang-tools
       which clang-tidy
       make -C src lint
     displayName: Run clang-format and clang-tidy
