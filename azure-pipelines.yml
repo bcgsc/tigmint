@@ -14,7 +14,7 @@ jobs:
     displayName: Create Anaconda environment
   - script: |
       source activate tigmint_CI
-      conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda pytest bedtools bwa samtools=1.9 minimap2 pylint compilers clang-tools
+      conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda pytest bedtools bwa samtools=1.9 minimap2 pylint compilers
       conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda --file requirements.txt
       conda list
     displayName: Install Anaconda packages
@@ -24,6 +24,7 @@ jobs:
     displayName: Compile C++ executables
   - script: |
       source activate tigmint_CI
+      conda install clang clang-tools
       which clang-tidy
       make -C src lint
     displayName: Run clang-format and clang-tidy
