@@ -24,6 +24,7 @@ jobs:
     displayName: Compile C++ executables
   - script: |
       source activate tigmint_CI
+      which clang-tidy
       make -C src lint
     displayName: Run clang-format and clang-tidy
   - script: |
