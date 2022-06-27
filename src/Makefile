@@ -1,6 +1,6 @@
 all: long-to-linked-pe
 
-#CXXFLAGS+=-O3 -Wall -Werror -Wno-unknown-pragmas -std=c++11 -pthread
+CXXFLAGS+=-O3 -Wall -Werror -Wno-unknown-pragmas -std=c++11 -pthread
 LDFLAGS+=-l btllib
 
 long-to-linked-pe: long-to-linked-pe.cpp

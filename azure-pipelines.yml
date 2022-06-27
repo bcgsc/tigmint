@@ -20,6 +20,7 @@ jobs:
     displayName: Install Anaconda packages
   - script: |
       source activate tigmint_CI
+      conda activate tigmint_CI
       conda list
       echo $CXXFLAGS
       make -C src all
