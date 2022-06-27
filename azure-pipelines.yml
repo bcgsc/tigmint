@@ -19,6 +19,7 @@ jobs:
     displayName: Install Anaconda packages
   - script: |
       source activate tigmint_CI
+      echo $CXXFLAGS
       make -C src all
     displayName: Compile C++ executables
   - script: |
