@@ -16,7 +16,6 @@ jobs:
       source activate tigmint_CI
       conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda pytest bedtools bwa samtools=1.9 minimap2 pylint compilers
       conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda --file requirements.txt
-      conda list
     displayName: Install Anaconda packages
   - script: |
       source activate tigmint_CI
@@ -25,19 +24,16 @@ jobs:
   - script: |
       source activate tigmint_CI
       conda install --yes -c bioconda -c conda-forge clang clang-tools
-      which clang-tidy
       make -C src lint
     displayName: Run clang-format and clang-tidy
   - script: |
       source activate tigmint_CI
       cd bin
       pylint tigmint-cut tigmint_molecule.py tigmint_molecule_paf.py tigmint_estimate_dist.py
-      echo $?
       cd ../
     displayName: Run pylint
   - script: |
       source activate tigmint_CI
-      echo $PATH
       cd tests
       pytest -vs tigmint_test.py
     displayName: Run pytests
