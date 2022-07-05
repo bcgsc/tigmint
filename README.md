@@ -62,18 +62,17 @@ make -C src
 
 ## Install Python package dependencies
 ```sh
-conda -c bioconda install intervaltree pybedtools pysam numpy bedtools minimap2 bwa zsh btllib samtools
+conda install -c bioconda intervaltree pybedtools pysam numpy bedtools minimap2 bwa zsh btllib samtools
 ```
 
 ## Install the dependencies of ARCS (optional)
 ```sh
-brew tap brewsci/bio
-brew install arcs links-scaffolder
+conda install -c bioconda arcs links
 ```
 
 ## Install the dependencies for calculating assembly metrics (optional)
 ```sh
-brew install abyss seqtk
+conda install -c bioconda abyss seqtk
 ```
 
 # Usage
