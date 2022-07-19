@@ -190,7 +190,7 @@ tigmint-long: \
 # Estimate the tigmint parameters for long reads 
 tigmint-long-estimate: $(reads).tigmint-long.params.tsv
 
-# Covert the long reads to pseudo-linked reads, perform minimap2 alignment and the tigmint-molecule step
+# Convert the long reads to pseudo-linked reads, perform minimap2 alignment and the tigmint-molecule step
 tigmint-long-to-linked: $(draft).$(reads).cut$(cut).molecule.size$(minsize).dist$(dist).bed
 
 # Perform the final tigmint-cut step for long reads
