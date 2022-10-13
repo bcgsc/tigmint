@@ -57,6 +57,11 @@ G=0
 # Minimap2 long read map parameter
 longmap=ont
 
+# Mapping approach
+mapping=minimap2 # Can be minimap2 or ntLink
+ntLink_k=32
+ntLink_w=100
+
 # Minimum molecule size
 minsize=2000
 
@@ -179,8 +184,8 @@ tigmint-molecule: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).dist
 
 # Perform the final tigmint-cut step for linked reads
 tigmint-cut: \
-        $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.fa \
-        $(draft).tigmint.fa
+		$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.fa \
+		$(draft).tigmint.fa
 
 # Correct misassemblies for long reads using Tigmint
 tigmint-long: \
@@ -195,8 +200,8 @@ tigmint-long-to-linked: $(draft).$(reads).cut$(cut).molecule.size$(minsize).dist
 
 # Perform the final tigmint-cut step for long reads
 tigmint-long-cut: \
-        $(draft).$(reads).cut$(cut).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.fa \
-        $(draft).cut$(cut).tigmint.fa
+		$(draft).$(reads).cut$(cut).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.fa \
+		$(draft).cut$(cut).tigmint.fa
 
 # Calculate assembly metrics after Tigmint
 tigmint_metrics: \
@@ -274,6 +279,10 @@ ifeq ($G, 0)
 endif
 endif
 
+ifeq ($(mapping), ntLink)
+	$(gtime) ntLink pair target=$(draft).fa reads=$< paf=True k=$(ntLink_k) w=$(ntLink_w)
+	cat $(draft).k$(ntLink_k).w$(ntLink_w).z1000.paf |awk 'BEGIN{OFS="\t"} {print $$6,$$8,$$9,$$1,$$10}' |awk -v m=$(minsize)'$$3-$$2>=$$v' | sort -n -k1 -k2 -k3 > $@
+else
 ifeq ($(dist), auto)
 	$(gtime) sh -c '$(bin)/../src/long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
 	minimap2 -y -t$t -x map-$(longmap) --secondary=no $(draft).fa - | \
@@ -282,6 +291,7 @@ else
 	$(gtime) sh -c '$(bin)/../src/long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
 	minimap2 -y -t$t -x map-$(longmap) --secondary=no $(draft).fa - | \
 	$(bin)/tigmint_molecule_paf.py -q$(mapq) -d$(dist) -s$(minsize) - | sort -k1,1 -k2,2n -k3,3n $(SORT_OPTS) > $@'
+endif
 endif
 
 # Create molecule extents TSV
