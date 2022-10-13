@@ -258,7 +258,7 @@ def get_span(filename):
 
 def main():
     parser = argparse.ArgumentParser(description="Find misassembled regions in assembly using Chromium molecule extents")
-    parser.add_argument("--version", action="version", version="tigmint-cut 1.2.6")
+    parser.add_argument("--version", action="version", version="tigmint-cut 1.2.7")
     parser.add_argument("fasta", type=str, help="Reference genome fasta file (must have FAI index generated)")
     parser.add_argument("bed", type=str, help="Sorted bed file of molecule extents")
     parser.add_argument("-o", "--fastaout", type=str, help="The output FASTA file.", required=True)
