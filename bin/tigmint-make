@@ -132,7 +132,7 @@ endif
 
 # Record run time and memory usage in a file using GNU time.
 ifdef time
-ifneq ($(shell command -v memusg))
+ifneq ($(shell command -v memusg),)
 gtime=command memusg -t -o $@.time
 else
 ifneq ($(shell command -v gtime),)
