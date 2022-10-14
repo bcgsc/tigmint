@@ -132,10 +132,14 @@ endif
 
 # Record run time and memory usage in a file using GNU time.
 ifdef time
+ifneq ($(shell command -v memusg))
+gtime=command memusg -t -o $@.time
+else
 ifneq ($(shell command -v gtime),)
 gtime=command gtime -v -o $@.time
 else
 gtime=command time -v -o $@.time
+endif
 endif
 endif
 
@@ -281,7 +285,7 @@ endif
 
 ifeq ($(mapping), ntLink)
 	$(gtime) ntLink pair target=$(draft).fa reads=$< paf=True k=$(ntLink_k) w=$(ntLink_w) t=$t
-	$(gtime)1 cat $(draft).fa.k$(ntLink_k).w$(ntLink_w).z1000.paf |awk 'BEGIN{OFS="\t"} {print $$6,$$8,$$9,$$1,$$10}' |awk -v m=$(minsize) '$$3-$$2>=$$m' | sort -k1,1 -k2,2n -k3,3n > $@
+	$(gtime)1 sh -c '$(bin)/tigmint-filter-paf -m $(minsize) $(draft).fa.k$(ntLink_k).w$(ntLink_w).z1000.paf | sort -k1,1 -k2,2n -k3,3n > $@'
 else
 ifeq ($(dist), auto)
 	$(gtime) sh -c '$(bin)/../src/long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
