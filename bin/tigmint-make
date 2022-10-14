@@ -280,7 +280,7 @@ endif
 endif
 
 ifeq ($(mapping), ntLink)
-	$(gtime) ntLink pair target=$(draft).fa reads=$< paf=True k=$(ntLink_k) w=$(ntLink_w)
+	$(gtime) ntLink pair target=$(draft).fa reads=$< paf=True k=$(ntLink_k) w=$(ntLink_w) t=$t
 	cat $(draft).k$(ntLink_k).w$(ntLink_w).z1000.paf |awk 'BEGIN{OFS="\t"} {print $$6,$$8,$$9,$$1,$$10}' |awk -v m=$(minsize)'$$3-$$2>=$$v' | sort -n -k1 -k2 -k3 > $@
 else
 ifeq ($(dist), auto)
