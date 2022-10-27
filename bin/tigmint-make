@@ -275,11 +275,11 @@ endif
 endif
 
 ifeq ($(dist), auto)
-	sh -c '$(gtime) $(bin)/../src/long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
+	$(gtime) sh -c '$(bin)/../src/long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
 	minimap2 -y -t$t -x map-$(longmap) --secondary=no $(draft).fa - | \
 	$(bin)/tigmint_molecule_paf.py -q$(mapq) -s$(minsize) -p $(reads).tigmint-long.params.tsv - | sort -k1,1 -k2,2n -k3,3n $(SORT_OPTS) > $@'
 else
-	sh -c '$(gtime) $(bin)/../src/long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
+	$(gtime) sh -c '$(bin)/../src/long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
 	minimap2 -y -t$t -x map-$(longmap) --secondary=no $(draft).fa - | \
 	$(bin)/tigmint_molecule_paf.py -q$(mapq) -d$(dist) -s$(minsize) - | sort -k1,1 -k2,2n -k3,3n $(SORT_OPTS) > $@'
 endif
