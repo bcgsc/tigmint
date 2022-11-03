@@ -287,6 +287,13 @@ ifeq ($(mapping), ntLink)
 	$(gtime) ntLink pair target=$(draft).fa reads=$< paf=True k=$(ntLink_k) w=$(ntLink_w) t=$t
 	$(gtime)1 sh -c '$(bin)/tigmint-filter-paf -m $(minsize) $(draft).fa.k$(ntLink_k).w$(ntLink_w).z1000.paf | sort -k1,1 -k2,2n -k3,3n > $@'
 else
+ifeq ($(mapping), ntLink_lr)
+	$(gtime)_l-to-l $(bin)/../src/long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< > $(reads).cut.fa
+	$(gtime)_ntlink ntLink pair target=$(draft).fa reads=$(reads).cut.fa paf=True k=$(ntLink_k) w=$(ntLink_w) t=$t
+	cat $(draft).fa.k$(ntLink_k).w$(ntLink_w).z1000.paf | \
+	perl -ne 'chomp; if(/^(\S+)_f\d+\s+/){$$curr_bx=$$1; if($$curr_bx ne $$prev_bx) {$$cur_num+=1} $$bx="\tBX:Z:$$cur_num"x7; print "$$_$$bx\n";  $$prev_bx=$$curr_bx} ' > $(draft).fa.k$(ntLink_k).w$(ntLink_w).z1000.bx.paf
+	$(gtime)_molec $(bin)/tigmint_molecule_paf.py -q$(mapq) -s$(minsize) -p $(reads).tigmint-long.params.tsv $(draft).fa.k$(ntLink_k).w$(ntLink_w).z1000.bx.paf | sort -k1,1 -k2,2n -k3,3n $(SORT_OPTS) > $@
+else
 ifeq ($(dist), auto)
 	$(gtime) sh -c '$(bin)/../src/long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
 	minimap2 -y -t$t -x map-$(longmap) --secondary=no $(draft).fa - | \
@@ -295,6 +302,7 @@ else
 	$(gtime) sh -c '$(bin)/../src/long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
 	minimap2 -y -t$t -x map-$(longmap) --secondary=no $(draft).fa - | \
 	$(bin)/tigmint_molecule_paf.py -q$(mapq) -d$(dist) -s$(minsize) - | sort -k1,1 -k2,2n -k3,3n $(SORT_OPTS) > $@'
+endif
 endif
 endif
 
