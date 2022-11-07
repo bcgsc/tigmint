@@ -275,18 +275,20 @@ dist_sample=1000000
 $(reads).tigmint-long.params.tsv: $(longreads)
 	$(gtime) $(bin)/tigmint_estimate_dist.py $< -n $(dist_sample) -o $@
 
+# Set dist options for hte molecule extents rule
+dist_options=
+ifeq ($(dist), auto)
+dist_options+=-p $(reads).tigmint-long.params.tsv
+else
+dist_options+=-d$(dist)
+endif
+
 # Create molecule extents BED using cut long reads
 $(draft).$(reads).cut$(cut).molecule.size$(minsize).dist$(dist).bed: $(longreads) $(draft).fa $(reads).tigmint-long.params.tsv
 ifeq ($(span), auto)
 ifeq ($G, 0)
 	$(error Must set genome size parameter (G) to calculate span automatically)
 endif
-endif
-
-ifeq ($(dist), auto)
-dist_options+=-p $(reads).tigmint-long.params.tsv
-else
-dist_options+=-d$(dist)
 endif
 
 ifeq ($(mapping), ntLink)
