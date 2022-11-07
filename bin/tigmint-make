@@ -58,7 +58,7 @@ G=0
 longmap=ont
 
 # Mapping approach
-mapping=minimap2 # Can be minimap2 or ntLink
+mapping=minimap2 # Can be minimap2, minimap2_lr, ntLink_lr or ntLink
 ntLink_k=32
 ntLink_w=100
 
@@ -283,6 +283,12 @@ ifeq ($G, 0)
 endif
 endif
 
+ifeq ($(dist), auto)
+dist_options+=-p $(reads).tigmint-long.params.tsv
+else
+dist_options+=-d$(dist)
+endif
+
 ifeq ($(mapping), ntLink)
 	$(gtime) ntLink pair target=$(draft).fa reads=$< paf=True k=$(ntLink_k) w=$(ntLink_w) t=$t
 	$(gtime)1 sh -c '$(bin)/tigmint-filter-paf -m $(minsize) $(draft).fa.k$(ntLink_k).w$(ntLink_w).z1000.paf | sort -k1,1 -k2,2n -k3,3n > $@'
@@ -294,14 +300,14 @@ ifeq ($(mapping), ntLink_lr)
 	perl -ne 'chomp; if(/^(\S+)_f\d+\s+/){$$curr_bx=$$1; if($$curr_bx ne $$prev_bx) {$$cur_num+=1} $$bx="\tBX:Z:$$cur_num"x7; print "$$_$$bx\n";  $$prev_bx=$$curr_bx} ' > $(draft).fa.k$(ntLink_k).w$(ntLink_w).z1000.bx.paf
 	$(gtime)_molec $(bin)/tigmint_molecule_paf.py -q$(mapq) -s$(minsize) -p $(reads).tigmint-long.params.tsv $(draft).fa.k$(ntLink_k).w$(ntLink_w).z1000.bx.paf | sort -k1,1 -k2,2n -k3,3n $(SORT_OPTS) > $@
 else
-ifeq ($(dist), auto)
-	$(gtime) sh -c '$(bin)/../src/long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
-	minimap2 -y -t$t -x map-$(longmap) --secondary=no $(draft).fa - | \
-	$(bin)/tigmint_molecule_paf.py -q$(mapq) -s$(minsize) -p $(reads).tigmint-long.params.tsv - | sort -k1,1 -k2,2n -k3,3n $(SORT_OPTS) > $@'
+
+ifeq ($(mapping), minimap2_lr)
+	$(gtime) sh -c 'minimap2 -y -t$t -x map-$(longmap) --secondary=no $(draft).fa $< | \
+	$(bin)/tigmint-filter-paf -m $(minsize) - | sort -k1,1 -k2,2n -k3,3n $(SORT_OPTS) > $@'
 else
 	$(gtime) sh -c '$(bin)/../src/long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
 	minimap2 -y -t$t -x map-$(longmap) --secondary=no $(draft).fa - | \
-	$(bin)/tigmint_molecule_paf.py -q$(mapq) -d$(dist) -s$(minsize) - | sort -k1,1 -k2,2n -k3,3n $(SORT_OPTS) > $@'
+	$(bin)/tigmint_molecule_paf.py -q$(mapq) -s$(minsize) $(dist_options) - | sort -k1,1 -k2,2n -k3,3n $(SORT_OPTS) > $@
 endif
 endif
 endif

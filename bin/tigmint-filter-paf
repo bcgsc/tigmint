@@ -18,6 +18,8 @@ def main() -> None:
     parser.add_argument("-m", help="Minimum size of output extents (bp)", default=2000, type=int)
     args = parser.parse_args()
 
+    args.PAF = "/dev/stdin" if args.PAF == "-" else args.PAF
+
     paf_to_molecule_extents(args)
 
 if __name__ == "__main__":
