@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+"""
+Given a PAF-formatted mapping file, output mapping extents BED file
+"""
 import argparse
 
 def paf_to_molecule_extents(args: argparse.Namespace) -> None:
-    "Read through the input PAF file, and output the molecule extents above the length threshold"
+    "Read through the input PAF file, and output the mapping extents above the length threshold"
     with open(args.PAF, 'r') as fin:
         for line in fin:
             line = line.strip().split("\t")
@@ -13,7 +16,9 @@ def paf_to_molecule_extents(args: argparse.Namespace) -> None:
                 print(ctg_name, ctg_start, ctg_end, read_name, num_mx, sep="\t")
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Given a PAF-formatted mapping file, output molecule extents TSV")
+    "Filter input PAF file, output BED file"
+    parser = argparse.ArgumentParser(description="Given a PAF-formatted mapping file, "
+                                                 "output molecule extents BED")
     parser.add_argument("PAF", help="Input PAF file")
     parser.add_argument("-m", help="Minimum size of output extents (bp)", default=2000, type=int)
     args = parser.parse_args()

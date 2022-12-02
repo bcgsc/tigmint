@@ -22,10 +22,8 @@ def run_tigmint_filter_paf(args):
     if args.path:
         script_loc = args.path + "/" + script_loc
 
-    command_1 = f"{script_loc} -m {args.m} {args.target}.fa.k{args.k}.w{args.w}.z1000.paf"
-    command_1_shlex = shlex.split(command_1)
-    command_2 = f"sort -k1,1 -k2,2n -k3,3n"
-    command_2_shlex = shlex.split(command_2)
+    command_1_shlex = shlex.split(f"{script_loc} -m {args.m} {args.target}.fa.k{args.k}.w{args.w}.z1000.paf")
+    command_2_shlex = shlex.split(f"sort -k1,1 -k2,2n -k3,3n")
 
     with open(args.bed, "wb") as outfile:
         process_1 = subprocess.Popen(command_1_shlex, stdout=subprocess.PIPE)

@@ -29,7 +29,7 @@ jobs:
   - script: |
       source activate tigmint_CI
       cd bin
-      pylint tigmint-cut tigmint_molecule.py tigmint_molecule_paf.py tigmint_estimate_dist.py
+      pylint tigmint-cut tigmint_molecule.py tigmint_molecule_paf.py tigmint_estimate_dist.py tigmint-ntlink-map tigmint-filter-paf
       cd ../
     displayName: Run pylint
   - script: |
