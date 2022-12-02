@@ -4,6 +4,7 @@
 import pytest
 import shlex
 import subprocess
+import re
 import os
 import gzip
 
@@ -78,7 +79,6 @@ def tigmint_pipeline():
     for outfile in outfiles:
         if os.path.exists(outfile):
             os.remove(outfile)
-    
 
 # Tests
 
@@ -266,3 +266,31 @@ def test_pipeline(tigmint_pipeline):
                 else:
                     for i, exp_line in enumerate(exp):
                         assert exp_line == obs_content[i]
+
+
+def test_ntlink_mapping():
+    # Run Tigmint with ntLink mappings
+    if not re.search(r'test_installation', os.path.abspath(".")):
+        os.chdir("test_installation/")
+
+    command = "../../bin/tigmint-make -B tigmint-long draft=test_contig_long " \
+              "reads=test_longreads span=2 G=7000 dist=auto mapping=ntLink"
+    command_shlex = shlex.split(command)
+    return_code = subprocess.call(command_shlex)
+    assert return_code == 0
+
+    # Remove intermediate files
+    to_remove = ["test_contig_long.fa.k32.w100.z1000.verbose_mapping.tsv", "test_contig_long.fa.k32.w100.z1000.paf"]
+    for my_file in to_remove:
+        command = shlex.split(f"rm {my_file}")
+        ret_code = subprocess.call(command)
+        assert ret_code == 0
+
+    # Check expected number of breaktigs
+    command = "wc -l test_contig_long.test_longreads.cut500.molecule.size2000.distauto.trim0.window1000.span2.breaktigs.fa.bed"
+    command_shlex = shlex.split(command)
+    check_process = subprocess.Popen(command_shlex, stdout=subprocess.PIPE, universal_newlines=True)
+    outline = check_process.communicate()[0]
+    out_match = re.search(r'^(\d+)\s+', outline.strip())
+    assert out_match
+    assert int(out_match.group(1)) == 3
