@@ -14,7 +14,7 @@ jobs:
     displayName: Create Anaconda environment
   - script: |
       source activate tigmint_CI
-      conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda pytest bedtools bwa samtools=1.9 minimap2 pylint compilers
+      conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda pytest bedtools bwa samtools=1.9 minimap2 pylint compilers ntlink
       conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda --file requirements.txt
     displayName: Install Anaconda packages
   - script: |
@@ -29,7 +29,7 @@ jobs:
   - script: |
       source activate tigmint_CI
       cd bin
-      pylint tigmint-cut tigmint_molecule.py tigmint_molecule_paf.py tigmint_estimate_dist.py
+      pylint tigmint-cut tigmint_molecule.py tigmint_molecule_paf.py tigmint_estimate_dist.py tigmint-ntlink-map tigmint-filter-paf
       cd ../
     displayName: Run pylint
   - script: |

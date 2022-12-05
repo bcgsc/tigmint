@@ -57,6 +57,11 @@ G=0
 # Minimap2 long read map parameter
 longmap=ont
 
+# Mapping approach
+mapping=minimap2 # Can be minimap2 or ntLink
+ntLink_k=32
+ntLink_w=100
+
 # Minimum molecule size
 minsize=2000
 
@@ -127,10 +132,14 @@ endif
 
 # Record run time and memory usage in a file using GNU time.
 ifdef time
+ifneq ($(shell command -v memusg),)
+gtime=command memusg -t -o $@.time
+else
 ifneq ($(shell command -v gtime),)
 gtime=command gtime -v -o $@.time
 else
 gtime=command time -v -o $@.time
+endif
 endif
 endif
 
@@ -179,8 +188,8 @@ tigmint-molecule: $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).dist
 
 # Perform the final tigmint-cut step for linked reads
 tigmint-cut: \
-        $(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.fa \
-        $(draft).tigmint.fa
+		$(draft).$(reads).as$(as).nm$(nm).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.fa \
+		$(draft).tigmint.fa
 
 # Correct misassemblies for long reads using Tigmint
 tigmint-long: \
@@ -195,8 +204,8 @@ tigmint-long-to-linked: $(draft).$(reads).cut$(cut).molecule.size$(minsize).dist
 
 # Perform the final tigmint-cut step for long reads
 tigmint-long-cut: \
-        $(draft).$(reads).cut$(cut).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.fa \
-        $(draft).cut$(cut).tigmint.fa
+		$(draft).$(reads).cut$(cut).molecule.size$(minsize).dist$(dist).trim$(trim).window$(window).span$(span).breaktigs.fa \
+		$(draft).cut$(cut).tigmint.fa
 
 # Calculate assembly metrics after Tigmint
 tigmint_metrics: \
@@ -266,6 +275,14 @@ dist_sample=1000000
 $(reads).tigmint-long.params.tsv: $(longreads)
 	$(gtime) $(bin)/tigmint_estimate_dist.py $< -n $(dist_sample) -o $@
 
+# Set dist options for the molecule extents rule
+dist_options=
+ifeq ($(dist), auto)
+dist_options+=-p $(reads).tigmint-long.params.tsv
+else
+dist_options+=-d$(dist)
+endif
+
 # Create molecule extents BED using cut long reads
 $(draft).$(reads).cut$(cut).molecule.size$(minsize).dist$(dist).bed: $(longreads) $(draft).fa $(reads).tigmint-long.params.tsv
 ifeq ($(span), auto)
@@ -274,14 +291,12 @@ ifeq ($G, 0)
 endif
 endif
 
-ifeq ($(dist), auto)
-	$(gtime) sh -c '$(bin)/../src/long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
-	minimap2 -y -t$t -x map-$(longmap) --secondary=no $(draft).fa - | \
-	$(bin)/tigmint_molecule_paf.py -q$(mapq) -s$(minsize) -p $(reads).tigmint-long.params.tsv - | sort -k1,1 -k2,2n -k3,3n $(SORT_OPTS) > $@'
+ifeq ($(mapping), ntLink)
+	$(gtime) $(bin)/tigmint-ntlink-map --bed $@ -k$(ntLink_k) -w$(ntLink_w) -t$t --path $(bin) -m$(minsize) $(draft) $<
 else
 	$(gtime) sh -c '$(bin)/../src/long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
 	minimap2 -y -t$t -x map-$(longmap) --secondary=no $(draft).fa - | \
-	$(bin)/tigmint_molecule_paf.py -q$(mapq) -d$(dist) -s$(minsize) - | sort -k1,1 -k2,2n -k3,3n $(SORT_OPTS) > $@'
+	$(bin)/tigmint_molecule_paf.py -q$(mapq) -s$(minsize) $(dist_options) - | sort -k1,1 -k2,2n -k3,3n $(SORT_OPTS) > $@'
 endif
 
 # Create molecule extents TSV

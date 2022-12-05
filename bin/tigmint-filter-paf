@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+"""
+Given a PAF-formatted mapping file, output mapping extents BED file
+"""
+import argparse
+
+def paf_to_molecule_extents(args: argparse.Namespace) -> None:
+    "Read through the input PAF file, and output the mapping extents above the length threshold"
+    with open(args.PAF, 'r') as fin:
+        for line in fin:
+            line = line.strip().split("\t")
+            ctg_name, ctg_start, ctg_end = line[5], int(line[7]), int(line[8])
+            read_name = line[0]
+            num_mx = int(line[9])
+            if ctg_end - ctg_start >= args.m:
+                print(ctg_name, ctg_start, ctg_end, read_name, num_mx, sep="\t")
+
+def main() -> None:
+    "Filter input PAF file, output BED file"
+    parser = argparse.ArgumentParser(description="Given a PAF-formatted mapping file, "
+                                                 "output molecule extents BED")
+    parser.add_argument("PAF", help="Input PAF file")
+    parser.add_argument("-m", help="Minimum size of output extents (bp)", default=2000, type=int)
+    args = parser.parse_args()
+
+    args.PAF = "/dev/stdin" if args.PAF == "-" else args.PAF
+
+    paf_to_molecule_extents(args)
+
+if __name__ == "__main__":
+    main()
