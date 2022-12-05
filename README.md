@@ -109,7 +109,7 @@ tigmint-make tigmint-long draft=myassembly reads=myreads span=auto G=gsize dist=
 
 - `minimap2 map-ont` is used to align long reads from the Oxford Nanopore Technologies (ONT) platform, which is the default input for Tigmint. To use PacBio long reads specify the parameter `longmap=pb`. The former calls `minimap2 -x map-ont` while the latter calls `minimap2 -x map-pb` instead. When using PacBio HiFi long reads, specify the parameter `longmap=hifi`.
 
-Optionally, ntLink can be used to map the long reads to the draft assembly. To use ntLink mappings, specify `mapper=ntLink` to your `tigmint` command.
+Optionally, ntLink (v1.3.6+) can be used to map the long reads to the draft assembly. To use ntLink mappings, specify `mapper=ntLink` to your `tigmint` command.
 
 
 # Notes
