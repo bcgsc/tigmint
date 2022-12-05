@@ -9,7 +9,7 @@ import subprocess
 
 
 def run_ntlink_pair(args):
-    "Run ntLink pair"
+    "Run ntLink pair stage to obtain PAF-formatted mappings"
     command = f"ntLink pair target={args.target}.fa reads={args.reads} " \
               f"paf=True k={args.k} w={args.w} t={args.t}"
     command_shlex = shlex.split(command)
@@ -17,10 +17,10 @@ def run_ntlink_pair(args):
     assert return_code == 0
 
 def run_tigmint_filter_paf(args):
-    "Run tigmint-filter-paf"
+    "Run tigmint-filter-paf to filter and convert PAF file to BED format"
     script_loc = "tigmint-filter-paf"
     if args.path:
-        script_loc = args.path + "/" + script_loc
+        script_loc = f"{args.path}/{script_loc}"
 
     command_1_shlex = shlex.split(f"{script_loc} -m {args.m} {args.target}.fa.k{args.k}.w{args.w}.z1000.paf")
     command_2_shlex = shlex.split(f"sort -k1,1 -k2,2n -k3,3n")
@@ -42,12 +42,12 @@ def main():
     parser.add_argument("reads", help="Long reads file")
     parser.add_argument("--bed", help="Name for output BED file with mapping extents",
                         required=True, type=str)
-    parser.add_argument("-k", help="K-mer size", required=True, type=int)
+    parser.add_argument("-k", help="K-mer size (bp)", required=True, type=int)
     parser.add_argument("-w", help="Window size", required=True, type=int)
     parser.add_argument("-t", help="Number of threads [4]", default=4, type=int)
     parser.add_argument("--path", help="Path to directory with tigmint-fiter-paf executable, "
                                        "if not in PATH", type=str)
-    parser.add_argument("-m", help="Minimum size for mapping block", default=2000, type=int)
+    parser.add_argument("-m", help="Minimum size for mapping block (bp) [2000]", default=2000, type=int)
 
     args = parser.parse_args()
 
