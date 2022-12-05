@@ -23,7 +23,7 @@ def run_tigmint_filter_paf(args):
         script_loc = f"{args.path}/{script_loc}"
 
     command_1_shlex = shlex.split(f"{script_loc} -m {args.m} {args.target}.fa.k{args.k}.w{args.w}.z1000.paf")
-    command_2_shlex = shlex.split(f"sort -k1,1 -k2,2n -k3,3n")
+    command_2_shlex = shlex.split("sort -k1,1 -k2,2n -k3,3n")
 
     with open(args.bed, "wb") as outfile:
         process_1 = subprocess.Popen(command_1_shlex, stdout=subprocess.PIPE)
@@ -53,7 +53,8 @@ def main():
     args = parser.parse_args()
 
     if args.span == "auto":
-        raise ValueError("Error: span=auto is currently not compatible with using ntLink for mapping. Please specify an integer value for span. " \
+        raise ValueError("Error: span=auto is currently not compatible with using ntLink for mapping. " \
+            "Please specify an integer value for span. " \
             "When using ntLink for mapping, we recommend the span value to be between 2-10.")
 
     run_ntlink_pair(args)
