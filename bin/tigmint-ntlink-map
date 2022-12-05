@@ -49,6 +49,7 @@ def main():
                                        "if not in PATH", type=str)
     parser.add_argument("-m", help="Minimum size for mapping block (bp) [2000]", default=2000, type=int)
     parser.add_argument("--span", help="Span value specified for tigmint-cut", required=True)
+    parser.add_argument('--version', action='version', version='tigmint-ntlink-map 1.2.8')
 
     args = parser.parse_args()
 
