@@ -54,7 +54,7 @@ make -C src
 ```
 or
 ```
-curl -L https://github.com/bcgsc/tigmint/releases/download/v1.2.7/tigmint-1.2.7.tar.gz | tar xz && cd tigmint-1.2.7
+curl -L https://github.com/bcgsc/tigmint/releases/download/v1.2.8/tigmint-1.2.8.tar.gz | tar xz && cd tigmint-1.2.8
 make -C src
 ```
 
