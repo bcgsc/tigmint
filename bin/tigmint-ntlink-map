@@ -11,7 +11,7 @@ import subprocess
 def run_ntlink_pair(args):
     "Run ntLink pair stage to obtain PAF-formatted mappings"
     command = f"ntLink pair target={args.target}.fa reads={args.reads} " \
-              f"paf=True k={args.k} w={args.w} t={args.t}"
+              f"paf=True k={args.k} w={args.w} t={args.t} sensitive=True"
     command_shlex = shlex.split(command)
     return_code = subprocess.call(command_shlex)
     assert return_code == 0
