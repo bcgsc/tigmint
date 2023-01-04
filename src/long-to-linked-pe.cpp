@@ -21,7 +21,7 @@
 #include <vector>
 
 const static std::string PROGNAME = "long-to-linked-pe";
-const static std::string VERSION = "v1.2.8";
+const static std::string VERSION = "v1.2.9";
 const static size_t MAX_THREADS = 6;
 
 static void
