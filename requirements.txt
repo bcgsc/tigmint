@@ -2,4 +2,4 @@ intervaltree
 pybedtools
 pysam
 numpy
-btllib
+btllib <=1.4.10
