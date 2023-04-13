@@ -2,7 +2,7 @@ FROM linuxbrew/linuxbrew
 LABEL maintainer="Shaun Jackman <sjackman@gmail.com>"
 
 WORKDIR /home/linuxbrew/tigmint
-ADD . .
+COPY . .
 RUN sudo chown -R linuxbrew: . \
 	&& brew bundle \
 	&& rm -rf /home/linuxbrew/.cache \
