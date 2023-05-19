@@ -23,10 +23,12 @@ reads=reads
 fastq_gz=$(shell test -f $(reads).fq.gz && echo "true")
 fastq=$(shell test -f $(reads).fq && echo "true")
 fastq_long=$(shell test -f $(reads).fastq && echo "true")
+fastq_long_gz=$(shell test -f $(reads).fastq.gz && echo "true")
 
 fasta_gz=$(shell test -f $(reads).fa.gz && echo "true")
 fasta=$(shell test -f $(reads).fa && echo "true")
 fasta_long=$(shell test -f $(reads).fasta && echo "true")
+fasta_long_gz=$(shell test -f $(reads).fasta.gz && echo "true")
 
 ifeq ($(fastq_gz), true)
 longreads=$(reads).fq.gz
@@ -37,6 +39,9 @@ endif
 ifeq ($(fastq_long), true)
 longreads=$(reads).fastq
 endif
+ifeq ($(fastq_long_gz), true)
+longreads=$(reads).fastq.gz
+endif
 
 ifeq ($(fasta_gz), true)
 longreads=$(reads).fa.gz
@@ -46,6 +51,9 @@ longreads=$(reads).fa
 endif
 ifeq ($(fasta_long), true)
 longreads=$(reads).fasta
+endif
+ifeq ($(fasta_long_gz), true)
+longreads=$(reads).fasta.gz
 endif
 
 # Reference genome, ref.fa, for calculating assembly contiguity metrics
