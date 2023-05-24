@@ -162,7 +162,7 @@ help:
 	@echo 'For more information see https://bcgsc.github.io/tigmint/'
 
 version:
-	@echo "Tigmint 1.2.9"
+	@echo "Tigmint 1.2.10"
 	@echo "Written by Shaun Jackman @sjackman."
 
 all: tigmint arcs
