@@ -62,7 +62,7 @@ make -C src
 
 ## Install Python package dependencies
 ```sh
-conda install -c bioconda intervaltree pybedtools pysam numpy bedtools minimap2 bwa zsh 'btllib<=1.4.10' samtools
+conda install -c bioconda intervaltree pybedtools pysam numpy bedtools minimap2 bwa zsh btllib samtools
 ```
 
 ## Install the dependencies of ARCS (optional)
