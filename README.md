@@ -35,7 +35,7 @@ brew install tigmint
 ## Install Tigmint using Conda
 
 ```sh
-conda install -c bioconda tigmint
+conda install -c bioconda -c conda-forge tigmint
 ```
 
 ## Run Tigmint using Docker
