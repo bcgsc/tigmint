@@ -19,7 +19,9 @@ setuptools.setup(
         "pybedtools",
         "pysam",
         "statistics",
-        "numpy"],
+        "numpy",
+        "btllib",
+    ],
     scripts=[
         "bin/tigmint",
         "bin/tigmint-arcs-tsv",
