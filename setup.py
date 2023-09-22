@@ -26,7 +26,10 @@ setuptools.setup(
         "bin/tigmint-cut",
         "bin/tigmint-make",
         "bin/tigmint_molecule.py",
-        "bin/tigmint_molecule_paf.py"],
+        "bin/tigmint_molecule_paf.py",
+        "bin/tigmint_estimate_dist.py",
+        "bin/tigmint-ntlink-map",
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
