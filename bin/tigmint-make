@@ -302,7 +302,7 @@ endif
 ifeq ($(mapping), ntLink)
 	$(gtime) $(bin)/tigmint-ntlink-map --bed $@ -k$(ntLink_k) -w$(ntLink_w) -t$t --path $(bin) -m$(minsize) --span $(span) $(draft) $<
 else
-	$(gtime) sh -c '$(bin)/../src/long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
+	$(gtime) sh -c 'long-to-linked-pe -l $(cut) -m$(minsize) -g$G -s -b $(reads).barcode-multiplicity.tsv --bx -t$t --fasta -f $(reads).tigmint-long.params.tsv $< | \
 	minimap2 -y -t$t -x map-$(longmap) --secondary=no $(draft).fa - | \
 	$(bin)/tigmint_molecule_paf.py -q$(mapq) -s$(minsize) $(dist_options) - | sort -k1,1 -k2,2n -k3,3n $(SORT_OPTS) > $@'
 endif
