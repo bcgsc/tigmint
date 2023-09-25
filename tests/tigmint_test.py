@@ -16,7 +16,7 @@ def long_to_linked(length=500, minsize=2000, span="auto", G=100000, dist="defaul
         params.append('-s')
     if dist == "auto":
         params.append('-d')
-    long_to_linked = subprocess.Popen(shlex.split("../src/long-to-linked-pe -l%i -m%i -g %i -f %s %s %s" % (length, minsize, G, output_param_file, " ".join(params), "test_longreads.fa.gz")), stdout=subprocess.PIPE, universal_newlines=True)
+    long_to_linked = subprocess.Popen(shlex.split("long-to-linked-pe -l%i -m%i -g %i -f %s %s %s" % (length, minsize, G, output_param_file, " ".join(params), "test_longreads.fa.gz")), stdout=subprocess.PIPE, universal_newlines=True)
 
     cut_reads = long_to_linked.communicate()[0].splitlines()
     assert long_to_linked.returncode == 0
@@ -26,9 +26,9 @@ def long_to_linked(length=500, minsize=2000, span="auto", G=100000, dist="defaul
 def tigmint_molecule(bamfile, dist="default"):
     """Run tigmint_molecule.py with a given alignment bam file."""
     if dist == "default":
-        tigmint_molecule = subprocess.Popen(shlex.split("../bin/tigmint_molecule.py -a0.65 -n5 -q0 -d50000 -s2000 %s" % bamfile), stdout=subprocess.PIPE)
+        tigmint_molecule = subprocess.Popen(shlex.split("tigmint_molecule.py -a0.65 -n5 -q0 -d50000 -s2000 %s" % bamfile), stdout=subprocess.PIPE)
     elif dist == "auto":
-        tigmint_molecule = subprocess.Popen(shlex.split("../bin/tigmint_molecule.py -a0.65 -n5 -q0 -d50000 -s2000 -p tigmint-long.span_G_1000000.span_20.dist_auto.tsv %s" % bamfile), stdout=subprocess.PIPE)
+        tigmint_molecule = subprocess.Popen(shlex.split("tigmint_molecule.py -a0.65 -n5 -q0 -d50000 -s2000 -p tigmint-long.span_G_1000000.span_20.dist_auto.tsv %s" % bamfile), stdout=subprocess.PIPE)
     sorted_molecules = subprocess.Popen(shlex.split("sort -k1,1 -k2,2n -k3,3n"), stdin=tigmint_molecule.stdout, stdout=subprocess.PIPE, universal_newlines=True)
     tigmint_molecule.wait()
     molecules = sorted_molecules.communicate()[0].splitlines()
@@ -45,10 +45,10 @@ def tigmint_cut():
         outfiles.append(out_fasta + ".bed")
         if auto_span:
             param_file = "tigmint-long.span_G_%s.span_auto.dist_default.tsv" % G
-            tigmint_cut = subprocess.call(shlex.split("../bin/tigmint-cut -p8 -w1000 -n %s -t0 -o %s -f %s \
+            tigmint_cut = subprocess.call(shlex.split("tigmint-cut -p8 -w1000 -n %s -t0 -o %s -f %s \
                 %s %s" % (span, out_fasta, param_file, draft, molecule_bed)))
         else:
-            tigmint_cut = subprocess.call(shlex.split("../bin/tigmint-cut -p8 -w1000 -n %s -t0 -o %s \
+            tigmint_cut = subprocess.call(shlex.split("tigmint-cut -p8 -w1000 -n %s -t0 -o %s \
                 %s %s" % (span, out_fasta, draft, molecule_bed)))
         assert tigmint_cut == 0
         return out_fasta
@@ -273,7 +273,7 @@ def test_ntlink_mapping():
     if not re.search(r'test_installation', os.path.abspath(".")):
         os.chdir("test_installation/")
 
-    command = "../../bin/tigmint-make -B tigmint-long draft=test_contig_long " \
+    command = "tigmint-make -B tigmint-long draft=test_contig_long " \
               "reads=test_longreads span=2 G=7000 dist=auto mapping=ntLink"
     command_shlex = shlex.split(command)
     return_code = subprocess.call(command_shlex)
