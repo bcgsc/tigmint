@@ -14,8 +14,9 @@ jobs:
     displayName: Create Anaconda environment
   - script: |
       source activate tigmint_CI
-      conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda pytest bedtools bwa samtools=1.9 minimap2 pylint 'btllib<=1.4.10' compilers ntlink
-      conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda --file requirements.txt
+      conda install --yes --quiet --name tigmint_CI -c conda-forge -c bioconda mamba python=3.9
+      mamba install --yes --quiet -c conda-forge -c bioconda pytest bedtools bwa samtools=1.9 minimap2 pylint btllib compilers ntlink
+      mamba install --yes --quiet -c conda-forge -c bioconda --file requirements.txt
     displayName: Install Anaconda packages
   - script: |
       source activate tigmint_CI
@@ -34,6 +35,7 @@ jobs:
     displayName: Run pylint
   - script: |
       source activate tigmint_CI
+      export PATH=$(pwd)/bin:$PATH
       cd tests
       pytest -vs tigmint_test.py
     displayName: Run pytests
