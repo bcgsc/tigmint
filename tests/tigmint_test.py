@@ -225,12 +225,12 @@ def test_pipeline(tigmint_pipeline):
                             stdout=subprocess.PIPE, universal_newlines=True)
     obs = subprocess.Popen(shlex.split("samtools view %s" % bam), stdout=subprocess.PIPE,
                             universal_newlines=True)
-    exp_bam = exp.communicate()[0].splitlines().split("\t")
-    obs_bam = obs.communicate()[0].splitlines().split("\t")
+    exp_bam = exp.communicate()[0].splitlines()
+    obs_bam = obs.communicate()[0].splitlines()
     for i, exp_alignment in enumerate(exp_bam):
-        assert exp_alignment[:11] == obs_bam[i][:11]
-        assert exp_alignment[-1] == obs_bam[-1]
-    
+        assert exp_alignment.split("\t")[:11] == obs_bam[i].split("\t")[:11]
+        assert exp_alignment.split("\t")[-1] == obs_bam[i].split("\t")[-1]
+
     # Other readable files
     tigmint_outputs = ["test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.dist50000.bed",
         "test_contig.test_linkedreads.as0.65.nm5.molecule.size2000.dist50000.trim0.window1000.span20.breaktigs.fa",
