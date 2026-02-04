@@ -117,6 +117,7 @@ Optionally, ntLink (v1.3.6+) can be used to map the long reads to the draft asse
 + `tigmint-make` is a Makefile script, and so any `make` options may also be used with `tigmint-make`, such as `-n` (`--dry-run`).
 + When running Tigmint with linked reads, the file extension of the assembly must be `.fa` and the reads `.fq.gz`, and the extension should NOT be included in the parameters `draft` and `reads` on the command line (otherwise you will get an error). These specific file name requirements result from implementing the pipeline in GNU Make.
   + The requirements for running Tigmint with long reads are the same, but the file extension of the reads file can also be `.fa`, `.fa.gz`, or `.fq`
+  + Ensure that the `draft` and `reads` names are not identical
 + The minimum spanning molecules parameter (`span`) for `tigmint-cut` is heavily dependent on the sequence coverage of the linked or long reads provided. When running Tigmint with long reads, use `span=auto` and set `G` to your assembly organism's haploid genome size for this parameter to be calculated automatically, or explicitly set `span` to a specific number if you are interested in adjusting it. See [Tips](#Tips) for more details. 
 + For `tigmint-long`, the maximum distance between reads threshold should be calculated automatically based on the read length distribution. This can be done by setting the parameter `dist=auto`.
 + The `long-to-linked-pe` step of `tigmint-long` uses a maximum of 6 threads
