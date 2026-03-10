@@ -11,7 +11,7 @@ setuptools.setup(
     description="Correct misassemblies using linked or long reads",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://bcgsc.github.io/tigmint/",
+    url="https://birollab.github.io/tigmint/",
     license="GPLv3",
     python_requires=">=3",
     install_requires=[
