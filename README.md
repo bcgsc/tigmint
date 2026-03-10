@@ -1,6 +1,6 @@
-[![Release](https://img.shields.io/github/release/bcgsc/tigmint.svg)](https://github.com/bcgsc/tigmint/releases)
+[![Release](https://img.shields.io/github/release/BirolLab/tigmint.svg)](https://github.com/BirolLab/tigmint/releases)
 [![Conda](https://img.shields.io/conda/dn/bioconda/tigmint?label=Conda)](https://anaconda.org/bioconda/tigmint)
-[![Issues](https://img.shields.io/github/issues/bcgsc/tigmint.svg)](https://github.com/bcgsc/tigmint/issues)
+[![Issues](https://img.shields.io/github/issues/BirolLab/tigmint.svg)](https://github.com/BirolLab/tigmint/issues)
 
 <img src="http://sjackman.ca/img/tigmint.png" style="width:4in">
 
@@ -49,12 +49,12 @@ docker run quay.io/biocontainers/tigmint
 Download and extract the source code.
 
 ```
-git clone https://github.com/bcgsc/tigmint && cd tigmint
+git clone https://github.com/BirolLab/tigmint && cd tigmint
 make -C src
 ```
 or
 ```
-curl -L https://github.com/bcgsc/tigmint/releases/download/v1.2.10/tigmint-1.2.10.tar.gz | tar xz && cd tigmint-1.2.10
+curl -L https://github.com/BirolLab/tigmint/releases/download/v1.2.10/tigmint-1.2.10.tar.gz | tar xz && cd tigmint-1.2.10
 make -C src
 ```
 
@@ -88,7 +88,7 @@ tigmint-make tigmint draft=myassembly reads=myreads
 - `samtools sort -tBX` is used to sort first by barcode and then position.
 
 
-To run both Tigmint and scaffold the corrected assembly with [ARCS](https://github.com/bcgsc/arcs):
+To run both Tigmint and scaffold the corrected assembly with [ARCS](https://github.com/BirolLab/arcs):
 
 ```sh
 tigmint-make arcs draft=myassembly reads=myreads
@@ -197,7 +197,7 @@ FFFFFFFGFGFFGFDFGFFFFFFFFFFFGFFF@FFFFFFFFFFFF@FFFFFFFFFGGFFEFEFFFF?FFFFGFFFGFFFF
 
 # Support
 
-After first looking for an existing issue at <https://github.com/bcgsc/tigmint/issues>, please report a new issue at <https://github.com/bcgsc/tigmint/issues/new>. Please report the names of your input files, the exact command line that you are using, and the entire output of Tigmint.
+After first looking for an existing issue at <https://github.com/BirolLab/tigmint/issues>, please report a new issue at <https://github.com/BirolLab/tigmint/issues/new>. Please report the names of your input files, the exact command line that you are using, and the entire output of Tigmint.
 
 # Pipeline
 
